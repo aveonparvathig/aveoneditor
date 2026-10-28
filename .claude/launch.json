@@ -20,6 +20,16 @@
         "dev:angular"
       ],
       "port": 4201
+    },
+    {
+      "name": "collab-server",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "packages/collab-server/bin/aveon-collab.js",
+        "--port",
+        "1234"
+      ],
+      "port": 1234
     }
   ]
 }

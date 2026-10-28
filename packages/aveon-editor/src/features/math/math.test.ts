@@ -110,14 +110,22 @@ describe('math', () => {
     editor.execute('math', { equation: 'a+b' });
     expect(editor.getData()).toBe('<p>Hello<span class="math-tex">\\(a+b\\)</span></p>');
     const command = editor.commands.get('math')!;
-    expect(command.value).toEqual({ equation: 'a+b', display: false, numbered: false });
+    // The caret is after the new equation, so inserting again adds a second one.
+    expect(command.value).toBeNull();
+    editor.execute('math', { equation: 'x^2' });
+    expect(editor.getData()).toBe('<p>Hello<span class="math-tex">\\(a+b\\)</span><span class="math-tex">\\(x^2\\)</span></p>');
+    editor.execute('undo');
 
+    // Selecting an equation (as clicking it does) edits it.
+    const paragraph = editor.model.document.getRoot()!.getChild(0) as any;
+    editor.model.change(writer => writer.setSelection(paragraph.getChild(1), 'on'));
+    expect(command.value).toEqual({ equation: 'a+b', display: false, numbered: false });
     editor.execute('math', { equation: 'a-b' });
     expect(editor.getData()).toBe('<p>Hello<span class="math-tex">\\(a-b\\)</span></p>');
 
+    editor.model.change(writer => writer.setSelection(paragraph.getChild(1), 'on'));
     editor.execute('math', { equation: 'a-b', display: true });
-    expect(editor.getData()).toBe('<p>Hello</p><span class="math-tex">\\[a-b\\]</span>');
-    expect(command.value).toEqual({ equation: 'a-b', display: true, numbered: false });
+    expect(editor.getData()).toBe('<p>Hello</p><span class="math-tex">\\[a-b\\]</span><p>&nbsp;</p>');
 
     editor.execute('undo');
     expect(editor.getData()).toBe('<p>Hello<span class="math-tex">\\(a-b\\)</span></p>');

@@ -310,6 +310,7 @@ export class MathCommand extends Command {
             writer.removeAttribute('number', selected);
           }
         }
+        placeCaretAfter(writer, model, selected, display);
         return;
       }
       if (selected) {
@@ -322,12 +323,31 @@ export class MathCommand extends Command {
       if (numbered) attributes.numbered = true;
       const element = writer.createElement(elementName, attributes);
       if (display) {
-        model.insertObject(element, null, null, { findOptimalPosition: 'auto', setSelection: 'on' });
+        model.insertObject(element, null, null, { findOptimalPosition: 'auto', setSelection: 'after' });
       } else {
         model.insertContent(element);
-        writer.setSelection(element, 'on');
+        placeCaretAfter(writer, model, element, false);
       }
     });
+  }
+}
+
+/**
+ * Puts the caret after an equation, so that the next "Insert equation" adds a new one instead of
+ * editing this one (clicking an equation still selects it for editing).
+ */
+function placeCaretAfter(writer: any, model: any, element: ModelElement, display: boolean): void {
+  if (!display) {
+    writer.setSelection(element, 'after');
+    return;
+  }
+  const range = model.schema.getNearestSelectionRange(writer.createPositionAfter(element), 'forward');
+  if (range && !range.containsItem?.(element) && range.start.nodeAfter !== element) {
+    writer.setSelection(range);
+  } else {
+    const paragraph = writer.createElement('paragraph');
+    writer.insert(paragraph, writer.createPositionAfter(element));
+    writer.setSelection(paragraph, 0);
   }
 }
 

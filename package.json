@@ -14,7 +14,8 @@
     "typecheck": "npm run typecheck -w @aveon/editor",
     "dev:angular": "cd apps/cms-angular && npx ng serve --port 4201",
     "build:angular": "cd apps/cms-angular && npx ng build aveon-angular && npx ng build",
-    "pack:release": "npm run build && cd packages/aveon-editor && npm pack --pack-destination ../../release && cd ../../apps/cms-angular && npx ng build aveon-angular && cd dist/aveon-angular && npm pack --pack-destination ../../../../release"
+    "pack:release": "npm run build && cd packages/aveon-editor && npm pack --pack-destination ../../release && cd ../../apps/cms-angular && npx ng build aveon-angular && cd dist/aveon-angular && npm pack --pack-destination ../../../../release",
+    "collab:server": "node packages/collab-server/bin/aveon-collab.js --port 1234 --data ./collab-data"
   },
   "engines": {
     "node": ">=18"

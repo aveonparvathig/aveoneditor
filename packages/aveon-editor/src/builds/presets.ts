@@ -32,6 +32,7 @@ import { References } from '../features/references/references';
 import { Sketch } from '../features/sketch/sketch';
 import { Comments } from '../features/comments/comments';
 import { TrackChanges } from '../features/trackchanges/trackchanges';
+import { RealTimeCollaboration } from '../features/collaboration/collaboration';
 import type { RibbonConfig } from '../ui/ribbon/ribbonview';
 
 /** Plugins matching the CKEditor 5 classic build, plus the commonly requested extras. */
@@ -83,7 +84,8 @@ export const classicPreset: PluginConstructor[] = [
   References,
   Sketch,
   Comments,
-  TrackChanges
+  TrackChanges,
+  RealTimeCollaboration
 ];
 
 /** Toolbar matching the CKEditor 5 classic build defaults, extended with the extra features. */
@@ -132,7 +134,7 @@ export const classicToolbar: string[] = [
 
 /** Word-style ribbon: everyday tools on Home, everything you can add on Insert. */
 export const classicRibbon: RibbonConfig = {
-  quickAccess: ['undo', 'redo'],
+  quickAccess: ['undo', 'redo', 'collaborators'],
   tabs: [
     {
       label: 'Home',

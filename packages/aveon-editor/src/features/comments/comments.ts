@@ -166,6 +166,23 @@ export class Comments extends Plugin {
     return [...this._threads.values()].filter(thread => anchored.has(thread.id)).map(thread => JSON.parse(JSON.stringify(thread)));
   }
 
+  /** Every known thread, including ones whose text is not (or not yet) in the document. */
+  public getAllThreads(): CommentThread[] {
+    return [...this._threads.values()].map(thread => JSON.parse(JSON.stringify(thread)));
+  }
+
+  /** Applies thread changes made elsewhere (real-time collaboration); `change` fires with `{ remote: true }`. */
+  public mergeThreads(upserts: CommentThread[], removals: string[] = []): void {
+    for (const thread of upserts) {
+      const existing = this._threads.get(thread.id);
+      this._threads.set(thread.id, normalizeThread(thread));
+      if (existing && existing.resolved !== !!thread.resolved) this._redrawMarkers(thread.id);
+    }
+    for (const id of removals) this._threads.delete(id);
+    this.fire('change', this.getThreads(), { remote: true });
+    this.render();
+  }
+
   public getThread(id: string): CommentThread | undefined {
     return this._threads.get(id);
   }

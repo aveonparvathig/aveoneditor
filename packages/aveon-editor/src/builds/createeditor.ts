@@ -39,6 +39,7 @@ import { ExportDocument } from '../features/export/export';
 import { References } from '../features/references/references';
 import { Comments } from '../features/comments/comments';
 import { TrackChanges } from '../features/trackchanges/trackchanges';
+import { RealTimeCollaboration } from '../features/collaboration/collaboration';
 
 export type PresetName = 'basic' | 'cms' | 'erp' | 'full';
 
@@ -68,7 +69,7 @@ export const cmsPreset: EditorPreset = {
 
 /** Business documents and records (quotes, notes, emails, task descriptions). */
 export const erpRibbon: RibbonConfig = {
-  quickAccess: ['undo', 'redo'],
+  quickAccess: ['undo', 'redo', 'collaborators'],
   tabs: [
     {
       label: 'Home',
@@ -175,7 +176,8 @@ export const erpPreset: EditorPreset = {
     ExportDocument,
     References,
     Comments,
-    TrackChanges
+    TrackChanges,
+    RealTimeCollaboration
   ],
   config: {
     ribbon: erpRibbon,

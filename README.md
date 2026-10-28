@@ -12,6 +12,7 @@ The code is an original, clean implementation. No CKEditor source is included.
 | `apps/demo` | Plain TypeScript demo (Vite) of the classic editor with every feature enabled |
 | `apps/cms-angular` | Angular 22 workspace with the `aveon-angular` library and a demo CMS page |
 | `apps/cms-angular/projects/aveon-angular` | The Angular integration library (`<aveon-editor>`) |
+| `packages/collab-server` | Real-time collaboration server (`@aveon/collab-server`, WebSocket) |
 
 ## Getting started
 
@@ -291,6 +292,48 @@ Set the current user with `user: { id, name }`.
 
 - **Track Changes** records typed and pasted text as insertions and deleted text as deletions (author and time), saved as `<ins class="suggestion-insert">` / `<del class="suggestion-delete">`, so pending suggestions survive saving. Accept or reject them in the panel, at the cursor, or all at once. Deleting your own suggested text removes it. Formatting changes and structural edits (new paragraphs, merged blocks, tables and images) apply directly and are not tracked.
 
+## Real-time collaboration
+
+Several people can edit the same document at once. Each sees the others' cursors and selections (with name and colour) and who is connected, and comment threads stay in sync. Edits made while offline are kept and sent after reconnecting.
+
+**1. Run the server** (`packages/collab-server`, Node 18+):
+
+```bash
+npm run collab:server
+```
+
+This listens on `ws://localhost:1234` and keeps documents in `./collab-data`. In your own Node application:
+
+```js
+import { createCollaborationServer, FileStorage } from '@aveon/collab-server';
+
+createCollaborationServer({
+  port: 1234,                                  // or `server: existingHttpServer`
+  storage: new FileStorage('./collab-data'),   // or your own { load, save }
+  authenticate: async ({ token, documentId }) => {
+    const user = await verifySession(token);   // your auth
+    return user && (await canEdit(user, documentId)) ? { id: user.id, name: user.name } : null;
+  },
+  onSnapshot: async ({ documentId, data }) => saveHtml(documentId, data) // latest HTML for your database
+});
+```
+
+**2. Connect the editor** (any preset; set the current user):
+
+```ts
+createEditor('#editor', {
+  preset: 'erp',
+  user: { id: 'u-17', name: 'Asha Rao' },
+  collaboration: { url: 'wss://collab.example.com', documentId: 'quote-42', token: () => getToken() }
+});
+```
+
+The first person to open a document provides its initial content; everyone after that gets the shared copy. The editor is read-only until the shared copy has arrived. The ribbon's quick-access bar shows the connection state ("Live", "Offline: edits will sync") and everyone's initials.
+
+**How it stays consistent.** The server keeps one ordered list of editing operations per document and accepts a client's operations only when they are based on its latest version. If someone else's edits arrive first, the client rolls back its unconfirmed edits, applies theirs, and replays its own on top (positions adjusted) before sending again. So every copy applies the same operations in the same order and stays identical. When two edits truly conflict (for example typing inside text someone else just deleted), the later edit is dropped. Undo history is cleared when a client has to replay its edits. The demo page `/collaboration.html` shows two people side by side; add `?as=Name` in another browser to join as a third.
+
+**Tested** with real WebSocket connections (concurrent typing in the same paragraph, deleting text another person is editing, presence, comments, offline edits) and with a deterministic simulation of three people editing at random with randomly delayed and reordered messages. Every run has to converge without any client falling back to a full reload.
+
 ## Features
 
 Everything in `classicPreset`, with the same command and toolbar item names as CKEditor 5:
@@ -324,7 +367,7 @@ The theme in `packages/aveon-editor/src/theme/index.css` uses `ck-*` class names
 
 ## Known limitations
 
-- Undo is linear with position-level transformation of operations. There is no real-time collaboration (several people editing the same document at once): it needs a collaboration server. Comments and track changes work for one editor at a time, with threads stored by the host application.
+- Undo is linear with position-level transformation of operations. In real-time collaboration each person undoes their own recent edits; undo history is cleared when edits have to be replayed after a conflict, and conflicting edits (e.g. typing inside text someone else deleted) are dropped. Collaboration needs the `@aveon/collab-server` service running.
 - Tables do not support multi-cell selection, merging or splitting cells, or table and cell properties (borders, colors).
 - Image resizing is offered through the toolbar option, not drag handles. Without the `upload` option images are stored inside the HTML as Base64.
 - Pasting from Word or Google Docs keeps the semantic HTML but does not run the dedicated clean-up filters CKEditor ships for those sources.

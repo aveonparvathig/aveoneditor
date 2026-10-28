@@ -171,7 +171,16 @@ export class Renderer extends Observable {
       }
 
       const created = this.domConverter.viewToDom(viewChild, { bind: true, withChildren: true });
-      domElement.insertBefore(created, (candidate as ChildNode) || null);
+      // Building the new node can reuse (and so move) existing DOM nodes, e.g. text that gets
+      // wrapped in a new highlight: forget nodes that are no longer children here.
+      for (let i = actual.length - 1; i >= 0; i--) {
+        if (actual[i].parentNode !== domElement) {
+          actual.splice(i, 1);
+          if (i < actualIndex) actualIndex--;
+        }
+      }
+      const next = actual[actualIndex];
+      domElement.insertBefore(created, (next as ChildNode) || null);
       actual.splice(actualIndex, 0, created);
       actualIndex++;
     }

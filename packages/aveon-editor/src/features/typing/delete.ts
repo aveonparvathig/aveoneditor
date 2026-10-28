@@ -59,16 +59,21 @@ export class DeleteObserver extends Observer {
     document.on('keydown', (evt, data: any) => {
       if (!this.isEnabled) return;
       if (data.keyCode !== keyCodes.delete && data.keyCode !== keyCodes.backspace) return;
-      if (handledByBeforeInput || typeof InputEvent === 'undefined' || !('getTargetRanges' in InputEvent.prototype)) {
-        if (handledByBeforeInput) {
+      // A selected widget (image, line, table, equation…) is a fake selection: the browser has no
+      // editable content selected, so it fires no `beforeinput` and the key has to be handled here.
+      const isFakeSelection = !!(document.selection as any).isFake;
+      if (isFakeSelection || handledByBeforeInput || typeof InputEvent === 'undefined' || !('getTargetRanges' in InputEvent.prototype)) {
+        if (handledByBeforeInput && !isFakeSelection) {
           handledByBeforeInput = false;
           return;
         }
+        handledByBeforeInput = false;
         const direction = data.keyCode === keyCodes.delete ? 'forward' : 'backward';
         const unit = data.ctrlKey || (env.isMac && data.altKey) ? 'word' : 'codePoint';
         const eventInfo = new EventInfo(document, 'delete');
         document.fire(eventInfo, new DomEventData(view, data.domEvent, { direction, unit, sequence: ++sequence }));
         if (eventInfo.stopped) evt.stop();
+        if (isFakeSelection) data.preventDefault();
       }
     }, { priority: 'low' });
   }

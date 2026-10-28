@@ -1,0 +1,30 @@
+{
+  "name": "@aveon/collab-server",
+  "version": "0.1.0",
+  "description": "Real-time collaboration server for Aveon Editor (WebSocket, central operation ordering, presence, comment sync).",
+  "type": "module",
+  "main": "./src/server.js",
+  "types": "./src/server.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/server.d.ts",
+      "import": "./src/server.js"
+    }
+  },
+  "bin": {
+    "aveon-collab": "./bin/aveon-collab.js"
+  },
+  "files": [
+    "src",
+    "bin"
+  ],
+  "scripts": {
+    "start": "node bin/aveon-collab.js --port 1234 --data ./collab-data"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

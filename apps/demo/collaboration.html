@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aveon Editor: real-time collaboration</title>
+    <style>
+      body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background: #f3f5f8; color: #1e2430; }
+      .page { max-width: 1500px; margin: 0 auto; padding: 24px 16px 60px; }
+      h1 { font-size: 22px; margin: 0; }
+      header p { margin: 4px 0 16px; color: #5b6475; font-size: 14px; }
+      nav a { font-size: 13px; color: #2f6fe0; margin-right: 12px; }
+      code { background: #e8ecf2; padding: 1px 5px; border-radius: 4px; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .card { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 1px 3px rgba(20, 30, 50, 0.08), 0 8px 24px rgba(20, 30, 50, 0.06); min-width: 0; }
+      .card h2 { font-size: 14px; margin: 0 0 8px; color: #5b6475; font-weight: 600; }
+      .card .ck.ck-editor__main > .ck-editor__editable { min-height: 260px; }
+      @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <nav><a href="/">← Full editor demo</a><a href="/integration.html">Integration examples</a></nav>
+        <h1>Real-time collaboration</h1>
+        <p>Two people, one document. Start the server with <code>npm run collab:server</code>, then type in either editor, or open this page in another browser to join as a third person.</p>
+      </header>
+      <div class="grid">
+        <section class="card"><h2>Asha's screen</h2><div id="asha"></div></section>
+        <section class="card"><h2>Ben's screen</h2><div id="ben"></div></section>
+      </div>
+    </div>
+    <script type="module" src="/collaboration.ts"></script>
+  </body>
+</html>

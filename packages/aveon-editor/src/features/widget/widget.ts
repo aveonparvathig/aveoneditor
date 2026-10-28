@@ -202,8 +202,29 @@ export class Widget extends Plugin {
   private _handleDelete(isForward: boolean): boolean {
     const editor = this.editor;
     if (editor.isReadOnly) return false;
-    const modelDocument = editor.model.document;
+    const model = editor.model;
+    const schema = model.schema;
+    const modelDocument = model.document;
     const modelSelection = modelDocument.selection;
+    const selected = modelSelection.getSelectedElement();
+    if (selected && schema.isObject(selected) && schema.isBlock(selected)) {
+      model.change(writer => {
+        const parent = selected.parent as ModelElement;
+        const position = writer.createPositionBefore(selected);
+        writer.remove(selected);
+        // The caret goes to the neighbouring block (another widget there gets selected, so the
+        // next key press removes it too); a paragraph is added only where nothing would be left.
+        const range = schema.getNearestSelectionRange(position, isForward ? 'forward' : 'backward') || schema.getNearestSelectionRange(position, isForward ? 'backward' : 'forward');
+        if (range && parent.childCount > 0) {
+          writer.setSelection(range);
+        } else {
+          const paragraph = writer.createElement('paragraph');
+          writer.insert(paragraph, position);
+          writer.setSelection(paragraph, 0);
+        }
+      });
+      return true;
+    }
     if (!modelSelection.isCollapsed) return false;
     const objectElement = this._getObjectElementNextToSelection(isForward);
     if (objectElement) {

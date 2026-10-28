@@ -45,6 +45,8 @@ export { Comments, AddCommentCommand, ToggleCommentsPanelCommand, getEditorUser 
 export type { CommentThread, CommentReply, CommentsConfig, EditorUser } from './comments/comments';
 export { TrackChanges, TrackChangesCommand, ResolveSuggestionsCommand } from './trackchanges/trackchanges';
 export type { Suggestion } from './trackchanges/trackchanges';
+export { RealTimeCollaboration } from './collaboration/collaboration';
+export type { CollaborationConfig, ConnectionState, RemoteUser } from './collaboration/collaboration';
 export { promptDialog } from './shared/dialog';
 export type { PromptOptions } from './shared/dialog';
 export { MediaEmbed, MediaEmbedEditing, MediaEmbedUI, AutoMediaEmbed, MediaEmbedCommand, MediaRegistry, MediaFormView } from './mediaembed/mediaembed';
