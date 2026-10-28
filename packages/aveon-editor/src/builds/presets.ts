@@ -24,6 +24,8 @@ import { FindAndReplace } from '../features/findandreplace/findandreplace';
 import { TextTransformation } from '../features/texttransformation/texttransformation';
 import { WordCount } from '../features/wordcount/wordcount';
 import { Math } from '../features/math/math';
+import { WordBasics } from '../features/wordbasics/wordbasics';
+import type { RibbonConfig } from '../ui/ribbon/ribbonview';
 
 /** Plugins matching the CKEditor 5 classic build, plus the commonly requested extras. */
 export const classicPreset: PluginConstructor[] = [
@@ -66,7 +68,8 @@ export const classicPreset: PluginConstructor[] = [
   FindAndReplace,
   TextTransformation,
   WordCount,
-  Math
+  Math,
+  WordBasics
 ];
 
 /** Toolbar matching the CKEditor 5 classic build defaults, extended with the extra features. */
@@ -113,8 +116,58 @@ export const classicToolbar: string[] = [
   'sourceEditing'
 ];
 
+/** Word-style ribbon: everyday tools on Home, everything you can add on Insert. */
+export const classicRibbon: RibbonConfig = {
+  quickAccess: ['undo', 'redo'],
+  tabs: [
+    {
+      label: 'Home',
+      groups: [
+        { label: 'Clipboard', items: ['paste', 'cut', '-', 'copy', 'formatPainter'] },
+        { label: 'Font', items: ['fontFamily', 'fontSize', 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', '|', 'fontColor', 'fontBackgroundColor', 'highlight'] },
+        { label: 'Paragraph', items: ['bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '-', 'alignment', 'blockQuote', 'codeBlock', 'horizontalLine'] },
+        { label: 'Styles', items: ['styleGallery'] },
+        { label: 'Editing', items: ['findAndReplace', '-', 'selectAll'] }
+      ]
+    },
+    {
+      label: 'Insert',
+      groups: [
+        { label: 'Tables', items: ['insertTable'] },
+        { label: 'Media', items: ['insertImage', 'mediaEmbed'] },
+        { label: 'Links', items: ['link'] },
+        { label: 'Text', items: ['blockQuote', 'codeBlock', 'horizontalLine', 'code'] },
+        { label: 'Symbols', items: ['math', 'chemType', 'specialCharacters'] }
+      ]
+    },
+    {
+      label: 'Layout',
+      groups: [
+        { label: 'Alignment', items: ['alignment'] },
+        { label: 'Indent', items: ['outdent', 'indent'] },
+        { label: 'Lists', items: ['bulletedList', 'numberedList', 'todoList'] }
+      ]
+    },
+    {
+      label: 'Review',
+      groups: [
+        { label: 'Find', items: ['findAndReplace'] },
+        { label: 'Formatting', items: ['removeFormat', 'formatPainter'] }
+      ]
+    },
+    {
+      label: 'View',
+      groups: [
+        { label: 'Views', items: ['fullscreen'] },
+        { label: 'Source', items: ['sourceEditing'] }
+      ]
+    }
+  ]
+};
+
 export const classicDefaultConfig: EditorConfig = {
   toolbar: classicToolbar,
+  ribbon: classicRibbon,
   image: {
     toolbar: ['imageTextAlternative', 'toggleImageCaption', '|', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'resizeImage']
   },

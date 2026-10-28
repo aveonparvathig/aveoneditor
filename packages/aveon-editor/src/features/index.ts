@@ -27,6 +27,8 @@ export { Highlight, HighlightEditing, HighlightUI, HighlightCommand } from './hi
 export { Autoformat, blockAutoformatEditing, inlineAutoformatEditing } from './autoformat/autoformat';
 export { SourceEditing, formatHtml } from './sourceediting/sourceediting';
 export { WordCount, modelElementToPlainText } from './wordcount/wordcount';
+export { WordBasics, ClipboardActionCommand, PasteCommand, FormatPainterCommand, ChangeCaseCommand, FontSizeStepCommand, FullscreenCommand, convertCase } from './wordbasics/wordbasics';
+export type { CaseMode } from './wordbasics/wordbasics';
 export { MediaEmbed, MediaEmbedEditing, MediaEmbedUI, AutoMediaEmbed, MediaEmbedCommand, MediaRegistry, MediaFormView } from './mediaembed/mediaembed';
 export type { MediaProvider } from './mediaembed/mediaembed';
 export { Autosave } from './autosave/autosave';

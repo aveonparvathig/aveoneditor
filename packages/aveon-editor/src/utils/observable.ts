@@ -168,7 +168,10 @@ function parseBindToArgs(args: any[]): { to: Array<{ observable: Observable; pro
       callback = arg;
     } else if (typeof arg === 'string') {
       if (to.length === 0) throw new Error('observable-bind-to-parse-error');
-      to[to.length - 1].property = arg;
+      const last = to[to.length - 1];
+      // `to(command, 'value', 'isEnabled')` names one property per bound property, in order.
+      if (last.property === undefined) last.property = arg;
+      else to.push({ observable: last.observable, property: arg });
     } else {
       to.push({ observable: arg });
     }

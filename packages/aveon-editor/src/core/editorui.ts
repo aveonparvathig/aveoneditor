@@ -88,7 +88,8 @@ export abstract class EditorUI extends Observable {
   public addToolbar(toolbarView: any, options: { isContextual?: boolean; beforeFocus?: () => void; afterBlur?: () => void } = {}): void {
     if (toolbarView.element) {
       this.focusTracker.add(toolbarView.element);
-      this.editor.keystrokes.listenTo(toolbarView);
+      // Views do not emit DOM events, so listen on the element (Esc returns to the content).
+      this.editor.keystrokes.listenTo(toolbarView.element);
     }
     this._focusableToolbarDefinitions.push({ toolbarView, options });
   }
@@ -134,8 +135,9 @@ export abstract class EditorUI extends Observable {
 
     // Esc: go back to the editing root from a toolbar.
     editor.keystrokes.set('Esc', (data, cancel) => {
-      const focused = this.focusTracker.focusedElement;
-      const definition = this._focusableToolbarDefinitions.find(({ toolbarView }) => toolbarView.element && toolbarView.element.contains(focused));
+      // Focus events can be missed (e.g. while the window is in the background); the active element cannot.
+      const focused = this.focusTracker.focusedElement || (this.element && this.element.ownerDocument.activeElement);
+      const definition = this._focusableToolbarDefinitions.find(({ toolbarView }) => toolbarView.element && focused && toolbarView.element.contains(focused));
       if (definition) {
         editingView.focus();
         if (definition.options.afterBlur) definition.options.afterBlur();

@@ -4,28 +4,32 @@ import { BoxedEditorUIView } from '../ui/editorui/editoruiview';
 import { InlineEditableUIView } from '../ui/editableui/editableuiview';
 import { StickyPanelView } from '../ui/panel/stickypanelview';
 import { ToolbarView } from '../ui/toolbar/toolbarview';
+import { RibbonView, type RibbonConfig } from '../ui/ribbon/ribbonview';
 import { TooltipManager } from '../ui/tooltipmanager';
 import { enablePlaceholder } from '../engine/view/placeholder';
 import type { Locale } from '../utils/locale';
 import type { EditingView } from '../engine/view';
 import type { PluginConstructor } from '../core/plugin';
 
-/** View of the classic editor: a sticky toolbar above a boxed editable. */
+/** View of the classic editor: a sticky toolbar (or Word-style ribbon) above a boxed editable. */
 export class ClassicEditorUIView extends BoxedEditorUIView {
   public readonly stickyPanel: StickyPanelView;
   public readonly toolbar: ToolbarView;
+  /** Present when the editor is configured with `ribbon`; it then replaces the toolbar. */
+  public readonly ribbon: RibbonView | null;
   public readonly editable: InlineEditableUIView;
 
-  constructor(locale: Locale, editingView: EditingView, options: { shouldToolbarGroupWhenFull?: boolean; label?: string } = {}) {
+  constructor(locale: Locale, editingView: EditingView, options: { shouldToolbarGroupWhenFull?: boolean; label?: string; useRibbon?: boolean } = {}) {
     super(locale);
     this.stickyPanel = new StickyPanelView(locale);
     this.toolbar = new ToolbarView(locale, { shouldGroupWhenFull: options.shouldToolbarGroupWhenFull });
+    this.ribbon = options.useRibbon ? new RibbonView(locale) : null;
     this.editable = new InlineEditableUIView(locale, editingView, undefined, { label: options.label });
   }
 
   public override render(): void {
     super.render();
-    this.stickyPanel.content.add(this.toolbar);
+    this.stickyPanel.content.add(this.ribbon || this.toolbar);
     this.top.add(this.stickyPanel);
     this.main.add(this.editable);
   }
@@ -85,6 +89,16 @@ export class ClassicEditorUI extends EditorUI {
     view.stickyPanel.bind('isActive').to(this.focusTracker, 'isFocused');
     view.stickyPanel.limiterElement = view.element;
     view.stickyPanel.bind('viewportTopOffset').to(this, 'viewportOffset', (offset: { top?: number }) => (offset && offset.top) || 0);
+    if (view.ribbon) {
+      const ribbon = view.ribbon;
+      ribbon.fillFromConfig(this.editor.config.get('ribbon') as RibbonConfig, this.componentFactory);
+      this.addToolbar(ribbon);
+      this.editor.keystrokes.set('Ctrl+F1', (data, cancel) => {
+        ribbon.toggleCollapsed();
+        cancel();
+      });
+      return;
+    }
     view.toolbar.fillFromConfig(this._toolbarConfig, this.componentFactory);
     this.addToolbar(view.toolbar);
   }
@@ -127,7 +141,9 @@ export class ClassicEditor extends Editor {
       secureSourceElement(this, sourceElementOrData);
     }
     const shouldToolbarGroupWhenFull = !(this.config.get('toolbar.shouldNotGroupWhenFull') as boolean);
-    const view = new ClassicEditorUIView(this.locale, this.editing.view, { shouldToolbarGroupWhenFull, label: this.config.get('label') as string | undefined });
+    const ribbon = this.config.get('ribbon') as RibbonConfig | false | undefined;
+    const useRibbon = !!(ribbon && ribbon.tabs && ribbon.tabs.length);
+    const view = new ClassicEditorUIView(this.locale, this.editing.view, { shouldToolbarGroupWhenFull, label: this.config.get('label') as string | undefined, useRibbon });
     this.ui = new ClassicEditorUI(this, view);
     attachToForm(this);
   }

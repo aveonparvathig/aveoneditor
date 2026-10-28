@@ -264,7 +264,17 @@ export function addListToDropdown(dropdownView: DropdownView, itemsOrCallback: C
         const listItemView = new ListItemView(dropdownView.locale);
         const ButtonClass = definition.type === 'switchbutton' ? SwitchButtonView : ButtonView;
         const buttonView = new ButtonClass(dropdownView.locale);
-        buttonView.bind('label', 'withText', 'isOn', 'isEnabled', 'class', 'icon', 'role', 'tooltip', 'withKeystroke', 'keystroke').to(definition.model as any);
+        const standard = ['label', 'withText', 'isOn', 'class', 'icon', 'role', 'tooltip', 'withKeystroke', 'keystroke'];
+        buttonView.bind(...standard).to(definition.model as any);
+        // Items are enabled unless their model says otherwise.
+        buttonView.bind('isEnabled').to(definition.model as any, 'isEnabled', (value: unknown) => value !== false);
+        // Other model fields (`commandName`, `commandParam`…) are read from the button in `execute` handlers.
+        const modelProps: Map<string, unknown> | undefined = (definition.model as any)._observableProps;
+        for (const key of modelProps ? modelProps.keys() : []) {
+          if (standard.includes(key) || key === 'isEnabled' || key === 'isVisible') continue;
+          if (!(key in buttonView)) buttonView.set(key as any, undefined);
+          buttonView.bind(key as any).to(definition.model as any);
+        }
         buttonView.delegate('execute').to(listItemView);
         listItemView.children.add(buttonView);
         listItemView.bind('isVisible').to(definition.model as any, 'isVisible', (v: unknown) => v !== false);

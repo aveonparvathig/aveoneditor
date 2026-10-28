@@ -1,3 +1,4 @@
+import type { RibbonConfig } from '../ui/ribbon/ribbonview';
 import { Observable } from '../utils/observable';
 import { Config } from '../utils/config';
 import { Locale } from '../utils/locale';
@@ -22,6 +23,8 @@ export interface EditorConfig {
   licenseKey?: string;
   placeholder?: string | Record<string, string>;
   toolbar?: string[] | { items: string[]; shouldNotGroupWhenFull?: boolean; removeItems?: string[] };
+  /** Word-style tabbed ribbon for the classic editor; replaces `toolbar` when set. */
+  ribbon?: RibbonConfig | false;
   [key: string]: unknown;
 }
 

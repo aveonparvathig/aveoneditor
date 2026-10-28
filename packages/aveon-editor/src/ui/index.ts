@@ -14,6 +14,8 @@ export { LabeledFieldView, createLabeledInputText } from './labeledfield/labeled
 export { ListView, ListItemView, ListSeparatorView } from './list/listview';
 export { ToolbarView, normalizeToolbarConfig } from './toolbar/toolbarview';
 export type { ToolbarConfig, ToolbarOptions } from './toolbar/toolbarview';
+export { RibbonView, RibbonGroupView, RibbonPanelView } from './ribbon/ribbonview';
+export type { RibbonConfig, RibbonTabConfig, RibbonGroupConfig } from './ribbon/ribbonview';
 export { ToolbarSeparatorView } from './toolbar/toolbarseparatorview';
 export { ToolbarLineBreakView } from './toolbar/toolbarlinebreakview';
 export { DropdownView, DropdownPanelView, DropdownButtonView, createDropdown, addListToDropdown, addToolbarToDropdown } from './dropdown/dropdownview';
