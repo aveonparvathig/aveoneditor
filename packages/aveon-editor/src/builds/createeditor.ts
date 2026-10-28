@@ -33,6 +33,12 @@ import { TextTransformation } from '../features/texttransformation/texttransform
 import { WordCount } from '../features/wordcount/wordcount';
 import { WordBasics } from '../features/wordbasics/wordbasics';
 import { Math as MathPlugin } from '../features/math/math';
+import { MergeFields } from '../features/mergefields/mergefields';
+import { Templates } from '../features/templates/templates';
+import { ExportDocument } from '../features/export/export';
+import { References } from '../features/references/references';
+import { Comments } from '../features/comments/comments';
+import { TrackChanges } from '../features/trackchanges/trackchanges';
 
 export type PresetName = 'basic' | 'cms' | 'erp' | 'full';
 
@@ -81,15 +87,47 @@ export const erpRibbon: RibbonConfig = {
     {
       label: 'Insert',
       groups: [
-        { label: 'Tables', items: [{ name: 'insertTable', size: 'large', label: 'Table' }] },
+        { label: 'Tables', items: [{ name: 'insertTable', size: 'large', label: 'Table' }, { name: 'tableCaption', size: 'medium', label: 'Caption' }] },
         { label: 'Illustrations', items: [{ name: 'insertImage', size: 'large', label: 'Pictures' }, { name: 'horizontalLine', size: 'medium', label: 'Line' }] },
         { label: 'Links', items: [{ name: 'link', size: 'large', label: 'Link' }] },
-        { label: 'Symbols', items: [{ name: 'specialCharacters', size: 'large', label: 'Symbol' }] }
+        { label: 'Symbols', items: [{ name: 'specialCharacters', size: 'large', label: 'Symbol' }, { name: 'insertFootnote', size: 'medium', label: 'Footnote' }] }
+      ]
+    },
+    {
+      label: 'Mailings',
+      groups: [
+        {
+          label: 'Fields',
+          items: [
+            { name: 'mergeFields', size: 'large', label: 'Insert Merge Field' },
+            { name: 'mergeFieldsPreview', size: 'large', label: 'Preview Results' }
+          ]
+        },
+        { label: 'Templates', items: [{ name: 'insertTemplate', size: 'large', label: 'Templates' }] }
+      ]
+    },
+    {
+      label: 'Review',
+      groups: [
+        { label: 'Comments', items: [{ name: 'addComment', size: 'large', label: 'New Comment' }, { name: 'toggleComments', size: 'medium', label: 'Show Comments' }] },
+        {
+          label: 'Tracking',
+          items: [
+            { name: 'trackChanges', size: 'large', label: 'Track Changes' },
+            { name: 'acceptSuggestion', size: 'medium', label: 'Accept' },
+            { name: 'rejectSuggestion', size: 'medium', label: 'Reject' },
+            { name: 'acceptAllSuggestions', size: 'medium', label: 'Accept all' },
+            { name: 'rejectAllSuggestions', size: 'medium', label: 'Reject all' }
+          ]
+        }
       ]
     },
     {
       label: 'View',
-      groups: [{ label: 'Views', items: [{ name: 'fullscreen', size: 'large' }] }]
+      groups: [
+        { label: 'Views', items: [{ name: 'fullscreen', size: 'large' }] },
+        { label: 'Export', items: [{ name: 'exportPdf', size: 'large', label: 'PDF' }, { name: 'exportWord', size: 'large', label: 'Word' }] }
+      ]
     }
   ]
 };
@@ -131,7 +169,13 @@ export const erpPreset: EditorPreset = {
     FindAndReplace,
     TextTransformation,
     WordCount,
-    WordBasics
+    WordBasics,
+    MergeFields,
+    Templates,
+    ExportDocument,
+    References,
+    Comments,
+    TrackChanges
   ],
   config: {
     ribbon: erpRibbon,

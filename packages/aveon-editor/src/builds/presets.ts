@@ -25,6 +25,13 @@ import { TextTransformation } from '../features/texttransformation/texttransform
 import { WordCount } from '../features/wordcount/wordcount';
 import { Math } from '../features/math/math';
 import { WordBasics } from '../features/wordbasics/wordbasics';
+import { MergeFields } from '../features/mergefields/mergefields';
+import { Templates } from '../features/templates/templates';
+import { ExportDocument } from '../features/export/export';
+import { References } from '../features/references/references';
+import { Sketch } from '../features/sketch/sketch';
+import { Comments } from '../features/comments/comments';
+import { TrackChanges } from '../features/trackchanges/trackchanges';
 import type { RibbonConfig } from '../ui/ribbon/ribbonview';
 
 /** Plugins matching the CKEditor 5 classic build, plus the commonly requested extras. */
@@ -69,7 +76,14 @@ export const classicPreset: PluginConstructor[] = [
   TextTransformation,
   WordCount,
   Math,
-  WordBasics
+  WordBasics,
+  MergeFields,
+  Templates,
+  ExportDocument,
+  References,
+  Sketch,
+  Comments,
+  TrackChanges
 ];
 
 /** Toolbar matching the CKEditor 5 classic build defaults, extended with the extra features. */
@@ -157,7 +171,8 @@ export const classicRibbon: RibbonConfig = {
           items: [
             { name: 'insertImage', size: 'large', label: 'Pictures' },
             { name: 'mediaEmbed', size: 'medium', label: 'Video' },
-            { name: 'horizontalLine', size: 'medium', label: 'Line' }
+            { name: 'horizontalLine', size: 'medium', label: 'Line' },
+            { name: 'insertSketch', size: 'medium', label: 'Sketch' }
           ]
         },
         { label: 'Links', items: [{ name: 'link', size: 'large', label: 'Link' }] },
@@ -201,8 +216,46 @@ export const classicRibbon: RibbonConfig = {
       ]
     },
     {
+      label: 'References',
+      groups: [
+        { label: 'Table of Contents', items: [{ name: 'tableOfContents', size: 'large', label: 'Table of Contents' }] },
+        { label: 'Footnotes', items: [{ name: 'insertFootnote', size: 'large', label: 'Insert Footnote' }] },
+        { label: 'Captions', items: [{ name: 'tableCaption', size: 'large', label: 'Insert Caption' }] }
+      ]
+    },
+    {
+      label: 'Mailings',
+      groups: [
+        {
+          label: 'Fields',
+          items: [
+            { name: 'mergeFields', size: 'large', label: 'Insert Merge Field' },
+            { name: 'mergeFieldsPreview', size: 'large', label: 'Preview Results' }
+          ]
+        },
+        { label: 'Templates', items: [{ name: 'insertTemplate', size: 'large', label: 'Templates' }] }
+      ]
+    },
+    {
       label: 'Review',
       groups: [
+        {
+          label: 'Comments',
+          items: [
+            { name: 'addComment', size: 'large', label: 'New Comment' },
+            { name: 'toggleComments', size: 'medium', label: 'Show Comments' }
+          ]
+        },
+        {
+          label: 'Tracking',
+          items: [
+            { name: 'trackChanges', size: 'large', label: 'Track Changes' },
+            { name: 'acceptSuggestion', size: 'medium', label: 'Accept' },
+            { name: 'rejectSuggestion', size: 'medium', label: 'Reject' },
+            { name: 'acceptAllSuggestions', size: 'medium', label: 'Accept all' },
+            { name: 'rejectAllSuggestions', size: 'medium', label: 'Reject all' }
+          ]
+        },
         { label: 'Find', items: [{ name: 'findAndReplace', size: 'large', label: 'Find' }] },
         {
           label: 'Formatting',
@@ -217,7 +270,15 @@ export const classicRibbon: RibbonConfig = {
       label: 'View',
       groups: [
         { label: 'Views', items: [{ name: 'fullscreen', size: 'large' }] },
-        { label: 'Source', items: [{ name: 'sourceEditing', size: 'large', label: 'HTML source' }] }
+        { label: 'Source', items: [{ name: 'sourceEditing', size: 'large', label: 'HTML source' }] },
+        {
+          label: 'Export',
+          items: [
+            { name: 'exportPdf', size: 'large', label: 'PDF' },
+            { name: 'exportWord', size: 'large', label: 'Word' },
+            { name: 'exportHtml', size: 'medium', label: 'HTML' }
+          ]
+        }
       ]
     }
   ]

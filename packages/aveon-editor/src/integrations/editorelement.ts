@@ -32,8 +32,8 @@ export class AveonEditorElement extends Base {
     return ['readonly', 'disabled', 'placeholder'];
   }
 
-  /** Extra `createEditor()` options; set before the element is added to the page. */
-  public config: CreateEditorOptions = {};
+  /** Extra `createEditor()` options; set before the element is added to the page (or defined). */
+  declare public config: CreateEditorOptions;
   private _editor: ClassicEditor | null = null;
   private _creating: Promise<ClassicEditor> | null = null;
   private _initialValue = '';
@@ -46,6 +46,8 @@ export class AveonEditorElement extends Base {
 
   constructor() {
     super();
+    // A value assigned before the element was upgraded is kept (no class field overwrites it).
+    if (!Object.prototype.hasOwnProperty.call(this, 'config')) this.config = {};
     try {
       const internals: ElementInternals | null = typeof (this as any).attachInternals === 'function' ? (this as any).attachInternals() : null;
       // Partial implementations (no setFormValue) fall back to a hidden input.

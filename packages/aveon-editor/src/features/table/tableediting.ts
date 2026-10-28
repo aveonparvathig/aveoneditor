@@ -27,12 +27,13 @@ export class TableEditing extends Plugin {
     const conversion = editor.conversion;
     const t = editor.t;
 
-    schema.register('table', { inheritAllFrom: '$blockObject', allowAttributes: ['headingRows', 'headingColumns'] });
+    schema.register('table', { inheritAllFrom: '$blockObject', allowAttributes: ['headingRows', 'headingColumns', 'caption'] });
     schema.register('tableRow', { allowIn: 'table', isLimit: true });
     schema.register('tableCell', { allowIn: 'tableRow', allowChildren: '$block', allowAttributes: ['colspan', 'rowspan'], isLimit: true, isSelectable: true });
     schema.extend('$container', { allowIn: 'tableCell' });
 
     conversion.for('upcast').add(dispatcher => dispatcher.on('element:table', upcastTable()));
+    conversion.for('upcast').add(dispatcher => dispatcher.on('element:figure', upcastTableCaption(), { priority: 'high' }));
 
     conversion.for('editingDowncast').elementToStructure({
       model: 'table',
@@ -43,6 +44,16 @@ export class TableEditing extends Plugin {
         writer.insert(writer.createPositionAt(figure, 0), table);
         writer.insert(writer.createPositionAt(table, 0), tbody);
         writer.insert(writer.createPositionAt(tbody, 0), writer.createSlot());
+        const caption = String(modelElement.getAttribute('caption') || '');
+        if (caption) {
+          // A UI element: shown in the widget but invisible to the model mapping.
+          const figcaption = writer.createUIElement('figcaption', { class: 'ck-table-caption' }, function (this: any, domDocument: Document) {
+            const dom = this.toDomElement(domDocument);
+            dom.textContent = caption;
+            return dom;
+          });
+          writer.insert(writer.createPositionAt(figure, 'end'), figcaption);
+        }
         return toWidget(figure, writer, { hasSelectionHandle: true, label: t('table widget') });
       }
     });
@@ -62,6 +73,12 @@ export class TableEditing extends Plugin {
           const tbody = writer.createContainerElement('tbody');
           writer.insert(writer.createPositionAt(table, 'end'), tbody);
           writer.insert(writer.createPositionAt(tbody, 0), writer.createSlot((row: any) => row.index >= headingRows));
+        }
+        const caption = String(modelElement.getAttribute('caption') || '');
+        if (caption) {
+          const figcaption = writer.createContainerElement('figcaption');
+          writer.insert(writer.createPositionAt(figcaption, 0), writer.createText(caption));
+          writer.insert(writer.createPositionAt(figure, 'end'), figcaption);
         }
         return figure;
       }
@@ -94,9 +111,48 @@ export class TableEditing extends Plugin {
     editor.commands.add('setTableRowHeader', new SetHeaderRowCommand(editor));
     editor.commands.add('setTableColumnHeader', new SetHeaderColumnCommand(editor));
 
+    // Captions live in the table's structure, so a caption change redraws the table.
+    model.document.on('change:data', () => {
+      for (const change of model.document.differ.getChanges()) {
+        if (change.type === 'attribute' && change.attributeKey === 'caption') {
+          const table = change.range.start.nodeAfter;
+          if (table && (table as any).is('element', 'table')) editor.editing.reconvertItem(table);
+        }
+      }
+    });
     model.document.registerPostFixer(writer => tableCellContentsPostFixer(writer, model));
     model.document.registerPostFixer(writer => tableLayoutPostFixer(writer, model, editor.plugins.get(TableUtils) as TableUtils));
   }
+}
+
+/** `<figure class="table"><table>…</table><figcaption>…</figcaption></figure>`: the caption becomes a table attribute. */
+function upcastTableCaption() {
+  return (evt: any, data: any, conversionApi: any): void => {
+    const figure = data.viewItem;
+    if (!figure.hasClass('table') || !conversionApi.consumable.test(figure, { name: true })) return;
+    const figcaption = [...figure.getChildren()].find((child: any) => child.is('element', 'figcaption'));
+    if (!figcaption) return;
+    const textOf = (element: any): string => [...element.getChildren()].map((child: any) => (child.is('$text') ? child.data : child.is('element') ? textOf(child) : '')).join('');
+    const consumeAll = (element: any) => {
+      conversionApi.consumable.consume(element, { name: true });
+      for (const child of element.getChildren()) {
+        if (child.is('element')) consumeAll(child);
+        else if (child.is('$text')) conversionApi.consumable.consume(child);
+      }
+    };
+    const caption = textOf(figcaption).replace(/\s+/g, ' ').trim();
+    conversionApi.consumable.consume(figure, { name: true });
+    consumeAll(figcaption);
+    const { modelRange, modelCursor } = conversionApi.convertChildren(figure, data.modelCursor);
+    if (caption && modelRange) {
+      for (const item of modelRange.getItems({ shallow: true })) {
+        if (item.is('element', 'table')) conversionApi.writer.setAttribute('caption', caption, item);
+      }
+    }
+    data.modelRange = modelRange;
+    data.modelCursor = modelCursor;
+    evt.stop();
+  };
 }
 
 function convertParagraphInTableCell(options: { asWidget: boolean }) {

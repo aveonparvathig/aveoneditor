@@ -1,6 +1,19 @@
 import '@aveon/editor/theme.css';
 import 'katex/dist/katex.min.css';
-import { defineEditorElement } from '@aveon/editor';
+import { defineEditorElement, type AveonEditorElement } from '@aveon/editor';
+
+// Options the tag cannot express as attributes are set before the element is defined.
+const terms = document.querySelector('aveon-editor[name="terms"]') as AveonEditorElement;
+terms.config = {
+  user: { id: 'u-1', name: 'Sales' },
+  mergeFields: {
+    definitions: [
+      { id: 'customer.name', label: 'Customer name' },
+      { id: 'quote.validUntil', label: 'Valid until' }
+    ],
+    previewData: { customer: { name: 'Northwind Traders' }, quote: { validUntil: '27 Nov 2026' } }
+  }
+};
 
 defineEditorElement();
 

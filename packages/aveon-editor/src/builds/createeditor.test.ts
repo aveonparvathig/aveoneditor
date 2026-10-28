@@ -45,7 +45,7 @@ describe('presets and createEditor()', () => {
   it('creates an ERP editor with a ribbon using large, medium and small items', async () => {
     const editor = await createEditor(host('<p>Quote</p>'), { preset: 'erp' });
     const ribbon = editor.ui.view.ribbon!;
-    expect([...ribbon.element!.querySelectorAll('[role="tab"]')].map(tab => tab.textContent)).toEqual(['Home', 'Insert', 'View']);
+    expect([...ribbon.element!.querySelectorAll('[role="tab"]')].map(tab => tab.textContent)).toEqual(['Home', 'Insert', 'Review', 'View']);
     const paste = ribbon.element!.querySelector('.ck-ribbon__item_large')!;
     expect(paste.textContent).toBe('Paste');
     const medium = [...ribbon.element!.querySelectorAll('.ck-ribbon__item_medium')].map(item => item.textContent);
@@ -75,6 +75,19 @@ describe('presets and createEditor()', () => {
     editor.execute('undo');
     expect(editor.getData()).toBe('<p>Text</p>');
     await editor.destroy();
+  });
+});
+
+describe('<aveon-editor> options', () => {
+  it('keeps config assigned before the element is defined', async () => {
+    const element = document.createElement('aveon-editor-late') as any;
+    element.setAttribute('preset', 'basic');
+    element.config = { placeholder: 'Set early' };
+    document.body.appendChild(element);
+    defineEditorElement('aveon-editor-late');
+    const editor = await (element as AveonEditorElement).whenReady();
+    expect(editor.config.get('placeholder')).toBe('Set early');
+    element.remove();
   });
 });
 

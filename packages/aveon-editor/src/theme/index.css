@@ -1367,6 +1367,472 @@ aveon-editor {
   opacity: 0.6;
 }
 
+/* ---------- Merge fields ---------- */
+
+.ck-content .merge-field,
+.ck.ck-editor__editable .ck-merge-field {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: hsl(212, 100%, 94%);
+  color: hsl(214, 80%, 32%);
+  font-size: 0.92em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.ck.ck-editor__editable .ck-merge-field::before {
+  content: '{ ';
+  opacity: 0.55;
+}
+
+.ck.ck-editor__editable .ck-merge-field::after {
+  content: ' }';
+  opacity: 0.55;
+}
+
+.ck.ck-editor__editable .ck-merge-field.ck-merge-field_preview {
+  background: hsl(140, 55%, 92%);
+  color: hsl(140, 60%, 22%);
+}
+
+.ck.ck-editor__editable .ck-merge-field.ck-merge-field_preview::before,
+.ck.ck-editor__editable .ck-merge-field.ck-merge-field_preview::after {
+  content: none;
+}
+
+.ck.ck-editor__editable .ck-merge-field.ck-merge-field_unknown {
+  background: hsl(32, 100%, 92%);
+  color: hsl(28, 80%, 30%);
+}
+
+.ck.ck-list .ck-button.ck-merge-field-group {
+  font-weight: 600;
+  font-size: 0.85em;
+  opacity: 1;
+  color: hsl(220, 9%, 42%);
+}
+
+/* ---------- Table of contents ---------- */
+
+.ck-content nav.table-of-contents,
+.ck.ck-editor__editable .ck-table-of-contents {
+  margin: 1em 0;
+  padding: 0.6em 1em 0.8em;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  background: hsl(220, 20%, 98.5%);
+}
+
+.ck-content .table-of-contents__title,
+.ck.ck-editor__editable .ck-table-of-contents__title {
+  margin: 0 0 0.3em;
+  font-weight: 700;
+}
+
+.ck-content nav.table-of-contents ol,
+.ck.ck-editor__editable .ck-table-of-contents ol {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+}
+
+.ck-content nav.table-of-contents ol ol,
+.ck.ck-editor__editable .ck-table-of-contents ol ol {
+  padding-left: 1.3em;
+}
+
+.ck-content nav.table-of-contents a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ck.ck-editor__editable .ck-table-of-contents a {
+  color: var(--ck-color-link-default);
+  cursor: pointer;
+}
+
+.ck.ck-editor__editable .ck-table-of-contents a:hover {
+  text-decoration: underline;
+}
+
+.ck.ck-editor__editable .ck-table-of-contents__empty {
+  margin: 0;
+  color: hsl(220, 9%, 46%);
+  font-style: italic;
+}
+
+/* ---------- Footnotes ---------- */
+
+.ck.ck-editor__editable .ck-footnote {
+  display: inline-block;
+  min-width: 1.2em;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: hsl(212, 100%, 94%);
+  color: hsl(214, 80%, 32%);
+  font-size: 0.72em;
+  line-height: 1.3;
+  text-align: center;
+  vertical-align: super;
+  cursor: pointer;
+}
+
+.ck-content section.footnotes,
+.ck.ck-editor__editable .ck-footnotes {
+  margin-top: 2em;
+  padding-top: 0.5em;
+  border-top: 1px solid var(--ck-color-base-border);
+  font-size: 0.9em;
+}
+
+.ck.ck-editor__editable .ck-footnotes__title {
+  margin: 0 0 0.3em;
+  font-weight: 700;
+}
+
+.ck.ck-editor__editable .ck-footnotes ol {
+  margin: 0;
+  padding-left: 1.5em;
+}
+
+/* ---------- Table captions ---------- */
+
+.ck-content figure.table > figcaption,
+.ck.ck-editor__editable figure.table > .ck-table-caption {
+  display: table-caption;
+  caption-side: top;
+  padding: 0 0 4px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.ck.ck-editor__editable figure.table:has(> .ck-table-caption) {
+  display: table;
+}
+
+/* ---------- Sketch ---------- */
+
+.ck-content figure.sketch,
+.ck.ck-editor__editable .ck-sketch {
+  margin: 1em 0;
+  text-align: center;
+}
+
+.ck-content figure.sketch svg,
+.ck.ck-editor__editable .ck-sketch svg {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.ck.ck-dialog-overlay .ck-dialog.ck-dialog_sketch {
+  width: min(780px, 100%);
+}
+
+.ck.ck-dialog-overlay .ck-sketch__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ck.ck-dialog-overlay .ck-sketch__swatch {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--ck-color-base-border);
+  cursor: pointer;
+}
+
+.ck.ck-dialog-overlay .ck-sketch__swatch.ck-on {
+  box-shadow: 0 0 0 2px var(--ck-color-focus-border);
+}
+
+.ck.ck-dialog-overlay .ck-sketch__size {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ck.ck-dialog-overlay .ck-sketch__size span {
+  display: block;
+  border-radius: 50%;
+  background: #1f2328;
+}
+
+.ck.ck-dialog-overlay .ck-sketch__size.ck-on {
+  border-color: var(--ck-color-focus-border);
+  background: var(--ck-color-button-on-background);
+}
+
+.ck.ck-dialog-overlay .ck-sketch__spacer {
+  width: 8px;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__button.ck-sketch__action {
+  min-width: 0;
+  padding: 5px 10px;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ck.ck-dialog-overlay .ck-sketch__canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 8px;
+  background: #fff;
+  cursor: crosshair;
+}
+
+.ck.ck-dialog-overlay textarea.ck-dialog__input {
+  resize: vertical;
+  min-height: 4.5em;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__button_danger {
+  margin-right: auto;
+  border-color: hsl(355, 70%, 80%);
+  color: hsl(355, 70%, 42%);
+}
+
+/* ---------- Comments ---------- */
+
+.ck.ck-editor__editable .ck-comment-marker {
+  background: hsla(48, 100%, 60%, 0.35);
+  border-bottom: 2px solid hsl(45, 95%, 52%);
+}
+
+.ck.ck-editor__editable .ck-comment-marker.ck-comment-marker_resolved {
+  background: transparent;
+  border-bottom: 1px dashed hsl(45, 40%, 70%);
+}
+
+.ck.ck-editor__main.ck-editor__main_with-comments {
+  display: flex;
+  align-items: stretch;
+}
+
+.ck.ck-editor__main.ck-editor__main_with-comments > .ck-editor__editable {
+  flex: 1;
+  min-width: 0;
+}
+
+.ck.ck-comments-panel {
+  flex: none;
+  width: 300px;
+  max-height: 80vh;
+  overflow: auto;
+  position: sticky;
+  top: 0;
+  padding: 10px;
+  border: 1px solid var(--ck-color-base-border);
+  border-left: 0;
+  background: hsl(220, 20%, 98%);
+  font-family: var(--ck-font-face);
+  font-size: 13px;
+  color: var(--ck-color-base-text);
+}
+
+.ck.ck-comments-panel[hidden] {
+  display: none;
+}
+
+.ck.ck-comments-panel .ck-comments-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.ck.ck-comments-panel .ck-comments-panel__close {
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: hsl(220, 9%, 42%);
+}
+
+.ck.ck-comments-panel .ck-comments-panel__empty {
+  margin: 0;
+  color: hsl(220, 9%, 46%);
+}
+
+.ck.ck-comments-panel .ck-comments-panel__section {
+  margin: 14px 0 6px;
+  font-weight: 600;
+  color: hsl(220, 9%, 40%);
+}
+
+.ck.ck-comments-panel .ck-comment-thread,
+.ck.ck-comments-panel .ck-suggestion-card {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.ck.ck-comments-panel .ck-comment-thread_active {
+  border-color: hsl(45, 95%, 52%);
+  box-shadow: 0 0 0 2px hsla(45, 95%, 52%, 0.25);
+}
+
+.ck.ck-comments-panel .ck-comment-thread_resolved {
+  opacity: 0.65;
+}
+
+.ck.ck-comments-panel .ck-comment-thread__quote {
+  margin: 0 0 6px;
+  padding: 2px 8px;
+  border-left: 3px solid hsl(45, 95%, 52%);
+  color: hsl(220, 9%, 40%);
+  font-style: italic;
+  cursor: pointer;
+}
+
+.ck.ck-comments-panel .ck-comment {
+  margin-top: 6px;
+}
+
+.ck.ck-comments-panel .ck-comment_reply {
+  padding-left: 10px;
+  border-left: 2px solid var(--ck-color-base-border);
+}
+
+.ck.ck-comments-panel .ck-comment__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ck.ck-comments-panel .ck-comment__meta time {
+  color: hsl(220, 9%, 50%);
+  font-size: 11px;
+}
+
+.ck.ck-comments-panel .ck-comment__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: hsl(214, 72%, 42%);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.ck.ck-comments-panel .ck-comment__text {
+  margin-top: 3px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.ck.ck-comments-panel .ck-comment-thread__reply {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.ck.ck-comments-panel .ck-comment-thread__reply textarea {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 4px 6px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  resize: vertical;
+}
+
+.ck.ck-comments-panel button {
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 8px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ck.ck-comments-panel button:hover {
+  background: var(--ck-color-button-default-hover-background);
+}
+
+.ck.ck-comments-panel .ck-comment-thread__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.ck.ck-comments-panel .ck-suggestion-card_insert {
+  border-left: 3px solid hsl(140, 60%, 40%);
+}
+
+.ck.ck-comments-panel .ck-suggestion-card_delete {
+  border-left: 3px solid hsl(355, 70%, 50%);
+}
+
+.ck.ck-comments-panel .ck-suggestion-card__text {
+  margin-top: 3px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.ck.ck-comments-panel .ck-suggestion-card_delete .ck-suggestion-card__text {
+  text-decoration: line-through;
+}
+
+@media (max-width: 760px) {
+  .ck.ck-editor__main.ck-editor__main_with-comments {
+    flex-direction: column;
+  }
+
+  .ck.ck-comments-panel {
+    width: auto;
+    position: static;
+    border-left: 1px solid var(--ck-color-base-border);
+    border-top: 0;
+  }
+}
+
+/* ---------- Suggestions (track changes) ---------- */
+
+.ck-content ins.suggestion-insert {
+  color: hsl(140, 60%, 28%);
+  text-decoration: underline;
+  text-decoration-color: hsl(140, 50%, 45%);
+  background: hsla(140, 60%, 45%, 0.1);
+}
+
+.ck-content del.suggestion-delete {
+  color: hsl(355, 65%, 42%);
+  text-decoration: line-through;
+  background: hsla(355, 70%, 50%, 0.08);
+}
+
 /* Style gallery (Normal, Heading 1…) */
 .ck.ck-style-gallery {
   display: flex;

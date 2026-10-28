@@ -229,6 +229,68 @@ ribbon: {
 
 `large` shows a big icon above the label (one per column), `medium` an icon beside the label (stacked three high), and plain names are small icon buttons in rows (`-` starts a new row, `|` adds a separator). Unavailable items are skipped, and empty groups and tabs are hidden. `classicRibbon` and `erpRibbon` are exported as starting points.
 
+## Business documents, references and review
+
+All of these are in `classicPreset` (and the `cms`, `erp` and `full` presets). Tabs and buttons appear when the feature is configured.
+
+### Merge fields (Mailings tab)
+
+```ts
+mergeFields: {
+  definitions: [
+    { group: 'Customer', definitions: [{ id: 'customer.name', label: 'Customer name' }, { id: 'customer.email', label: 'Email' }] },
+    { id: 'today', label: 'Today' }
+  ],
+  previewData: { customer: { name: 'Northwind Traders' }, today: '28 Oct 2026' }
+}
+```
+
+Fields are inserted from **Insert Merge Field** or by typing `{{customer.name}}`, shown as chips, and saved as `<span class="merge-field" data-field="customer.name">{{customer.name}}</span>`. **Preview Results** shows `previewData` (change it with `editor.plugins.get('MergeFields').setPreviewData(record)`). To produce the final document, fill the saved HTML on the server or in the browser:
+
+```ts
+import { renderMergeFields } from '@aveon/editor';
+const html = renderMergeFields(savedHtml, { customer: { name: 'Northwind Traders' } }); // values are HTML-escaped
+```
+
+### Templates
+
+```ts
+templates: [
+  { title: 'Quotation', description: 'Standard quote', data: '<h2>Quotation</h2>…' },
+  { title: 'Welcome email', data: () => fetch('/templates/welcome').then(r => r.text()) }
+]
+```
+
+**Templates** fills an empty document or inserts at the cursor. Templates can contain merge fields.
+
+### Export (View tab)
+
+**PDF** opens the browser's print dialog with a clean copy of the document (choose "Save as PDF"). **Word** downloads a `.doc` file that Word opens natively. **HTML** downloads a standalone page. Configure with `export: { fileName, title, stylesheets, css }`; `buildExportDocument(editor)` returns the HTML for server-side PDF tools. While merge-field preview is on, exports contain the preview values.
+
+### References tab
+
+- **Table of Contents** lists the headings and updates as you type; click an entry to jump to it. Saved as `<nav class="table-of-contents">` with links, and headings get matching `id`s.
+- **Insert Footnote** adds a numbered marker; the notes are listed in a footnotes section kept at the end of the document. Double-click a marker to edit or remove its note.
+- **Insert Caption** adds a `<figcaption>` to the selected table. Images have their own caption button in the image toolbar.
+
+### Sketch (Insert tab)
+
+A drawing pad with colours, pen widths, undo and clear; saved as SVG (`<figure class="sketch">`). Double-click a sketch to edit it. Only stroked paths are accepted when content is loaded, so stored HTML cannot carry scripts through a sketch.
+
+### Comments and track changes (Review tab)
+
+Set the current user with `user: { id, name }`.
+
+- **New Comment** on selected text opens the comments panel, with replies, Resolve/Reopen and Delete. The content stores only anchors (`<span class="comment-anchor" data-comment="c-…">`); the threads are your application's data:
+
+  ```ts
+  const comments = editor.plugins.get('Comments');
+  comments.on('change', () => save(comments.getThreads()));   // store with the record
+  // When loading: comments: { threads: savedThreads }
+  ```
+
+- **Track Changes** records typed and pasted text as insertions and deleted text as deletions (author and time), saved as `<ins class="suggestion-insert">` / `<del class="suggestion-delete">`, so pending suggestions survive saving. Accept or reject them in the panel, at the cursor, or all at once. Deleting your own suggested text removes it. Formatting changes and structural edits (new paragraphs, merged blocks, tables and images) apply directly and are not tracked.
+
 ## Features
 
 Everything in `classicPreset`, with the same command and toolbar item names as CKEditor 5:
@@ -262,10 +324,10 @@ The theme in `packages/aveon-editor/src/theme/index.css` uses `ck-*` class names
 
 ## Known limitations
 
-- Undo is linear with position-level transformation of operations. There is no real-time collaboration, track changes or comments.
+- Undo is linear with position-level transformation of operations. There is no real-time collaboration (several people editing the same document at once): it needs a collaboration server. Comments and track changes work for one editor at a time, with threads stored by the host application.
 - Tables do not support multi-cell selection, merging or splitting cells, or table and cell properties (borders, colors).
 - Image resizing is offered through the toolbar option, not drag handles. Without the `upload` option images are stored inside the HTML as Base64.
 - Pasting from Word or Google Docs keeps the semantic HTML but does not run the dedicated clean-up filters CKEditor ships for those sources.
 - The UI is English only. Translations can be added through the locale's `t()` function.
 - The built-in handwriting recogniser is basic (digits, Latin letters, common operators, fractions, roots, scripts); connect a recognition service for production handwriting. Image output embeds KaTeX HTML in SVG and needs the KaTeX fonts on the viewing page. The formula canvas needs physical key presses (no IME composition). See `docs/MATH_FEATURE_SPEC.md` for the remaining MathType items.
-- No Markdown output, mentions, emoji, restricted editing, export to PDF or Word, or AI assistant features.
+- No Markdown output, mentions, emoji, restricted editing or AI assistant features. PDF export goes through the browser's print dialog, and Word export is a `.doc` (HTML) file rather than `.docx`.
