@@ -3,10 +3,10 @@
 :root {
   --ck-color-base-foreground: hsl(0, 0%, 98%);
   --ck-color-base-background: hsl(0, 0%, 100%);
-  --ck-color-base-border: hsl(220, 6%, 81%);
+  --ck-color-base-border: hsl(220, 13%, 84%);
   --ck-color-base-action: hsl(104, 50.2%, 42.5%);
   --ck-color-base-focus: hsl(209, 92%, 70%);
-  --ck-color-base-text: hsl(0, 0%, 20%);
+  --ck-color-base-text: hsl(220, 15%, 18%);
   --ck-color-base-active: hsl(218.1, 100%, 58%);
   --ck-color-base-active-focus: hsl(218.2, 100%, 52.5%);
   --ck-color-base-error: hsl(15, 100%, 43%);
@@ -17,13 +17,13 @@
   --ck-color-focus-disabled-shadow: hsla(209, 90%, 72%, .3);
   --ck-color-focus-error-shadow: hsla(9, 100%, 56%, .3);
   --ck-color-text: var(--ck-color-base-text);
-  --ck-color-shadow-drop: hsla(0, 0%, 0%, 0.15);
+  --ck-color-shadow-drop: hsla(220, 30%, 15%, 0.12);
   --ck-color-shadow-drop-active: hsla(0, 0%, 0%, 0.2);
-  --ck-color-shadow-inner: hsla(0, 0%, 0%, 0.1);
+  --ck-color-shadow-inner: hsla(220, 30%, 15%, 0.06);
 
   --ck-color-button-default-background: transparent;
-  --ck-color-button-default-hover-background: hsl(0, 0%, 94.1%);
-  --ck-color-button-default-active-background: hsl(0, 0%, 94.1%);
+  --ck-color-button-default-hover-background: hsl(220, 14%, 93%);
+  --ck-color-button-default-active-background: hsl(220, 14%, 89%);
   --ck-color-button-default-disabled-background: transparent;
   --ck-color-button-on-background: hsl(212, 100%, 95.1%);
   --ck-color-button-on-hover-background: hsl(211.7, 100%, 92.4%);
@@ -60,9 +60,9 @@
   --ck-color-list-button-on-text: var(--ck-color-base-background);
   --ck-color-panel-background: var(--ck-color-base-background);
   --ck-color-panel-border: var(--ck-color-base-border);
-  --ck-color-toolbar-background: var(--ck-color-base-background);
+  --ck-color-toolbar-background: hsl(220, 20%, 98.5%);
   --ck-color-toolbar-border: var(--ck-color-base-border);
-  --ck-color-tooltip-background: var(--ck-color-base-text);
+  --ck-color-tooltip-background: hsl(220, 18%, 14%);
   --ck-color-tooltip-text: var(--ck-color-base-background);
   --ck-color-engine-placeholder-text: hsl(0, 0%, 44%);
   --ck-color-upload-bar-background: hsl(209, 92%, 70%);
@@ -78,10 +78,10 @@
   --ck-color-table-focus-border: hsl(209, 100%, 60%);
   --ck-color-table-selection: hsla(209, 100%, 70%, .25);
 
-  --ck-border-radius: 2px;
+  --ck-border-radius: 6px;
   --ck-font-size-base: 13px;
   --ck-line-height-base: 1.84615;
-  --ck-font-face: Helvetica, Arial, Tahoma, Verdana, Sans-Serif;
+  --ck-font-face: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --ck-font-size-tiny: 0.7em;
   --ck-font-size-small: 0.75em;
   --ck-font-size-normal: 1em;
@@ -101,8 +101,8 @@
   --ck-focus-disabled-outer-shadow: var(--ck-focus-outer-shadow-geometry) var(--ck-color-focus-disabled-shadow);
   --ck-focus-error-outer-shadow: var(--ck-focus-outer-shadow-geometry) var(--ck-color-focus-error-shadow);
   --ck-inner-shadow: 2px 2px 3px var(--ck-color-shadow-inner) inset;
-  --ck-drop-shadow: 0 1px 2px 1px var(--ck-color-shadow-drop);
-  --ck-drop-shadow-active: 0 3px 6px 1px var(--ck-color-shadow-drop-active);
+  --ck-drop-shadow: 0 1px 3px var(--ck-color-shadow-drop), 0 6px 20px var(--ck-color-shadow-drop);
+  --ck-drop-shadow-active: 0 2px 6px var(--ck-color-shadow-drop-active), 0 10px 28px var(--ck-color-shadow-drop);
   --ck-balloon-arrow-offset: 2px;
   --ck-balloon-arrow-height: 10px;
   --ck-balloon-arrow-half-width: 8px;
@@ -197,8 +197,16 @@
   display: none !important;
 }
 
-.ck.ck-voice-label {
-  display: none;
+.ck-voice-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .ck-transitions-disabled,
@@ -272,7 +280,7 @@
 
 .ck.ck-editor__editable:not(.ck-editor__nested-editable).ck-focused {
   border: var(--ck-focus-ring);
-  box-shadow: var(--ck-inner-shadow), 0 0;
+  box-shadow: var(--ck-inner-shadow), 0 0 0 3px hsla(var(--ck-color-focus-border-coordinates), 0.15);
   outline: none;
 }
 
@@ -905,7 +913,7 @@ a.ck.ck-button {
   -webkit-appearance: none;
   white-space: nowrap;
   line-height: 1;
-  transition: box-shadow 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 0.2s ease-in-out, border 0.2s ease-in-out;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -2715,41 +2723,138 @@ a.ck.ck-button .ck-icon {
 }
 
 .ck.ck-math-handwriting {
+  --ck-math-handwriting-accent: var(--ck-color-focus-border);
+  --ck-math-handwriting-warning: hsl(32, 95%, 40%);
   display: flex;
   flex-direction: column;
-  gap: var(--ck-spacing-small);
+  gap: var(--ck-spacing-standard);
 }
 
 .ck.ck-math-handwriting .ck-math-handwriting__toolbar {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 2px;
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__button.ck-button {
+  border-radius: var(--ck-border-radius);
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__status {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--ck-font-size-small);
+  color: hsl(0, 0%, 40%);
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__status:not(:empty)::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__status[data-state='busy']::before {
+  animation: ck-math-handwriting-pulse 0.9s ease-in-out infinite alternate;
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__status[data-state='ok'] {
+  color: hsl(140, 60%, 30%);
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__status[data-state='warning'] {
+  color: var(--ck-math-handwriting-warning);
+}
+
+@keyframes ck-math-handwriting-pulse {
+  from { opacity: 0.25; }
+  to { opacity: 1; }
 }
 
 .ck.ck-math-handwriting .ck-math-handwriting__canvas {
   display: block;
   width: 100%;
   border: 1px solid var(--ck-color-base-border);
-  border-radius: var(--ck-border-radius);
-  background: var(--ck-color-base-background);
+  border-radius: calc(var(--ck-border-radius) * 2);
+  background:
+    radial-gradient(circle, hsla(220, 10%, 50%, 0.13) 1px, transparent 1.2px) 0 0 / 16px 16px,
+    var(--ck-color-base-background);
+  color: var(--ck-color-base-text);
   cursor: crosshair;
   touch-action: none;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__canvas:hover {
+  border-color: hsl(220, 6%, 70%);
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__canvas:focus-visible,
+.ck.ck-math-handwriting .ck-math-handwriting__canvas:focus {
+  border-color: var(--ck-color-focus-border);
+  box-shadow: var(--ck-focus-outer-shadow);
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__suggestions[hidden] {
+  display: none;
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__suggestions-label {
+  font-size: var(--ck-font-size-small);
+  color: hsl(0, 0%, 40%);
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__suggestion {
+  font: 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  padding: 5px 10px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 999px;
+  background: var(--ck-color-base-background);
+  color: var(--ck-color-base-text);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__suggestion:hover {
+  background: var(--ck-color-button-on-background);
+  border-color: var(--ck-color-focus-border);
+}
+
+.ck.ck-math-handwriting .ck-math-handwriting__suggestion:focus-visible {
+  outline: none;
+  border-color: var(--ck-color-focus-border);
+  box-shadow: var(--ck-focus-outer-shadow);
 }
 
 .ck.ck-math-handwriting .ck-math-handwriting__hint {
   margin: 0;
   font-size: var(--ck-font-size-small);
-  opacity: 0.7;
+  color: hsl(0, 0%, 42%);
 }
 
 .ck.ck-math-form .ck-math-form__handwriting-result {
   display: flex;
   align-items: center;
   gap: var(--ck-spacing-standard);
+  padding: 6px 6px 6px 10px;
+  border-radius: calc(var(--ck-border-radius) * 2);
+  background: hsl(220, 14%, 97%);
   font-size: var(--ck-font-size-small);
 }
 
 .ck.ck-math-form .ck-math-form__handwriting-result code {
-  font-family: monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2810,6 +2915,7 @@ a.ck.ck-button .ck-icon {
 @media (forced-colors: active) {
   .ck.ck-math-canvas,
   .ck.ck-math-handwriting .ck-math-handwriting__canvas,
+  .ck.ck-math-handwriting .ck-math-handwriting__suggestion,
   .ck.ck-math-toolbar,
   .ck.ck-math-form .ck-math-form__preview {
     border-color: CanvasText;

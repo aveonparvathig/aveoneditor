@@ -24,6 +24,7 @@ ClassicEditor.create(document.querySelector('#editor') as HTMLElement, {
     let readOnly = false;
     document.querySelector('#toggle-readonly')!.addEventListener('click', () => {
       readOnly = !readOnly;
+      document.querySelector('#toggle-readonly')!.setAttribute('aria-pressed', String(readOnly));
       if (readOnly) editor.enableReadOnlyMode('demo');
       else editor.disableReadOnlyMode('demo');
     });

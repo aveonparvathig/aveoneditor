@@ -5,18 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aveon Editor demo</title>
     <style>
-      body { font-family: Helvetica, Arial, sans-serif; margin: 0; background: #f4f5f7; color: #222; }
+      body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background: #f3f5f8; color: #1e2430; }
       .page { max-width: 960px; margin: 0 auto; padding: 32px 16px 80px; }
-      h1 { font-size: 20px; margin: 0 0 16px; }
-      .output { margin-top: 24px; }
-      .output pre { background: #fff; border: 1px solid #ddd; padding: 12px; white-space: pre-wrap; word-break: break-all; font-size: 12px; max-height: 240px; overflow: auto; }
-      .actions { margin: 12px 0; display: flex; gap: 8px; }
-      .actions button { padding: 6px 12px; }
+      header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+      h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+      header p { margin: 4px 0 0; color: #5b6475; font-size: 14px; }
+      .editor-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(20, 30, 50, 0.08), 0 8px 24px rgba(20, 30, 50, 0.06); }
+      .editor-card .ck.ck-editor__main > .ck-editor__editable { min-height: 320px; }
+      .toolbar-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+      #word-count { color: #5b6475; font-size: 13px; }
+      .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .actions button { font: inherit; font-size: 13px; padding: 7px 14px; border-radius: 6px; border: 1px solid #d3d8e0; background: #fff; color: inherit; cursor: pointer; transition: background 120ms ease, border-color 120ms ease; }
+      .actions button:hover { background: #eef2f8; border-color: #b9c2d0; }
+      .actions button:focus-visible { outline: 2px solid #3b7cf0; outline-offset: 2px; }
+      .actions button[aria-pressed='true'] { background: #e6efff; border-color: #3b7cf0; color: #1a4fb8; }
+      details.output { margin-top: 8px; }
+      details.output summary { cursor: pointer; color: #5b6475; font-size: 13px; padding: 4px 0; }
+      .output pre { background: #fff; border: 1px solid #dde2ea; border-radius: 8px; padding: 12px; white-space: pre-wrap; word-break: break-all; font-size: 12px; max-height: 240px; overflow: auto; }
     </style>
   </head>
   <body>
     <div class="page">
-      <h1>Aveon Editor</h1>
+      <header>
+        <div>
+          <h1>Aveon Editor</h1>
+          <p>Rich text, tables, images and math with handwriting input.</p>
+        </div>
+      </header>
+      <div class="editor-card">
       <div id="editor">
         <h2>Welcome to Aveon Editor</h2>
         <p>This is a <strong>rich text editor</strong> built on an <em>own engine</em> that mirrors the CKEditor 5 architecture: a custom model, an editing view, converters and operations. Visit <a href="https://example.com">example.com</a> for more.</p>
@@ -41,15 +57,19 @@
 console.log(answer);</code></pre>
         <p style="text-align:center">Centered paragraph with <span style="color:hsl(0, 75%, 60%)">colored</span> text.</p>
       </div>
-      <div id="word-count"></div>
-      <div class="actions">
-        <button id="get-data" type="button">Get data</button>
-        <button id="set-data" type="button">Set sample data</button>
-        <button id="toggle-readonly" type="button">Toggle read-only</button>
       </div>
-      <div class="output">
+      <div class="toolbar-row">
+        <div id="word-count"></div>
+        <div class="actions">
+          <button id="get-data" type="button">Refresh output</button>
+          <button id="set-data" type="button">Load sample</button>
+          <button id="toggle-readonly" type="button" aria-pressed="false">Read-only</button>
+        </div>
+      </div>
+      <details class="output">
+        <summary>HTML output</summary>
         <pre id="output"></pre>
-      </div>
+      </details>
     </div>
     <script type="module" src="/main.ts"></script>
   </body>
