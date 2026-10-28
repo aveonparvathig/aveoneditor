@@ -1,0 +1,41 @@
+{
+  "name": "@aveon/editor",
+  "version": "0.1.0",
+  "description": "Aveon Editor core: engine, UI and features. Framework agnostic.",
+  "type": "module",
+  "main": "./dist/aveon-editor.js",
+  "module": "./dist/aveon-editor.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/aveon-editor.js"
+    },
+    "./theme.css": "./dist/aveon-editor.css"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json && node -e \"require('fs').copyFileSync('src/theme/index.css','dist/aveon-editor.css')\"",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.8",
+    "jsdom": "^25.0.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vite-plugin-dts": "^4.3.0",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "katex": "^0.16.22"
+  }
+}

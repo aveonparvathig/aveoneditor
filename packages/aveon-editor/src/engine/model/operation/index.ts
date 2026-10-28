@@ -1,0 +1,12 @@
+export { Operation } from './operation';
+export { InsertOperation } from './insertoperation';
+export { MoveOperation } from './moveoperation';
+export { AttributeOperation } from './attributeoperation';
+export { RenameOperation } from './renameoperation';
+export { SplitOperation } from './splitoperation';
+export { MergeOperation } from './mergeoperation';
+export { MarkerOperation } from './markeroperation';
+export { RootAttributeOperation } from './rootattributeoperation';
+export { NoOperation } from './nooperation';
+export { OperationFactory } from './operationfactory';
+export * from './utils';

@@ -1,0 +1,167 @@
+import { Editor, type EditorConfig, getDataFromElement, attachToForm, secureSourceElement } from '../core/editor';
+import { EditorUI } from '../core/editorui';
+import { BoxedEditorUIView } from '../ui/editorui/editoruiview';
+import { InlineEditableUIView } from '../ui/editableui/editableuiview';
+import { StickyPanelView } from '../ui/panel/stickypanelview';
+import { ToolbarView } from '../ui/toolbar/toolbarview';
+import { TooltipManager } from '../ui/tooltipmanager';
+import { enablePlaceholder } from '../engine/view/placeholder';
+import type { Locale } from '../utils/locale';
+import type { EditingView } from '../engine/view';
+import type { PluginConstructor } from '../core/plugin';
+
+/** View of the classic editor: a sticky toolbar above a boxed editable. */
+export class ClassicEditorUIView extends BoxedEditorUIView {
+  public readonly stickyPanel: StickyPanelView;
+  public readonly toolbar: ToolbarView;
+  public readonly editable: InlineEditableUIView;
+
+  constructor(locale: Locale, editingView: EditingView, options: { shouldToolbarGroupWhenFull?: boolean; label?: string } = {}) {
+    super(locale);
+    this.stickyPanel = new StickyPanelView(locale);
+    this.toolbar = new ToolbarView(locale, { shouldGroupWhenFull: options.shouldToolbarGroupWhenFull });
+    this.editable = new InlineEditableUIView(locale, editingView, undefined, { label: options.label });
+  }
+
+  public override render(): void {
+    super.render();
+    this.stickyPanel.content.add(this.toolbar);
+    this.top.add(this.stickyPanel);
+    this.main.add(this.editable);
+  }
+}
+
+/** UI controller of the classic editor. */
+export class ClassicEditorUI extends EditorUI {
+  public readonly view: ClassicEditorUIView;
+  private _toolbarConfig: any;
+  private _elementReplacer: { element: HTMLElement; display: string } | null = null;
+  private _tooltipManager: TooltipManager | null = null;
+
+  constructor(editor: Editor, view: ClassicEditorUIView) {
+    super(editor);
+    this.view = view;
+    this._toolbarConfig = editor.config.get('toolbar');
+  }
+
+  public init(replacementElement: HTMLElement | null): void {
+    const editor = this.editor;
+    const view = this.view;
+    const editingView = editor.editing.view;
+    const editable = view.editable;
+    const editingRoot = editingView.document.getRoot()!;
+
+    editable.name = editingRoot.rootName;
+    view.render();
+    const editableElement = editable.element!;
+    this.setEditableElement(editable.name, editableElement);
+    view.editable.bind('isFocused').to(editingView.document);
+    editingView.attachDomRoot(editableElement);
+
+    if (replacementElement) {
+      replacementElement.parentNode!.insertBefore(view.element!, replacementElement.nextSibling);
+      this._elementReplacer = { element: replacementElement, display: replacementElement.style.display };
+      replacementElement.style.display = 'none';
+    }
+
+    this._initPlaceholder();
+    this._initToolbar();
+    this._tooltipManager = new TooltipManager(editor);
+    this.fire('ready');
+  }
+
+  public override destroy(): void {
+    super.destroy();
+    if (this._elementReplacer) {
+      this._elementReplacer.element.style.display = this._elementReplacer.display;
+      this._elementReplacer = null;
+    }
+    if (this._tooltipManager) this._tooltipManager.destroy(this.editor);
+    this.view.destroy();
+  }
+
+  private _initToolbar(): void {
+    const view = this.view;
+    view.stickyPanel.bind('isActive').to(this.focusTracker, 'isFocused');
+    view.stickyPanel.limiterElement = view.element;
+    view.stickyPanel.bind('viewportTopOffset').to(this, 'viewportOffset', (offset: { top?: number }) => (offset && offset.top) || 0);
+    view.toolbar.fillFromConfig(this._toolbarConfig, this.componentFactory);
+    this.addToolbar(view.toolbar);
+  }
+
+  private _initPlaceholder(): void {
+    const editor = this.editor;
+    const editingView = editor.editing.view;
+    const editingRoot = editingView.document.getRoot()!;
+    const sourceElement = editor.sourceElement;
+    let placeholderText: string | undefined;
+    const placeholder = editor.config.get('placeholder');
+    if (placeholder) {
+      placeholderText = typeof placeholder === 'string' ? placeholder : placeholder[editingRoot.rootName];
+    }
+    if (!placeholderText && sourceElement && sourceElement.tagName.toLowerCase() === 'textarea') {
+      placeholderText = (sourceElement as HTMLTextAreaElement).getAttribute('placeholder') || undefined;
+    }
+    if (placeholderText) {
+      enablePlaceholder({ view: editingView, element: editingRoot, text: placeholderText, isDirectHost: false, keepOnFocus: true });
+    }
+  }
+}
+
+/**
+ * The classic editor: a toolbar above a boxed editing area, replacing a DOM element or textarea.
+ */
+export class ClassicEditor extends Editor {
+  public readonly ui: ClassicEditorUI;
+
+  protected constructor(sourceElementOrData: HTMLElement | string, config: EditorConfig = {}) {
+    if (!isElement(sourceElementOrData) && config.initialData !== undefined) {
+      throw new Error('editor-create-initial-data: The config.initialData option cannot be used together with initial data passed as a string.');
+    }
+    super(config);
+    if (typeof this.config.get('initialData') !== 'string') {
+      this.config.set('initialData', getInitialData(sourceElementOrData));
+    }
+    if (isElement(sourceElementOrData)) {
+      this.sourceElement = sourceElementOrData;
+      secureSourceElement(this, sourceElementOrData);
+    }
+    const shouldToolbarGroupWhenFull = !(this.config.get('toolbar.shouldNotGroupWhenFull') as boolean);
+    const view = new ClassicEditorUIView(this.locale, this.editing.view, { shouldToolbarGroupWhenFull, label: this.config.get('label') as string | undefined });
+    this.ui = new ClassicEditorUI(this, view);
+    attachToForm(this);
+  }
+
+  public override destroy(): Promise<unknown> {
+    if (this.sourceElement) {
+      this.updateSourceElement();
+    }
+    this.ui.destroy();
+    return super.destroy();
+  }
+
+  public static create(sourceElementOrData: HTMLElement | string, config: EditorConfig = {}): Promise<ClassicEditor> {
+    return new Promise(resolve => {
+      const editor = new this(sourceElementOrData, config);
+      resolve(
+        editor
+          .initPlugins()
+          .then(() => editor.ui.init(isElement(sourceElementOrData) ? sourceElementOrData : null))
+          .then(() => editor.data.init(editor.config.get('initialData') as string))
+          .then(() => editor.fire('ready'))
+          .then(() => editor)
+      );
+    });
+  }
+
+  public static override builtinPlugins: PluginConstructor[] | undefined;
+  public static override defaultConfig: EditorConfig | undefined;
+}
+
+function isElement(value: unknown): value is HTMLElement {
+  return typeof HTMLElement !== 'undefined' && value instanceof HTMLElement;
+}
+
+function getInitialData(sourceElementOrData: HTMLElement | string): string {
+  return isElement(sourceElementOrData) ? getDataFromElement(sourceElementOrData) : sourceElementOrData;
+}

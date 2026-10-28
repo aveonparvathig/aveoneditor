@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aveon Editor demo</title>
+    <style>
+      body { font-family: Helvetica, Arial, sans-serif; margin: 0; background: #f4f5f7; color: #222; }
+      .page { max-width: 960px; margin: 0 auto; padding: 32px 16px 80px; }
+      h1 { font-size: 20px; margin: 0 0 16px; }
+      .output { margin-top: 24px; }
+      .output pre { background: #fff; border: 1px solid #ddd; padding: 12px; white-space: pre-wrap; word-break: break-all; font-size: 12px; max-height: 240px; overflow: auto; }
+      .actions { margin: 12px 0; display: flex; gap: 8px; }
+      .actions button { padding: 6px 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Aveon Editor</h1>
+      <div id="editor">
+        <h2>Welcome to Aveon Editor</h2>
+        <p>This is a <strong>rich text editor</strong> built on an <em>own engine</em> that mirrors the CKEditor 5 architecture: a custom model, an editing view, converters and operations. Visit <a href="https://example.com">example.com</a> for more.</p>
+        <ul>
+          <li>Bulleted item one</li>
+          <li>Bulleted item two
+            <ul>
+              <li>Nested item</li>
+            </ul>
+          </li>
+        </ul>
+        <ol>
+          <li>Numbered one</li>
+          <li>Numbered two</li>
+        </ol>
+        <blockquote><p>A quote inside the document.</p></blockquote>
+        <figure class="image"><img src="https://picsum.photos/seed/aveon/600/240" alt="Sample"><figcaption>An image with a caption</figcaption></figure>
+        <figure class="table"><table><thead><tr><th>Name</th><th>Role</th></tr></thead><tbody><tr><td>Alice</td><td>Editor</td></tr><tr><td>Bob</td><td>Reviewer</td></tr></tbody></table></figure>
+        <p>Inline math <span class="math-tex">\(a^2 + b^2 = c^2\)</span> and a display equation:</p>
+      <span class="math-tex">\[\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}\]</span>
+      <pre><code class="language-javascript">const answer = 42;
+console.log(answer);</code></pre>
+        <p style="text-align:center">Centered paragraph with <span style="color:hsl(0, 75%, 60%)">colored</span> text.</p>
+      </div>
+      <div id="word-count"></div>
+      <div class="actions">
+        <button id="get-data" type="button">Get data</button>
+        <button id="set-data" type="button">Set sample data</button>
+        <button id="toggle-readonly" type="button">Toggle read-only</button>
+      </div>
+      <div class="output">
+        <pre id="output"></pre>
+      </div>
+    </div>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>

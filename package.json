@@ -1,0 +1,21 @@
+{
+  "name": "aveon-editor-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Aveon Editor - a modern rich text editor engine with a CKEditor 5 compatible architecture and API surface",
+  "workspaces": [
+    "packages/*",
+    "apps/demo"
+  ],
+  "scripts": {
+    "build": "npm run build -w @aveon/editor",
+    "test": "npm run test -w @aveon/editor",
+    "dev": "npm run dev -w aveon-demo",
+    "typecheck": "npm run typecheck -w @aveon/editor",
+    "dev:angular": "cd apps/cms-angular && npx ng serve --port 4201",
+    "build:angular": "cd apps/cms-angular && npx ng build aveon-angular && npx ng build"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

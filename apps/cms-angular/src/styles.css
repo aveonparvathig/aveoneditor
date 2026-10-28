@@ -1,0 +1,14 @@
+/* Aveon Editor theme (same class names and --ck-* variables as CKEditor 5). */
+@import '@aveon/editor/theme.css';
+@import 'katex/dist/katex.min.css';
+
+html,
+body {
+  margin: 0;
+  background: #f5f7fa;
+}
+
+/* Give the editing area a sensible default height. */
+.ck-editor__editable_inline {
+  min-height: 220px;
+}

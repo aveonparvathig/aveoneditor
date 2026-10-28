@@ -1,0 +1,25 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "demo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "-w",
+        "aveon-demo"
+      ],
+      "port": 5180
+    },
+    {
+      "name": "angular",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:angular"
+      ],
+      "port": 4201
+    }
+  ]
+}

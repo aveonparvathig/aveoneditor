@@ -1,0 +1,33 @@
+<main class="page">
+  <header class="page__header">
+    <h1>Aveon Editor · Angular CMS demo</h1>
+    <p class="page__status">Status: {{ status() }} · Changes: {{ changes() }}</p>
+    <div class="page__actions">
+      <button type="button" (click)="toggleDisabled()">{{ disabled() ? 'Enable' : 'Disable' }} editors</button>
+      <button type="button" (click)="resetContent()">Reset content</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Template-driven form (ngModel)</h2>
+    <aveon-editor
+      [editor]="Editor"
+      [config]="config"
+      [disabled]="disabled()"
+      [(ngModel)]="content"
+      (ready)="onReady($event)"
+      (change)="onChange($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+    ></aveon-editor>
+    <h3>Model value</h3>
+    <pre class="output">{{ content }}</pre>
+  </section>
+
+  <section class="card">
+    <h2>Reactive form (FormControl)</h2>
+    <aveon-editor [editor]="Editor" [config]="config" [formControl]="bodyControl"></aveon-editor>
+    <h3>Control value</h3>
+    <pre class="output">{{ bodyControl.value }}</pre>
+  </section>
+</main>
