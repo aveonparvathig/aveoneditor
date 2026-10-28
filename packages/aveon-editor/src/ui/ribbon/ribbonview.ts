@@ -14,13 +14,25 @@ import { FocusTracker } from '../../utils/focustracker';
 import { KeystrokeHandler } from '../../utils/keystrokehandler';
 import { icons } from '../icons';
 import { uid } from '../../utils/uid';
+import { getEnvKeystrokeText } from '../../utils/keyboard';
 import type { Locale } from '../../utils/locale';
 import type { ComponentFactory } from '../../core/componentfactory';
 
+export type RibbonItemSize = 'large' | 'medium' | 'small';
+
+/**
+ * A ribbon item: a component name (small, icon-only button) or an object giving its size and an
+ * optional short label. Large items show a big icon above the label (the group's main action);
+ * medium items show a small icon beside the label, stacked up to three high.
+ */
+export type RibbonItem = string | { name: string; size?: RibbonItemSize; label?: string };
+
 export interface RibbonGroupConfig {
   label: string;
-  /** Toolbar item names; `-` starts a new row and `|` adds a separator. */
-  items: string[];
+  /** Items; among small items `-` starts a new row and `|` adds a separator. */
+  items: RibbonItem[];
+  /** A "more options" corner button (like Word's dialog launchers) that runs this command. */
+  launcher?: { command: string; label?: string };
 }
 
 export interface RibbonTabConfig {
@@ -36,40 +48,136 @@ export interface RibbonConfig {
   collapsed?: boolean;
 }
 
+function itemName(item: RibbonItem): string {
+  return typeof item === 'string' ? item : item.name;
+}
+
+/** Makes a component show its label (and use a short one), keeping the full name in its tooltip. */
+function applyItemSize(view: View, size: RibbonItemSize, label?: string): void {
+  const anyView = view as any;
+  // Dropdowns carry their button in `buttonView`; split buttons also have an `actionView`.
+  const host: any = anyView.buttonView || anyView;
+  if (size === 'small' || !(host instanceof ButtonView || host.actionView instanceof ButtonView)) return;
+  const showLabel = (button: any) => {
+    const bound = button._boundProps as Map<string, unknown> | undefined;
+    if (!(bound && bound.has('withText'))) button.withText = true;
+    if (!label || (bound && bound.has('label'))) return;
+    const full = button.label;
+    if (full && full !== label && !(bound && bound.has('tooltip'))) {
+      button.tooltip = button.keystroke ? `${full} (${getEnvKeystrokeText(button.keystroke)})` : full;
+    }
+    button.label = label;
+  };
+  showLabel(host);
+  // Some split buttons (e.g. image insert) label their action half directly.
+  if (host.actionView) showLabel(host.actionView);
+  // Through the template, so the classes survive the button's own class re-renders.
+  view.extendTemplate({ attributes: { class: ['ck-ribbon__item', `ck-ribbon__item_${size}`] } });
+}
+
 /**
- * One labelled group (e.g. "Font") inside a ribbon tab. Each row is its own toolbar, so the group is
- * only as wide as its widest row.
+ * One labelled group (e.g. "Font") inside a ribbon tab. Large items get a column each, medium items
+ * stack three to a column and small items flow in rows; each column or row is its own toolbar, so
+ * the group is only as wide as it needs to be.
  */
 export class RibbonGroupView extends View {
-  public readonly rows = this.createCollection<ToolbarView>();
+  /** Every toolbar in the group, in reading order (the keyboard Tab stops). */
+  public readonly toolbars: ToolbarView[] = [];
+  public readonly launcherView: ButtonView | null;
+  private readonly _blocks = this.createCollection();
 
-  constructor(locale: Locale | undefined, label: string, items: string[], factory: ComponentFactory) {
+  constructor(locale: Locale | undefined, config: RibbonGroupConfig, factory: ComponentFactory) {
     super(locale);
-    const rowItems: string[][] = [[]];
-    for (const item of items) {
-      if (item === '-') rowItems.push([]);
-      else rowItems[rowItems.length - 1].push(item);
-    }
-    for (const row of rowItems.filter(r => r.some(item => item !== '|'))) {
+    const label = config.label;
+    const newToolbar = (className: string) => {
       const toolbar = new ToolbarView(locale);
       toolbar.ariaLabel = label;
-      toolbar.class = 'ck-ribbon__group-row';
-      toolbar.fillFromConfig(row, factory);
-      this.rows.add(toolbar);
+      toolbar.class = className;
+      this.toolbars.push(toolbar);
+      return toolbar;
+    };
+
+    let medium: ToolbarView | null = null;
+    let smallRows: string[][] | null = null;
+    const flushSmall = () => {
+      if (!smallRows) return;
+      const rows = smallRows.map(row => row.filter(name => name === '|' || factory.has(name))).filter(row => row.some(name => name !== '|'));
+      smallRows = null;
+      if (!rows.length) return;
+      const block = new View(locale);
+      const rowViews = block.createCollection();
+      for (const row of rows) {
+        const toolbar = newToolbar('ck-ribbon__group-row');
+        toolbar.fillFromConfig(row, factory);
+        rowViews.add(toolbar);
+      }
+      block.setTemplate({ tag: 'div', attributes: { class: ['ck', 'ck-ribbon__block', 'ck-ribbon__block_small'] }, children: rowViews });
+      this._blocks.add(block);
+    };
+
+    for (const item of config.items) {
+      const size: RibbonItemSize = typeof item === 'string' ? 'small' : item.size || 'small';
+      const name = itemName(item);
+      if (size === 'small') {
+        medium = null;
+        if (!smallRows) smallRows = [[]];
+        if (name === '-') smallRows.push([]);
+        else smallRows[smallRows.length - 1].push(name);
+        continue;
+      }
+      flushSmall();
+      if (!factory.has(name)) continue;
+      const view = factory.create(name);
+      applyItemSize(view, size, typeof item === 'string' ? undefined : item.label);
+      if (size === 'large') {
+        medium = null;
+        const toolbar = newToolbar('ck-ribbon__block ck-ribbon__block_large');
+        toolbar.items.add(view);
+        this._blocks.add(toolbar);
+      } else {
+        if (!medium || medium.items.length >= 3) {
+          medium = newToolbar('ck-ribbon__block ck-ribbon__block_medium');
+          this._blocks.add(medium);
+        }
+        medium.items.add(view);
+      }
     }
+    flushSmall();
+
+    const t = this.t || ((s: string) => s);
     const labelId = `ck-ribbon-group-${uid()}`;
+    const footer: any[] = [{ tag: 'span', attributes: { class: ['ck', 'ck-ribbon__group-label'], id: labelId }, children: [label] }];
+    this.launcherView = null;
+    if (config.launcher) {
+      const launcher = new ButtonView(locale);
+      const launcherConfig = config.launcher;
+      launcher.set({ label: launcherConfig.label || t('More %0 options').replace('%0', label), icon: icons.launcher, tooltip: true, class: 'ck-ribbon__launcher' });
+      launcher.on('execute', () => this.fire('launch', launcherConfig));
+      this.launcherView = launcher;
+      footer.push(launcher);
+    }
     this.setTemplate({
       tag: 'div',
       attributes: { class: ['ck', 'ck-ribbon__group'], role: 'group', 'aria-labelledby': labelId },
       children: [
-        { tag: 'div', attributes: { class: ['ck', 'ck-ribbon__group-rows'] }, children: this.rows },
-        { tag: 'span', attributes: { class: ['ck', 'ck-ribbon__group-label'], id: labelId }, children: [label] }
+        { tag: 'div', attributes: { class: ['ck', 'ck-ribbon__group-body'] }, children: this._blocks },
+        { tag: 'div', attributes: { class: ['ck', 'ck-ribbon__group-footer'] }, children: footer }
       ]
     });
   }
 
+  /** Whether any item made it into the group (unavailable components are skipped). */
+  public get isEmpty(): boolean {
+    return this.toolbars.every(toolbar => !toolbar.items.length);
+  }
+
+  /** Keyboard stops: each toolbar, then the launcher. */
+  public get focusStops(): Array<{ element: HTMLElement | null; focus(): void }> {
+    return [...this.toolbars, ...(this.launcherView ? [this.launcherView] : [])];
+  }
+
   public focus(): void {
-    this.rows.first?.focus();
+    this.toolbars[0]?.focus();
   }
 }
 
@@ -156,9 +264,7 @@ export class RibbonView extends View {
       if (this.quickAccess.items.length) this._barChildren.add(this.quickAccess, 0);
     }
     for (const tab of config.tabs) {
-      const groups = tab.groups
-        .map(group => ({ ...group, items: group.items.filter(name => name === '|' || name === '-' || factory.has(name)) }))
-        .filter(group => group.items.some(name => name !== '|' && name !== '-'));
+      const groups = tab.groups.map(group => new RibbonGroupView(this.locale, group, factory)).filter(group => !group.isEmpty);
       if (!groups.length) continue;
       const index = this.tabs.length;
       const tabId = `ck-ribbon-tab-${uid()}`;
@@ -172,7 +278,8 @@ export class RibbonView extends View {
 
       const panel = new RibbonPanelView(this.locale, panelId, tabId);
       for (const group of groups) {
-        panel.groups.add(new RibbonGroupView(this.locale, group.label, group.items, factory));
+        group.on('launch', (evt, launcher) => this.fire('launch', launcher));
+        panel.groups.add(group);
       }
       this.panels.add(panel);
     }
@@ -214,12 +321,12 @@ export class RibbonView extends View {
     return [...this.tabs].findIndex(tab => tab.element === active);
   }
 
-  /** Every row of every group in the panel, in reading order: the Tab stops. */
-  private _rows(panel: RibbonPanelView): ToolbarView[] {
-    return [...panel.groups].flatMap(group => [...group.rows]);
+  /** Every toolbar and launcher of every group in the panel, in reading order: the Tab stops. */
+  private _rows(panel: RibbonPanelView): Array<{ element: HTMLElement | null; focus(): void }> {
+    return [...panel.groups].flatMap(group => group.focusStops);
   }
 
-  private _focusedRowIndex(rows: ToolbarView[]): number {
+  private _focusedRowIndex(rows: Array<{ element: HTMLElement | null }>): number {
     const active = this.element?.ownerDocument.activeElement;
     return rows.findIndex(row => !!row.element && !!active && row.element.contains(active));
   }

@@ -228,7 +228,7 @@ export class SimpleUploadAdapter extends Plugin {
   }
 
   public override init(): void {
-    const options = this.editor.config.get('simpleUpload') as { uploadUrl?: string; headers?: Record<string, string>; withCredentials?: boolean } | undefined;
+    const options = this.editor.config.get('simpleUpload') as Partial<SimpleUploadConfig> | undefined;
     if (!options || !options.uploadUrl) {
       console.warn('simple-upload-adapter-missing-uploadurl: config.simpleUpload.uploadUrl is not set.');
       return;
@@ -237,12 +237,22 @@ export class SimpleUploadAdapter extends Plugin {
   }
 }
 
+/** `config.simpleUpload`: where images are sent (POST, multipart) and how. */
+export interface SimpleUploadConfig {
+  uploadUrl: string;
+  /** Extra request headers; a function is called for every upload (e.g. a fresh auth token). */
+  headers?: Record<string, string> | (() => Record<string, string>);
+  withCredentials?: boolean;
+  /** Name of the file field in the form data. Default `upload`. */
+  fieldName?: string;
+}
+
 class SimpleAdapter implements UploadAdapter {
   private _loader: FileLoader;
-  private _options: { uploadUrl: string; headers?: Record<string, string>; withCredentials?: boolean };
+  private _options: SimpleUploadConfig;
   private _xhr: XMLHttpRequest | null = null;
 
-  constructor(loader: FileLoader, options: { uploadUrl: string; headers?: Record<string, string>; withCredentials?: boolean }) {
+  constructor(loader: FileLoader, options: SimpleUploadConfig) {
     this._loader = loader;
     this._options = options;
   }
@@ -253,7 +263,8 @@ class SimpleAdapter implements UploadAdapter {
       xhr.open('POST', this._options.uploadUrl, true);
       xhr.responseType = 'json';
       xhr.withCredentials = !!this._options.withCredentials;
-      for (const [key, value] of Object.entries(this._options.headers || {})) xhr.setRequestHeader(key, value);
+      const headers = typeof this._options.headers === 'function' ? this._options.headers() : this._options.headers;
+      for (const [key, value] of Object.entries(headers || {})) xhr.setRequestHeader(key, value);
       const genericErrorText = `Couldn't upload file: ${file!.name}.`;
       xhr.addEventListener('error', () => reject(genericErrorText));
       xhr.addEventListener('abort', () => reject());
@@ -274,7 +285,7 @@ class SimpleAdapter implements UploadAdapter {
         });
       }
       const data = new FormData();
-      data.append('upload', file!);
+      data.append(this._options.fieldName || 'upload', file!);
       xhr.send(data);
     }));
   }

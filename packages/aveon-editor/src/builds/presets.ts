@@ -123,43 +123,101 @@ export const classicRibbon: RibbonConfig = {
     {
       label: 'Home',
       groups: [
-        { label: 'Clipboard', items: ['paste', 'cut', '-', 'copy', 'formatPainter'] },
-        { label: 'Font', items: ['fontFamily', 'fontSize', 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', '|', 'fontColor', 'fontBackgroundColor', 'highlight'] },
+        {
+          label: 'Clipboard',
+          items: [
+            { name: 'paste', size: 'large' },
+            { name: 'cut', size: 'medium' },
+            { name: 'copy', size: 'medium' },
+            { name: 'formatPainter', size: 'medium', label: 'Format' }
+          ]
+        },
+        {
+          label: 'Font',
+          items: ['fontFamily', 'fontSize', 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', '|', 'fontColor', 'fontBackgroundColor', 'highlight'],
+          launcher: { command: 'fontDialog', label: 'Font options' }
+        },
         { label: 'Paragraph', items: ['bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '-', 'alignment', 'blockQuote', 'codeBlock', 'horizontalLine'] },
         { label: 'Styles', items: ['styleGallery'] },
-        { label: 'Editing', items: ['findAndReplace', '-', 'selectAll'] }
+        {
+          label: 'Editing',
+          items: [
+            { name: 'findAndReplace', size: 'medium', label: 'Find' },
+            { name: 'selectAll', size: 'medium', label: 'Select all' }
+          ]
+        }
       ]
     },
     {
       label: 'Insert',
       groups: [
-        { label: 'Tables', items: ['insertTable'] },
-        { label: 'Media', items: ['insertImage', 'mediaEmbed'] },
-        { label: 'Links', items: ['link'] },
-        { label: 'Text', items: ['blockQuote', 'codeBlock', 'horizontalLine', 'code'] },
-        { label: 'Symbols', items: ['math', 'chemType', 'specialCharacters'] }
+        { label: 'Tables', items: [{ name: 'insertTable', size: 'large', label: 'Table' }] },
+        {
+          label: 'Illustrations',
+          items: [
+            { name: 'insertImage', size: 'large', label: 'Pictures' },
+            { name: 'mediaEmbed', size: 'medium', label: 'Video' },
+            { name: 'horizontalLine', size: 'medium', label: 'Line' }
+          ]
+        },
+        { label: 'Links', items: [{ name: 'link', size: 'large', label: 'Link' }] },
+        {
+          label: 'Text',
+          items: [
+            { name: 'blockQuote', size: 'medium', label: 'Quote' },
+            { name: 'codeBlock', size: 'medium', label: 'Code' },
+            { name: 'code', size: 'medium', label: 'Inline code' }
+          ]
+        },
+        {
+          label: 'Symbols',
+          items: [
+            { name: 'math', size: 'large', label: 'Equation' },
+            { name: 'specialCharacters', size: 'large', label: 'Symbol' },
+            { name: 'chemType', size: 'medium', label: 'Chemistry' }
+          ]
+        }
       ]
     },
     {
       label: 'Layout',
       groups: [
-        { label: 'Alignment', items: ['alignment'] },
-        { label: 'Indent', items: ['outdent', 'indent'] },
-        { label: 'Lists', items: ['bulletedList', 'numberedList', 'todoList'] }
+        { label: 'Alignment', items: [{ name: 'alignment', size: 'large', label: 'Align' }] },
+        {
+          label: 'Indent',
+          items: [
+            { name: 'outdent', size: 'medium', label: 'Decrease' },
+            { name: 'indent', size: 'medium', label: 'Increase' }
+          ]
+        },
+        {
+          label: 'Lists',
+          items: [
+            { name: 'bulletedList', size: 'medium', label: 'Bullets' },
+            { name: 'numberedList', size: 'medium', label: 'Numbering' },
+            { name: 'todoList', size: 'medium', label: 'Checklist' }
+          ]
+        }
       ]
     },
     {
       label: 'Review',
       groups: [
-        { label: 'Find', items: ['findAndReplace'] },
-        { label: 'Formatting', items: ['removeFormat', 'formatPainter'] }
+        { label: 'Find', items: [{ name: 'findAndReplace', size: 'large', label: 'Find' }] },
+        {
+          label: 'Formatting',
+          items: [
+            { name: 'removeFormat', size: 'medium', label: 'Clear formatting' },
+            { name: 'formatPainter', size: 'medium', label: 'Format Painter' }
+          ]
+        }
       ]
     },
     {
       label: 'View',
       groups: [
-        { label: 'Views', items: ['fullscreen'] },
-        { label: 'Source', items: ['sourceEditing'] }
+        { label: 'Views', items: [{ name: 'fullscreen', size: 'large' }] },
+        { label: 'Source', items: [{ name: 'sourceEditing', size: 'large', label: 'HTML source' }] }
       ]
     }
   ]

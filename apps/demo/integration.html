@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aveon Editor: CMS and ERP integration</title>
+    <style>
+      body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background: #f3f5f8; color: #1e2430; }
+      .page { max-width: 1180px; margin: 0 auto; padding: 32px 16px 80px; }
+      h1 { font-size: 22px; margin: 0; }
+      header p { margin: 4px 0 20px; color: #5b6475; font-size: 14px; }
+      nav a { font-size: 13px; color: #2f6fe0; }
+      .card { background: #fff; border-radius: 10px; padding: 18px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(20, 30, 50, 0.08), 0 8px 24px rgba(20, 30, 50, 0.06); }
+      .card h2 { font-size: 16px; margin: 0 0 4px; }
+      .card > p { margin: 0 0 14px; color: #5b6475; font-size: 13px; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+      label.field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; }
+      label.field input, label.field select { font: inherit; font-weight: 400; padding: 7px 9px; border: 1px solid #d3d8e0; border-radius: 6px; }
+      .actions { display: flex; gap: 8px; margin-top: 14px; }
+      .actions button { font: inherit; font-size: 13px; padding: 7px 14px; border-radius: 6px; border: 1px solid #d3d8e0; background: #fff; cursor: pointer; }
+      .actions button[type='submit'] { background: #2f6fe0; border-color: #2f6fe0; color: #fff; }
+      pre { background: #f6f8fb; border: 1px solid #dde2ea; border-radius: 8px; padding: 12px; white-space: pre-wrap; word-break: break-all; font-size: 12px; max-height: 220px; overflow: auto; margin: 14px 0 0; }
+      @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <nav><a href="/">← Full editor demo</a></nav>
+        <h1>Integration examples</h1>
+        <p>Each editor below is a plain <code>&lt;aveon-editor&gt;</code> tag inside a normal HTML form: no framework code.</p>
+      </header>
+
+      <form class="card" id="quote-form">
+        <h2>ERP: quotation</h2>
+        <p><code>&lt;aveon-editor name="terms" preset="erp"&gt;</code>: submits with the form like a textarea.</p>
+        <div class="row">
+          <label class="field">Customer <input name="customer" value="Northwind Traders" /></label>
+          <label class="field">Status
+            <select name="status"><option>Draft</option><option>Sent</option></select>
+          </label>
+        </div>
+        <aveon-editor name="terms" preset="erp" placeholder="Terms and conditions…" min-height="180">
+          <template>
+            <h2>Terms and conditions</h2>
+            <p>Prices are valid for <strong>30 days</strong>. Delivery within 2 weeks of the order.</p>
+            <figure class="table"><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead><tbody><tr><td>Licence</td><td>10</td><td>€1,200</td></tr></tbody></table></figure>
+          </template>
+        </aveon-editor>
+        <div class="actions">
+          <button type="submit">Save quotation</button>
+          <button type="reset">Reset</button>
+        </div>
+        <pre id="quote-output">Submit the form to see the posted fields.</pre>
+      </form>
+
+      <form class="card" id="comment-form">
+        <h2>CMS: comment box</h2>
+        <p><code>preset="basic"</code>: a compact toolbar for short texts.</p>
+        <aveon-editor name="comment" preset="basic" placeholder="Write a comment…" min-height="90"></aveon-editor>
+        <div class="actions"><button type="submit">Post comment</button></div>
+        <pre id="comment-output">Submit to see the posted HTML.</pre>
+      </form>
+    </div>
+    <script type="module" src="/integration.ts"></script>
+  </body>
+</html>

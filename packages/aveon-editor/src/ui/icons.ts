@@ -60,6 +60,7 @@ export const icons = {
   fontSizeDecrease: svg('<path d="M2.5 17 6 8h1.8l3.5 9H9.4l-.8-2.2H5.2L4.4 17H2.5zm3.3-3.8h2.3L7 10.2l-1.2 3zM11.5 4h7L15 8l-3.5-4z"/>'),
   fullscreen: svg('<path d="M2.5 2.5h5.5v1.7H4.2V8H2.5V2.5zm9.5 0h5.5V8h-1.7V4.2H12V2.5zM2.5 12h1.7v3.8H8v1.7H2.5V12zm13.3 0h1.7v5.5H12v-1.7h3.8V12z"/>'),
   fullscreenExit: svg('<path d="M6.3 2.5H8V8H2.5V6.3h3.8V2.5zm5.7 0h1.7v3.8h3.8V8H12V2.5zM2.5 12H8v5.5H6.3v-3.8H2.5V12zm9.5 0h5.5v1.7h-3.8v3.8H12V12z"/>'),
+  launcher: svg('<path d="M4 4h5v1.5H5.5v9h9V11H16v5H4V4zm4.9 4L10 6.9l4 4V8h1.5v5.5H10V12h2.9l-4-4z"/>'),
   chevronUp: svg('<path d="M10 6.5 16.4 13l-1.3 1.3L10 9.1l-5.1 5.2L3.6 13 10 6.5z"/>'),
   pencil: svg('<path d="M13.6 2.6a1.4 1.4 0 0 1 2 0l1.8 1.8a1.4 1.4 0 0 1 0 2L7.3 16.5 3 17l.5-4.3L13.6 2.6zm-8 10.1-.2 2 2-.2 8.2-8.2-1.8-1.8-8.2 8.2z"/>'),
   check: svg('<path d="m7.5 13.2-3.4-3.4-1.3 1.3 4.7 4.7 9.4-9.4-1.3-1.3-8.1 8.1z"/>'),

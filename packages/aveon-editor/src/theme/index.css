@@ -890,11 +890,22 @@
   z-index: calc(var(--ck-z-default) + 1);
 }
 
+/* ---------- <aveon-editor> element ---------- */
+
+aveon-editor {
+  display: block;
+}
+
+.aveon-editor-element .ck.ck-editor__main > .ck-editor__editable {
+  min-height: var(--aveon-editor-min-height, 200px);
+}
+
 /* ---------- Ribbon ---------- */
 
 .ck.ck-ribbon {
   --ck-ribbon-accent: var(--ck-color-focus-border);
   --ck-ribbon-muted: hsl(220, 9%, 42%);
+  --ck-ribbon-icon-accent: hsl(214, 72%, 42%);
   display: flex;
   flex-direction: column;
   background: var(--ck-color-toolbar-background);
@@ -1024,7 +1035,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 2px;
-  padding: 0 var(--ck-spacing-standard);
+  padding: 0 calc(var(--ck-spacing-small) + 2px);
   border-right: 1px solid var(--ck-color-toolbar-border);
 }
 
@@ -1032,11 +1043,18 @@
   border-right: 0;
 }
 
-.ck.ck-ribbon .ck-ribbon__group-rows {
+.ck.ck-ribbon .ck-ribbon__group-body {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  flex: 1;
+}
+
+/* Small items: rows of icon buttons. */
+.ck.ck-ribbon .ck-ribbon__block_small {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  flex: 1;
 }
 
 .ck.ck-ribbon .ck-ribbon__group-row > .ck-toolbar__items {
@@ -1047,11 +1065,306 @@
   margin: 1px 1px 1px 0;
 }
 
+/* Medium items: icon and label, stacked three high. */
+.ck.ck-ribbon .ck-ribbon__block_medium > .ck-toolbar__items {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: center;
+  height: 100%;
+}
+
+.ck.ck-ribbon .ck-ribbon__block_medium > .ck-toolbar__items > * {
+  margin: 0;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_medium .ck-button,
+.ck.ck-ribbon .ck-button.ck-ribbon__item_medium {
+  width: 100%;
+  min-height: 1.95em;
+  justify-content: flex-start;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_medium .ck-icon:not(.ck-dropdown__arrow),
+.ck.ck-ribbon .ck-ribbon__item_medium.ck-button > .ck-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.ck.ck-ribbon .ck-ribbon__item .ck-button__label,
+.ck.ck-ribbon .ck-ribbon__item.ck-dropdown .ck-button.ck-dropdown__button .ck-button__label {
+  width: auto;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_medium .ck-icon {
+  margin: 0;
+}
+
+.ck.ck-ribbon .ck-ribbon__item .ck-icon {
+  flex: none;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_medium .ck-splitbutton {
+  display: flex;
+  width: 100%;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_medium .ck-splitbutton > .ck-splitbutton__action {
+  flex: 1;
+  width: auto;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_medium .ck-splitbutton > .ck-splitbutton__arrow {
+  flex: none;
+  width: auto;
+  min-width: 0;
+  padding: 0 3px;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_medium .ck-button__label {
+  padding-right: var(--ck-spacing-small);
+}
+
+/* Large items: big icon above the label, like Word's main group actions. */
+.ck.ck-ribbon .ck-ribbon__block_large > .ck-toolbar__items {
+  height: 100%;
+}
+
+.ck.ck-ribbon .ck-ribbon__block_large > .ck-toolbar__items > * {
+  margin: 0;
+  height: 100%;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_large > .ck-button,
+.ck.ck-ribbon .ck-button.ck-ribbon__item_large,
+.ck.ck-ribbon .ck-ribbon__item_large > .ck-splitbutton > .ck-splitbutton__action {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-content: center;
+  row-gap: 4px;
+  min-width: 4.4em;
+  height: 100%;
+  min-height: 4.6em;
+  padding: var(--ck-spacing-small) var(--ck-spacing-standard);
+}
+
+.ck.ck-ribbon .ck-ribbon__item_large .ck-icon:not(.ck-dropdown__arrow) {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: 30px;
+  height: 30px;
+  color: var(--ck-ribbon-icon-accent);
+}
+
+.ck.ck-ribbon .ck-ribbon__item_large .ck-button__label {
+  padding: 0;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_large .ck-splitbutton__arrow {
+  min-width: 0;
+  padding: 0 2px;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_large .ck-splitbutton__arrow .ck-icon,
+.ck.ck-ribbon .ck-ribbon__item_medium .ck-splitbutton__arrow .ck-icon {
+  width: 12px;
+  height: 12px;
+  color: inherit;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_large .ck-dropdown__arrow {
+  width: 12px;
+  height: 12px;
+  margin-left: 2px;
+  align-self: center;
+  position: static;
+}
+
+.ck.ck-ribbon .ck-ribbon__group-footer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-height: 1.4em;
+}
+
 .ck.ck-ribbon .ck-ribbon__group-label {
   font-size: 0.85em;
   line-height: 1.4;
   color: var(--ck-ribbon-muted);
   white-space: nowrap;
+}
+
+/* "More options" corner button. */
+.ck.ck-ribbon .ck-button.ck-ribbon__launcher {
+  position: absolute;
+  right: -6px;
+  bottom: 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 1px;
+}
+
+.ck.ck-ribbon .ck-button.ck-ribbon__launcher .ck-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--ck-ribbon-muted);
+}
+
+/* ---------- Dialogs (Font…) ---------- */
+
+.ck.ck-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--ck-z-dialog) + 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: hsla(220, 25%, 10%, 0.35);
+  font-family: var(--ck-font-face);
+  font-size: 14px;
+  color: var(--ck-color-base-text);
+}
+
+.ck.ck-dialog-overlay .ck-dialog {
+  width: min(460px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 20px 22px;
+  border-radius: 10px;
+  background: var(--ck-color-base-background);
+  box-shadow: 0 12px 40px hsla(220, 30%, 10%, 0.3);
+}
+
+.ck.ck-dialog-overlay .ck-dialog__title {
+  margin: 0 0 14px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.ck.ck-dialog-overlay .ck-font-dialog__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__label,
+.ck.ck-dialog-overlay .ck-dialog__section-label,
+.ck.ck-dialog-overlay legend {
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(220, 9%, 40%);
+}
+
+.ck.ck-dialog-overlay .ck-dialog__input {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  background: var(--ck-color-base-background);
+  color: inherit;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__color {
+  width: 44px;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  background: var(--ck-color-base-background);
+}
+
+.ck.ck-dialog-overlay .ck-dialog__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.ck.ck-dialog-overlay .ck-font-dialog__effects {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 8px;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__section-label {
+  margin: 16px 0 6px;
+}
+
+.ck.ck-dialog-overlay .ck-font-dialog__preview-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  padding: 8px;
+  overflow: hidden;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 8px;
+  background: hsl(220, 14%, 98%);
+}
+
+.ck.ck-dialog-overlay .ck-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__button {
+  font: inherit;
+  min-width: 84px;
+  padding: 7px 14px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  background: var(--ck-color-base-background);
+  color: inherit;
+  cursor: pointer;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__button:hover {
+  background: var(--ck-color-button-default-hover-background);
+}
+
+.ck.ck-dialog-overlay .ck-dialog__button_primary {
+  border-color: var(--ck-color-focus-border);
+  background: var(--ck-color-focus-border);
+  color: #fff;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__button_primary:hover {
+  background: hsl(218, 75%, 50%);
+}
+
+.ck.ck-dialog-overlay :focus-visible {
+  outline: 2px solid var(--ck-color-focus-border);
+  outline-offset: 1px;
+}
+
+.ck-math-tex_loading {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  opacity: 0.6;
 }
 
 /* Style gallery (Normal, Heading 1…) */
@@ -1062,9 +1375,9 @@
 }
 
 .ck.ck-style-gallery .ck-button.ck-style-gallery__item {
-  min-width: 5.2em;
+  min-width: 4.4em;
   min-height: 3.2em;
-  padding: 0 var(--ck-spacing-standard);
+  padding: 0 var(--ck-spacing-small);
   justify-content: center;
   border: 1px solid var(--ck-color-base-border);
   border-radius: var(--ck-border-radius);
@@ -1087,17 +1400,17 @@
 }
 
 .ck.ck-style-gallery .ck-style-gallery__item_heading1 .ck-button__label {
-  font-size: 1.35em;
+  font-size: 1.22em;
   font-weight: 700;
 }
 
 .ck.ck-style-gallery .ck-style-gallery__item_heading2 .ck-button__label {
-  font-size: 1.2em;
+  font-size: 1.1em;
   font-weight: 700;
 }
 
 .ck.ck-style-gallery .ck-style-gallery__item_heading3 .ck-button__label {
-  font-size: 1.08em;
+  font-size: 1.02em;
   font-weight: 600;
 }
 
@@ -1150,6 +1463,21 @@ html.ck-fullscreen-open body {
 
   .ck.ck-ribbon .ck-ribbon__group-label {
     display: none;
+  }
+
+  .ck.ck-ribbon .ck-button.ck-ribbon__launcher {
+    display: none;
+  }
+
+  .ck.ck-ribbon .ck-ribbon__item_large > .ck-button,
+  .ck.ck-ribbon .ck-button.ck-ribbon__item_large {
+    min-height: 3.6em;
+    min-width: 3.6em;
+  }
+
+  .ck.ck-dialog-overlay .ck-font-dialog__grid,
+  .ck.ck-dialog-overlay .ck-font-dialog__effects {
+    grid-template-columns: 1fr 1fr;
   }
 
   .ck.ck-ribbon .ck-ribbon__group {

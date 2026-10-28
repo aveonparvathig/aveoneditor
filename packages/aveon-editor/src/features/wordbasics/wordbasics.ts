@@ -15,6 +15,7 @@ import { DataTransfer } from '../../engine/view/observer/datatransfer';
 import { normalizeFontSizeOptions } from '../font/font';
 import type { Editor } from '../../core/editor';
 import type { Locale } from '../../utils/locale';
+import { FontDialog } from './fontdialog';
 
 /* ------------------------------------------------------------------------------------------ */
 /* Clipboard buttons                                                                           */
@@ -313,6 +314,10 @@ export class FullscreenCommand extends Command {
 export class WordBasics extends Plugin {
   public static override get pluginName(): string {
     return 'WordBasics';
+  }
+
+  public static override get requires() {
+    return [FontDialog];
   }
 
   public override init(): void {

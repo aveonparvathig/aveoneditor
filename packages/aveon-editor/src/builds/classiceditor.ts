@@ -93,6 +93,9 @@ export class ClassicEditorUI extends EditorUI {
       const ribbon = view.ribbon;
       ribbon.fillFromConfig(this.editor.config.get('ribbon') as RibbonConfig, this.componentFactory);
       this.addToolbar(ribbon);
+      ribbon.on('launch', (evt, launcher: { command: string }) => {
+        if (this.editor.commands.get(launcher.command)) this.editor.execute(launcher.command);
+      });
       this.editor.keystrokes.set('Ctrl+F1', (data, cancel) => {
         ribbon.toggleCollapsed();
         cancel();

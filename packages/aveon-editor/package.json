@@ -11,7 +11,9 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/aveon-editor.js"
     },
-    "./theme.css": "./dist/aveon-editor.css"
+    "./theme.css": "./dist/aveon-editor.css",
+    "./standalone": "./dist/standalone/aveon-editor.standalone.js",
+    "./standalone.css": "./dist/standalone/aveon-editor.standalone.css"
   },
   "files": [
     "dist",
@@ -21,7 +23,7 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json && node -e \"require('fs').copyFileSync('src/theme/index.css','dist/aveon-editor.css')\"",
+    "build": "vite build && vite build -c vite.standalone.config.ts && tsc -p tsconfig.build.json && node -e \"require('fs').copyFileSync('src/theme/index.css','dist/aveon-editor.css')\"",
     "dev": "vite build --watch",
     "test": "vitest run",
     "test:watch": "vitest",

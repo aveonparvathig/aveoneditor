@@ -1,4 +1,3 @@
-import katex from 'katex';
 import { Plugin } from '../../core/plugin';
 import { Command } from '../../core/command';
 import { Widget } from '../widget/widget';
@@ -102,6 +101,42 @@ export function getSelectedMathElement(selection: any): ModelElement | null {
   return isMathElement(element) ? element : null;
 }
 
+type Katex = typeof import('katex').default;
+
+let katexLib: Katex | null = null;
+let katexPromise: Promise<Katex> | null = null;
+/** Previews drawn before KaTeX arrived; they are rendered properly once it loads. */
+const pendingRenders = new Map<HTMLElement, () => void>();
+
+let loadKatexStyles: (() => Promise<unknown>) | null = null;
+
+/**
+ * Registers a loader for KaTeX's stylesheet, run together with KaTeX itself (the script-tag build
+ * uses it so pages without equations never download the math fonts).
+ */
+export function setKatexStylesLoader(loader: (() => Promise<unknown>) | null): void {
+  loadKatexStyles = loader;
+}
+
+/**
+ * Loads KaTeX on first use (a separate chunk for bundlers), so pages without equations never pay for
+ * it. The Math plugin calls this during start-up; integrators may call it to preload.
+ */
+export function loadKatex(): Promise<Katex> {
+  if (!katexPromise) {
+    const styles = loadKatexStyles ? loadKatexStyles().catch(() => undefined) : Promise.resolve();
+    katexPromise = Promise.all([import('katex'), styles]).then(([module]) => {
+      katexLib = ((module as any).default || module) as Katex;
+      for (const [element, render] of pendingRenders) {
+        if (element.isConnected) render();
+      }
+      pendingRenders.clear();
+      return katexLib;
+    });
+  }
+  return katexPromise;
+}
+
 const renderCache = new Map<string, string>();
 const RENDER_CACHE_LIMIT = 500;
 
@@ -112,6 +147,18 @@ export function renderEquation(editor: Editor, equation: string, element: HTMLEl
     engine(equation, element, display);
     return;
   }
+  if (!katexLib) {
+    // Show the source until KaTeX has loaded, then draw the equation in place.
+    element.textContent = equation;
+    element.classList.add('ck-math-tex_loading');
+    pendingRenders.set(element, () => {
+      element.classList.remove('ck-math-tex_loading');
+      renderEquation(editor, equation, element, display);
+    });
+    void loadKatex();
+    return;
+  }
+  const katex = katexLib;
   const extra = (editor.config.get('math.katexOptions') as Record<string, unknown>) || {};
   const options = { displayMode: display, throwOnError: false, output: 'htmlAndMathml' as const, ...extra };
   const key = `${display ? 'D' : 'I'}:${JSON.stringify(extra)}:${equation}`;
@@ -142,12 +189,16 @@ export function getSpeechLanguage(editor: Editor): string {
 export function renderEquationToSvg(editor: Editor, equation: string, display: boolean): string {
   const custom = editor.config.get('math.imageRenderer') as ((equation: string, display: boolean) => string) | undefined;
   if (custom) return custom(equation, display);
-  const html = katex.renderToString(equation, { displayMode: display, throwOnError: false, output: 'html' });
+  const html = katexLib ? katexLib.renderToString(equation, { displayMode: display, throwOnError: false, output: 'html' }) : escapeXml(equation);
   const fontSize = 18;
   const estimate = Math.max(1, equation.replace(/\\[a-zA-Z]+/g, 'x').replace(/[{}^_\\]/g, '').length);
   const width = Math.ceil(estimate * fontSize * 0.6 + 16);
   const height = Math.ceil(fontSize * (display ? 3.2 : 1.6));
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="font-family:KaTeX_Main,'Times New Roman',serif;font-size:${fontSize}px;line-height:1.2;padding:4px;color:#000">${html}</div></foreignObject></svg>`;
+}
+
+function escapeXml(text: string): string {
+  return text.replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]!);
 }
 
 function svgToDataUri(svg: string): string {
@@ -288,6 +339,12 @@ export class MathEditing extends Plugin {
 
   public static override get requires() {
     return [Widget];
+  }
+
+  /** Waits for KaTeX so equations render immediately once the editor is ready. */
+  public override afterInit(): Promise<unknown> | void {
+    if (typeof this.editor.config.get('math.engine') === 'function') return;
+    return loadKatex().catch(error => console.warn('math-katex-unavailable: KaTeX could not be loaded.', error));
   }
 
   public override init(): void {

@@ -77,6 +77,7 @@ export { ImageCaption, ImageCaptionEditing, ImageCaptionUI, ToggleImageCaptionCo
 export { ImageStyle, ImageStyleEditing, ImageStyleUI, ImageStyleCommand } from './imagestyle';
 export { ImageTextAlternative, ImageTextAlternativeEditing, ImageTextAlternativeUI, ImageTextAlternativeCommand } from './imagetextalternative';
 export { ImageUpload, ImageUploadEditing, ImageUploadUI, ImageUploadProgress, UploadImageCommand, FileRepository, FileLoader, Base64UploadAdapter, SimpleUploadAdapter, FileDialogButtonView } from './imageupload';
+export type { SimpleUploadConfig } from './imageupload';
 export type { UploadAdapter } from './imageupload';
 export { ImageInsert, ImageInsertUI, ImageInsertViaUrl, ImageInsertUrlView } from './imageinsert';
 export { ImageResize, ImageResizeEditing, ImageResizeButtons, ResizeImageCommand } from './imageresize';
