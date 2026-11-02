@@ -149,6 +149,13 @@ export class FontSizeUI extends Plugin {
       addListToDropdown(dropdownView, () => prepareListOptions(options, command), { role: 'menu', ariaLabel: accessibleLabel });
       dropdownView.buttonView.set({ label: accessibleLabel, tooltip: true, icon: icons.fontSize });
       dropdownView.extendTemplate({ attributes: { class: ['ck-font-size-dropdown'] } });
+      // The current size as text, for an input-style box (e.g. the ribbon's Font group).
+      // With no size set, the size the text actually has (e.g. "16"), like Word.
+      bindValueText(editor, dropdownView, command, value => {
+        if (!value) return defaultStyle(editor, 'fontSize', size => String(Math.round(parseFloat(size)))) || options.find(item => item.model === undefined)?.title || '';
+        const option = options.find(item => item.model === value);
+        return option ? option.title : String(value).replace(/px$/, '');
+      });
       dropdownView.bind('isEnabled').to(command);
       this.listenTo(dropdownView, 'execute', (evt: any) => {
         editor.execute(evt.source.commandName, { value: evt.source.commandParam });
@@ -282,6 +289,13 @@ export class FontFamilyUI extends Plugin {
       addListToDropdown(dropdownView, () => prepareFamilyListOptions(options, command), { role: 'menu', ariaLabel: accessibleLabel });
       dropdownView.buttonView.set({ label: accessibleLabel, icon: icons.fontFamily, tooltip: true });
       dropdownView.extendTemplate({ attributes: { class: 'ck-font-family-dropdown' } });
+      // The current font name as text, for an input-style box (e.g. the ribbon's Font group).
+      // With no font set, the font the text actually uses (e.g. "Inter").
+      bindValueText(editor, dropdownView, command, value => {
+        if (!value) return defaultStyle(editor, 'fontFamily', firstFamily) || options.find(item => item.model === undefined)?.title || '';
+        const option = options.find(item => item.model === value);
+        return option ? option.title : firstFamily(String(value));
+      });
       dropdownView.bind('isEnabled').to(command);
       this.listenTo(dropdownView, 'execute', (evt: any) => {
         editor.execute(evt.source.commandName, { value: evt.source.commandParam });
@@ -433,6 +447,23 @@ function createFontColorPlugins(attributeKey: string, pluginBaseName: string, cs
         dropdownView.buttonView.set({ label: t(defaultLabel), icon, tooltip: true });
         dropdownView.extendTemplate({ attributes: { class: 'ck-color-ui-dropdown' } });
         dropdownView.bind('isEnabled').to(command);
+        // A bar under the icon shows the colour at the cursor (like Word's colour buttons).
+        const button = dropdownView.buttonView;
+        button.on('render', () => {
+          const indicator = button.element!.ownerDocument.createElement('span');
+          indicator.className = 'ck-color-indicator';
+          indicator.setAttribute('aria-hidden', 'true');
+          button.element!.appendChild(indicator);
+          const update = () => {
+            const value = command.value as string | undefined;
+            indicator.style.background = value || '';
+            indicator.classList.toggle('ck-color-indicator_auto', !value);
+          };
+          command.on('change:value', update);
+  // The default size depends on the paragraph (headings are bigger): read once the view is rendered.
+  editor.editing.view.on('render', update, { priority: 'low' });
+          update();
+        });
         colorSelectorView.on('execute', (evt, data: { value: string | null }) => {
           if (dropdownView.isOpen) {
             editor.execute(attributeKey, { value: data.value });
@@ -480,3 +511,31 @@ export class Font extends Plugin {
 }
 
 export { first };
+
+function firstFamily(value: string): string {
+  return value.split(',')[0].replace(/['"]/g, '').trim();
+}
+
+/** The style the text at the cursor has without a font setting (e.g. a heading's size), or '' before the editor is shown. */
+function defaultStyle(editor: any, property: 'fontSize' | 'fontFamily', format: (value: string) => string): string {
+  const root = editor.editing.view.getDomRoot();
+  if (!root || !root.ownerDocument.defaultView) return '';
+  const block = editor.model.document.selection.getFirstPosition()?.parent;
+  const viewBlock = block && editor.editing.mapper.toViewElement(block);
+  const domBlock = viewBlock && editor.editing.view.domConverter.mapViewToDom(viewBlock);
+  const element = domBlock && domBlock.nodeType === 1 ? domBlock : root;
+  const value = root.ownerDocument.defaultView.getComputedStyle(element)[property];
+  return value ? format(value) : '';
+}
+
+/** Keeps `valueText` (the current value as text, shown by input-style boxes) up to date. */
+function bindValueText(editor: any, dropdownView: any, command: any, toText: (value: unknown) => string): void {
+  dropdownView.set('valueText', '');
+  const update = () => (dropdownView.valueText = toText(command.value));
+  command.on('change:value', update);
+  // The default size depends on the paragraph (headings are bigger): read once the view is rendered.
+  editor.editing.view.on('render', update, { priority: 'low' });
+  // The default look is known once the editable is in the page.
+  editor.on('ready', update);
+  update();
+}

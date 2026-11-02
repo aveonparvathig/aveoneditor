@@ -1215,6 +1215,170 @@ aveon-editor {
   color: var(--ck-ribbon-muted);
 }
 
+/* Font name and size as text boxes showing the current value (like Word's Font group). */
+.ck.ck-ribbon .ck-ribbon__item_combo.ck-dropdown > .ck-button.ck-dropdown__button {
+  justify-content: space-between;
+  min-height: 1.9em;
+  padding: 0 2px 0 var(--ck-spacing-small);
+  border: 1px solid var(--ck-color-input-border, hsl(220, 12%, 78%));
+  border-radius: var(--ck-border-radius);
+  background: var(--ck-color-input-background, var(--ck-color-base-background));
+}
+
+.ck.ck-ribbon .ck-ribbon__item_combo.ck-dropdown > .ck-button.ck-dropdown__button:hover {
+  border-color: var(--ck-ribbon-accent);
+  background: var(--ck-color-input-background, var(--ck-color-base-background));
+}
+
+.ck.ck-ribbon .ck-ribbon__item_combo.ck-dropdown > .ck-button.ck-dropdown__button.ck-on {
+  border-color: var(--ck-ribbon-accent);
+  box-shadow: 0 0 0 1px var(--ck-ribbon-accent);
+}
+
+.ck.ck-ribbon .ck-ribbon__item_combo > .ck-button > .ck-icon:not(.ck-dropdown__arrow) {
+  display: none;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_combo > .ck-button > .ck-button__label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_combo.ck-font-family-dropdown > .ck-button > .ck-button__label {
+  width: 8.5em;
+}
+
+.ck.ck-ribbon .ck-ribbon__item_combo.ck-font-size-dropdown > .ck-button > .ck-button__label {
+  width: 2.6em;
+}
+
+/* Contextual tabs (Table, Picture) stand out while their context is active. */
+.ck.ck-ribbon .ck-button.ck-ribbon__tab_contextual {
+  position: relative;
+  color: var(--ck-ribbon-icon-accent);
+  background: hsla(214, 72%, 42%, 0.08);
+}
+
+.ck.ck-ribbon .ck-button.ck-ribbon__tab_contextual::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 6px;
+  right: 6px;
+  height: 3px;
+  border-radius: 0 0 2px 2px;
+  background: var(--ck-ribbon-icon-accent);
+}
+
+.ck.ck-ribbon .ck-button.ck-ribbon__tab_contextual.ck-on {
+  color: var(--ck-ribbon-icon-accent);
+  box-shadow: inset 0 -3px 0 var(--ck-ribbon-icon-accent);
+}
+
+/* Command search in the tab row. */
+.ck.ck-ribbon .ck-ribbon__search {
+  position: relative;
+  flex: 0 1 15em;
+  min-width: 8em;
+}
+
+.ck.ck-ribbon .ck-ribbon__search-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 2em;
+  padding: 0 var(--ck-spacing-standard) 0 2em;
+  border: 1px solid var(--ck-color-toolbar-border);
+  border-radius: 999px;
+  background: var(--ck-color-base-background) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='8.5' cy='8.5' r='5.5' fill='none' stroke='%237a8190' stroke-width='1.8'/%3E%3Cpath d='M13 13l4.5 4.5' stroke='%237a8190' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 0.6em center / 1em;
+  font: inherit;
+  font-size: 0.95em;
+  color: var(--ck-color-base-text);
+  outline: none;
+  user-select: text;
+}
+
+.ck.ck-ribbon .ck-ribbon__search-input:focus {
+  border-color: var(--ck-color-focus-border);
+  box-shadow: 0 0 0 2px hsla(208, 79%, 51%, 0.2);
+}
+
+.ck.ck-ribbon .ck-ribbon__search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: var(--ck-z-panel, 1000);
+  width: max(100%, 20em);
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--ck-color-toolbar-border);
+  border-radius: 8px;
+  background: var(--ck-color-base-background);
+  box-shadow: 0 8px 24px var(--ck-color-shadow-drop);
+}
+
+.ck.ck-ribbon .ck-ribbon__search-results.ck-hidden {
+  display: none;
+}
+
+.ck.ck-ribbon .ck-ribbon__search-result {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 6px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.ck.ck-ribbon .ck-ribbon__search-result.ck-on {
+  background: var(--ck-color-button-default-hover-background);
+}
+
+.ck.ck-ribbon .ck-ribbon__search-result[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ck.ck-ribbon .ck-ribbon__search-path,
+.ck.ck-ribbon .ck-ribbon__search-empty {
+  font-size: 0.85em;
+  color: var(--ck-ribbon-muted);
+  white-space: nowrap;
+}
+
+.ck.ck-ribbon .ck-ribbon__search-empty {
+  padding: 6px 8px;
+}
+
+@media (max-width: 640px) {
+  .ck.ck-ribbon .ck-ribbon__search {
+    flex-basis: 9em;
+  }
+}
+
+/* Colour buttons: a bar under the icon showing the colour at the cursor. */
+.ck.ck-color-ui-dropdown > .ck-button.ck-dropdown__button {
+  position: relative;
+}
+
+.ck.ck-color-ui-dropdown .ck-color-indicator {
+  position: absolute;
+  left: calc(var(--ck-spacing-tiny) + 1px);
+  bottom: 2px;
+  width: calc(var(--ck-icon-size, 20px) - 2px);
+  height: 4px;
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.ck.ck-color-ui-dropdown .ck-color-indicator.ck-color-indicator_auto {
+  box-shadow: inset 0 0 0 1px hsl(220, 10%, 72%);
+}
+
 /* ---------- Dialogs (Font…) ---------- */
 
 .ck.ck-dialog-overlay {
@@ -2478,6 +2642,12 @@ a.ck.ck-button .ck-icon {
 
 .ck.ck-balloon-panel.ck-balloon-panel_with-arrow::before {
   z-index: calc(var(--ck-z-default) - 3);
+}
+
+/* Moved to stay inside the window: the arrow would point at the wrong place. */
+.ck.ck-balloon-panel.ck-balloon-panel_arrowless::before,
+.ck.ck-balloon-panel.ck-balloon-panel_arrowless::after {
+  display: none;
 }
 
 .ck.ck-balloon-panel.ck-balloon-panel_with-arrow::after {

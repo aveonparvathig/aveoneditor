@@ -33,7 +33,7 @@ import { Sketch } from '../features/sketch/sketch';
 import { Comments } from '../features/comments/comments';
 import { TrackChanges } from '../features/trackchanges/trackchanges';
 import { RealTimeCollaboration } from '../features/collaboration/collaboration';
-import type { RibbonConfig } from '../ui/ribbon/ribbonview';
+import type { RibbonConfig, RibbonTabConfig } from '../ui/ribbon/ribbonview';
 
 /** Plugins matching the CKEditor 5 classic build, plus the commonly requested extras. */
 export const classicPreset: PluginConstructor[] = [
@@ -133,6 +133,46 @@ export const classicToolbar: string[] = [
 ];
 
 /** Word-style ribbon: everyday tools on Home, everything you can add on Insert. */
+/** Contextual tab shown while the cursor is in a table (like Word's Table Layout tab). */
+export const tableContextTab: RibbonTabConfig = {
+  label: 'Table',
+  contextual: 'table',
+  groups: [
+    {
+      label: 'Rows & Columns',
+      items: [
+        { name: 'tableRow', size: 'large', label: 'Rows' },
+        { name: 'tableColumn', size: 'large', label: 'Columns' }
+      ]
+    },
+    { label: 'Caption', items: [{ name: 'tableCaption', size: 'large', label: 'Caption' }] }
+  ]
+};
+
+/** Contextual tab shown while a picture is selected (like Word's Picture Format tab). */
+export const pictureContextTab: RibbonTabConfig = {
+  label: 'Picture',
+  contextual: 'image',
+  groups: [
+    {
+      label: 'Accessibility',
+      items: [
+        { name: 'imageTextAlternative', size: 'large', label: 'Alt Text' },
+        { name: 'toggleImageCaption', size: 'medium', label: 'Caption' }
+      ]
+    },
+    {
+      label: 'Wrap Text',
+      items: [
+        { name: 'imageStyle:inline', size: 'medium', label: 'In line' },
+        { name: 'imageStyle:block', size: 'medium', label: 'Centered' },
+        { name: 'imageStyle:side', size: 'medium', label: 'Side' }
+      ]
+    },
+    { label: 'Size', items: [{ name: 'resizeImage', size: 'large', label: 'Size' }] }
+  ]
+};
+
 export const classicRibbon: RibbonConfig = {
   quickAccess: ['undo', 'redo', 'collaborators'],
   tabs: [
@@ -150,7 +190,7 @@ export const classicRibbon: RibbonConfig = {
         },
         {
           label: 'Font',
-          items: ['fontFamily', 'fontSize', 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', '|', 'fontColor', 'fontBackgroundColor', 'highlight'],
+          items: [{ name: 'fontFamily', size: 'combo' }, { name: 'fontSize', size: 'combo' }, 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', '|', 'fontColor', 'fontBackgroundColor', 'highlight'],
           launcher: { command: 'fontDialog', label: 'Font options' }
         },
         { label: 'Paragraph', items: ['bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '-', 'alignment', 'blockQuote', 'codeBlock', 'horizontalLine'] },
@@ -282,7 +322,9 @@ export const classicRibbon: RibbonConfig = {
           ]
         }
       ]
-    }
+    },
+    tableContextTab,
+    pictureContextTab
   ]
 };
 

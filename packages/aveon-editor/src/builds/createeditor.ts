@@ -7,7 +7,7 @@
  */
 
 import { ClassicEditor } from './classiceditor';
-import { classicPreset, classicDefaultConfig, classicRibbon } from './presets';
+import { classicPreset, classicDefaultConfig, classicRibbon, tableContextTab, pictureContextTab } from './presets';
 import type { EditorConfig } from '../core/editor';
 import type { PluginConstructor } from '../core/plugin';
 import type { RibbonConfig } from '../ui/ribbon/ribbonview';
@@ -77,7 +77,7 @@ export const erpRibbon: RibbonConfig = {
         { label: 'Clipboard', items: [{ name: 'paste', size: 'large' }, { name: 'cut', size: 'medium' }, { name: 'copy', size: 'medium' }, { name: 'formatPainter', size: 'medium', label: 'Format' }] },
         {
           label: 'Font',
-          items: ['fontFamily', 'fontSize', 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', '|', 'fontColor', 'fontBackgroundColor', 'highlight'],
+          items: [{ name: 'fontFamily', size: 'combo' }, { name: 'fontSize', size: 'combo' }, 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', '|', 'fontColor', 'fontBackgroundColor', 'highlight'],
           launcher: { command: 'fontDialog', label: 'Font options' }
         },
         { label: 'Paragraph', items: ['bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '-', 'alignment', 'blockQuote', 'horizontalLine'] },
@@ -129,7 +129,9 @@ export const erpRibbon: RibbonConfig = {
         { label: 'Views', items: [{ name: 'fullscreen', size: 'large' }] },
         { label: 'Export', items: [{ name: 'exportPdf', size: 'large', label: 'PDF' }, { name: 'exportWord', size: 'large', label: 'Word' }] }
       ]
-    }
+    },
+    tableContextTab,
+    pictureContextTab
   ]
 };
 

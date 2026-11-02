@@ -217,6 +217,7 @@ export function getOptimalPosition(options: { element: HTMLElement; target: any;
 
   let best: { top: number; left: number; name: string; config?: any } | null = null;
   let bestArea = -1;
+  let fits = false;
   for (const positioningFunction of options.positions) {
     const position = positioningFunction(targetRect, elementRect, viewportRect);
     if (!position) continue;
@@ -227,6 +228,7 @@ export function getOptimalPosition(options: { element: HTMLElement; target: any;
     const area = Math.min(limiterArea, viewportArea);
     if (area >= fullArea - 0.5) {
       best = position;
+      fits = true;
       break;
     }
     if (area > bestArea) {
@@ -235,10 +237,26 @@ export function getOptimalPosition(options: { element: HTMLElement; target: any;
     }
   }
   if (!best) return null;
+  if (!fits && options.fitInViewport) best = keepInViewport(best, elementRect, viewportRect);
   // Convert from viewport to absolute (document) coordinates for `position: absolute` elements in body.
   const parent = options.element.offsetParent as HTMLElement | null;
   const parentRect = parent && parent !== document.body ? parent.getBoundingClientRect() : { top: -window.scrollY, left: -window.scrollX };
   return { ...best, top: best.top - parentRect.top, left: best.left - parentRect.left };
+}
+
+const VIEWPORT_MARGIN = 8;
+
+/**
+ * When no position fits (a big balloon, e.g. the equation dialog, or a target near the window's
+ * edge), moves the balloon back inside the window instead of letting it be cut off. Its arrow
+ * would then point at the wrong place, so it is hidden.
+ */
+function keepInViewport(position: { top: number; left: number; name: string; config?: any }, balloonRect: Rect, viewportRect: Rect): { top: number; left: number; name: string; config?: any } {
+  const clamp = (value: number, min: number, max: number) => (max < min ? min : Math.min(Math.max(value, min), max));
+  const left = clamp(position.left, viewportRect.left + VIEWPORT_MARGIN, viewportRect.right - balloonRect.width - VIEWPORT_MARGIN);
+  const top = clamp(position.top, viewportRect.top + VIEWPORT_MARGIN, viewportRect.bottom - balloonRect.height - VIEWPORT_MARGIN);
+  if (left === position.left && top === position.top) return position;
+  return { ...position, top, left, name: 'arrowless' };
 }
 
 function getIntersectionArea(a: Rect, b: Rect): number {

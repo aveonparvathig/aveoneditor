@@ -36,10 +36,12 @@ class Hub {
       this.toClient(socket, { type: 'joined', clientId: socket.clientId, color: 0, version: this.ops.length, users, threads: [], data: this._initialData, fromVersion: 0, ops: this.ops.slice() });
       for (const other of this.sockets) if (other !== socket) this.toClient(other, { type: 'user-joined', clientId: socket.clientId, user: { id: String(socket.clientId), name: 'U' + socket.clientId }, color: 0, selection: null });
     } else if (message.type === 'presence') {
-      for (const other of this.sockets) if (other !== socket) this.toClient(other, { type: 'presence', clientId: socket.clientId, selection: message.selection });
+      // Sent in the server's batched form (which includes the sender's own entry).
+      for (const other of this.sockets) this.toClient(other, { type: 'presence', updates: [{ clientId: socket.clientId, selection: message.selection }] });
     } else if (message.type === 'ops') {
       if (message.version !== this.ops.length) {
-        this.toClient(socket, { type: 'reject', fromVersion: message.version, ops: this.ops.slice(message.version) });
+        // Like the server: the newer operations already reached the client (broadcast, in order).
+        this.toClient(socket, { type: 'reject', fromVersion: this.ops.length, ops: [] });
         return;
       }
       const fromVersion = this.ops.length;

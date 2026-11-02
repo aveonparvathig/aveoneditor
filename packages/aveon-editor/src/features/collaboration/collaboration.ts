@@ -198,7 +198,7 @@ export class RealTimeCollaboration extends Plugin {
       console.warn('collaboration-token-failed', error);
     }
     if (this._destroyed) return;
-    const socket = new SocketClass(config.url);
+    const socket = new SocketClass(withDocumentId(config.url, config.documentId));
     this._socket = socket;
     socket.onopen = () => {
       const fresh = !this._joined || this._freshJoin;
@@ -270,10 +270,14 @@ export class RealTimeCollaboration extends Plugin {
         this.users = this.users.filter(user => user.clientId !== message.clientId);
         this._renderRemoteMarkers();
         return;
-      case 'presence':
-        this.users = this.users.map(user => (user.clientId === message.clientId ? { ...user, selection: message.selection } : user));
+      case 'presence': {
+        // One cursor move, or several gathered by the server (`updates`, may include our own).
+        const updates: Array<{ clientId: number; selection: unknown }> = message.updates || [message];
+        const selections = new Map(updates.map(update => [update.clientId, update.selection]));
+        this.users = this.users.map(user => (selections.has(user.clientId) ? { ...user, selection: selections.get(user.clientId) as any } : user));
         this._renderRemoteMarkers();
         return;
+      }
       case 'threads':
         return this._receiveThreads(message.upserts || [], message.removals || []);
       case 'error':
@@ -762,4 +766,13 @@ function initials(name: string): string {
       .slice(0, 2)
       .toUpperCase() || '?'
   );
+}
+
+/**
+ * Adds the document id to the server address (`?doc=…`), so a load balancer in front of several
+ * collaboration servers can send everyone editing the same document to the same server.
+ */
+function withDocumentId(url: string, documentId: string): string {
+  if (/[?&]doc=/.test(url)) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}doc=${encodeURIComponent(documentId)}`;
 }

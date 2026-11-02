@@ -79,6 +79,9 @@ class Room {
     this.threads = new Map((state.threads ?? []).map(thread => [thread.id, thread]));
     this.clients = new Set();
     this.saveTimer = null;
+    /** Cursor moves waiting to be sent (client id → selection), sent together a few times a second. */
+    this.presence = new Map();
+    this.presenceTimer = null;
   }
 
   get version() {
@@ -102,12 +105,14 @@ class Room {
  * `storage` (default in memory), `authenticate({ token, documentId, user, request })` returning the
  * user (`{ id, name }`) or null to refuse, `onSnapshot({ documentId, version, data })` called when the
  * latest HTML is known, `keepOperations` (operations kept for reconnecting clients, default 2000),
- * `saveDelay` (ms, default 1000) and `maxPayload` (bytes, default 5 MB).
+ * `saveDelay` (ms, default 1000), `presenceInterval` (ms cursor moves are gathered before being
+ * sent, default 50) and `maxPayload` (bytes, default 5 MB).
  */
 export function createCollaborationServer(options = {}) {
   const storage = options.storage || new MemoryStorage();
   const keepOperations = options.keepOperations ?? 2000;
   const saveDelay = options.saveDelay ?? 1000;
+  const presenceInterval = options.presenceInterval ?? 50;
   const rooms = new Map();
   const loading = new Map();
   let nextClientId = 1;
@@ -150,7 +155,35 @@ export function createCollaborationServer(options = {}) {
   }
 
   function broadcast(room, message, except) {
-    for (const client of room.clients) if (client !== except) send(client.socket, message);
+    // Serialised once for everyone in the room.
+    const data = JSON.stringify(message);
+    for (const client of room.clients) {
+      if (client !== except && client.socket.readyState === 1) client.socket.send(data);
+    }
+  }
+
+  /**
+   * Cursor moves are gathered per document and sent as one message: in a document with n people,
+   * each move would otherwise cost n − 1 messages (n² in total when everyone moves).
+   */
+  function queuePresence(client) {
+    const room = client.room;
+    room.presence.set(client.id, client.selection);
+    if (room.presenceTimer) return;
+    room.presenceTimer = setTimeout(() => flushPresence(room), presenceInterval);
+  }
+
+  function flushPresence(room) {
+    room.presenceTimer = null;
+    if (!room.presence.size) return;
+    const updates = [...room.presence].map(([clientId, selection]) => ({ clientId, selection }));
+    room.presence.clear();
+    if (updates.length === 1) {
+      const sender = [...room.clients].find(client => client.id === updates[0].clientId);
+      return broadcast(room, { type: 'presence', ...updates[0] }, sender);
+    }
+    // Everyone gets the same message; clients ignore their own entry.
+    broadcast(room, { type: 'presence', updates });
   }
 
   function publicClient(client) {
@@ -204,9 +237,10 @@ export function createCollaborationServer(options = {}) {
     if (!room || !Array.isArray(message.ops)) return;
     if (message.version !== room.version) {
       // Based on an old version: the client rebases on these operations and sends again.
-      const missing = room.opsSince(message.version);
-      if (!missing) return send(client.socket, { type: 'resync' });
-      return send(client.socket, { type: 'reject', fromVersion: message.version, ops: missing });
+      if (!room.opsSince(message.version)) return send(client.socket, { type: 'resync' });
+      // The client already has the newer operations (each was broadcast to it, in order, before this
+      // reply), so they are not sent again: it rebases on them and sends again from `version`.
+      return send(client.socket, { type: 'reject', fromVersion: room.version, ops: [] });
     }
     const fromVersion = room.version;
     room.ops.push(...message.ops);
@@ -261,7 +295,7 @@ export function createCollaborationServer(options = {}) {
           if (message.type === 'ops') return onOps(client, message);
           if (message.type === 'presence') {
             client.selection = message.selection ?? null;
-            return broadcast(client.room, { type: 'presence', clientId: client.id, selection: client.selection }, client);
+            return queuePresence(client);
           }
           if (message.type === 'snapshot') return onSnapshot(client, message);
           if (message.type === 'threads') return onThreads(client, message);
@@ -276,10 +310,13 @@ export function createCollaborationServer(options = {}) {
       const room = client.room;
       if (!room) return;
       room.clients.delete(client);
+      room.presence.delete(client.id);
       broadcast(room, { type: 'user-left', clientId: client.id });
       if (!room.clients.size) {
         // Keep the room in memory until it is saved, then let it go.
         clearTimeout(room.saveTimer);
+        clearTimeout(room.presenceTimer);
+        room.presenceTimer = null;
         storage
           .save(room.id, room.toJSON())
           .catch(error => console.error(`aveon-collab: saving "${room.id}" failed`, error))
@@ -311,6 +348,7 @@ export function createCollaborationServer(options = {}) {
     },
     /** Saves every open document and stops the server. */
     async close() {
+      for (const room of rooms.values()) clearTimeout(room.presenceTimer);
       for (const client of wss.clients) client.terminate();
       await Promise.all([...rooms.values()].map(room => storage.save(room.id, room.toJSON())));
       await new Promise(resolve => wss.close(() => resolve()));

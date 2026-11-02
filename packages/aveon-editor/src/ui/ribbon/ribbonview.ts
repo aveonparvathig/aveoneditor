@@ -10,6 +10,8 @@
 import { View } from '../view';
 import { ButtonView } from '../button/buttonview';
 import { ToolbarView } from '../toolbar/toolbarview';
+import { ToolbarSeparatorView } from '../toolbar/toolbarseparatorview';
+import { RibbonSearchView, type RibbonSearchEntry } from './ribbonsearchview';
 import { FocusTracker } from '../../utils/focustracker';
 import { KeystrokeHandler } from '../../utils/keystrokehandler';
 import { icons } from '../icons';
@@ -18,12 +20,13 @@ import { getEnvKeystrokeText } from '../../utils/keyboard';
 import type { Locale } from '../../utils/locale';
 import type { ComponentFactory } from '../../core/componentfactory';
 
-export type RibbonItemSize = 'large' | 'medium' | 'small';
+export type RibbonItemSize = 'large' | 'medium' | 'small' | 'combo';
 
 /**
  * A ribbon item: a component name (small, icon-only button) or an object giving its size and an
  * optional short label. Large items show a big icon above the label (the group's main action);
- * medium items show a small icon beside the label, stacked up to three high.
+ * medium items show a small icon beside the label, stacked up to three high. Combo items (font name
+ * and size) sit in a small-item row and look like a text box showing the current value.
  */
 export type RibbonItem = string | { name: string; size?: RibbonItemSize; label?: string };
 
@@ -38,6 +41,12 @@ export interface RibbonGroupConfig {
 export interface RibbonTabConfig {
   label: string;
   groups: RibbonGroupConfig[];
+  /**
+   * Makes this a contextual tab (like Word's Table and Picture tabs), shown only while the context
+   * is active: `'table'` (cursor in a table), `'image'` (picture selected) or any name switched with
+   * `RibbonView#setContextActive()`.
+   */
+  contextual?: string;
 }
 
 export interface RibbonConfig {
@@ -46,6 +55,8 @@ export interface RibbonConfig {
   quickAccess?: string[];
   /** Start with only the tab row visible. */
   collapsed?: boolean;
+  /** The command search box in the tab row (default true). */
+  search?: boolean;
 }
 
 function itemName(item: RibbonItem): string {
@@ -57,6 +68,19 @@ function applyItemSize(view: View, size: RibbonItemSize, label?: string): void {
   const anyView = view as any;
   // Dropdowns carry their button in `buttonView`; split buttons also have an `actionView`.
   const host: any = anyView.buttonView || anyView;
+  if (size === 'combo') {
+    if (!(host instanceof ButtonView)) return;
+    // The box shows the current value (e.g. "Arial", "12"); the name stays in the tooltip.
+    const bound = (host as any)._boundProps as Map<string, unknown> | undefined;
+    if (anyView.valueText !== undefined && !(bound && bound.has('label'))) {
+      const name = host.label || '';
+      if (host.tooltip === true || !host.tooltip) host.tooltip = name;
+      host.withText = true;
+      host.bind('label').to(anyView, 'valueText', (value: string) => value || name);
+    }
+    view.extendTemplate({ attributes: { class: ['ck-ribbon__item', 'ck-ribbon__item_combo'] } });
+    return;
+  }
   if (size === 'small' || !(host instanceof ButtonView || host.actionView instanceof ButtonView)) return;
   const showLabel = (button: any) => {
     const bound = button._boundProps as Map<string, unknown> | undefined;
@@ -84,11 +108,13 @@ export class RibbonGroupView extends View {
   /** Every toolbar in the group, in reading order (the keyboard Tab stops). */
   public readonly toolbars: ToolbarView[] = [];
   public readonly launcherView: ButtonView | null;
+  public readonly label: string;
   private readonly _blocks = this.createCollection();
 
   constructor(locale: Locale | undefined, config: RibbonGroupConfig, factory: ComponentFactory) {
     super(locale);
     const label = config.label;
+    this.label = label;
     const newToolbar = (className: string) => {
       const toolbar = new ToolbarView(locale);
       toolbar.ariaLabel = label;
@@ -98,17 +124,27 @@ export class RibbonGroupView extends View {
     };
 
     let medium: ToolbarView | null = null;
-    let smallRows: string[][] | null = null;
+    let smallRows: Array<Array<{ name: string; size: RibbonItemSize }>> | null = null;
     const flushSmall = () => {
       if (!smallRows) return;
-      const rows = smallRows.map(row => row.filter(name => name === '|' || factory.has(name))).filter(row => row.some(name => name !== '|'));
+      const rows = smallRows
+        .map(row => row.filter(item => item.name === '|' || factory.has(item.name)))
+        .filter(row => row.some(item => item.name !== '|'));
       smallRows = null;
       if (!rows.length) return;
       const block = new View(locale);
       const rowViews = block.createCollection();
       for (const row of rows) {
         const toolbar = newToolbar('ck-ribbon__group-row');
-        toolbar.fillFromConfig(row, factory);
+        for (const item of row) {
+          if (item.name === '|') {
+            toolbar.items.add(new ToolbarSeparatorView(locale));
+            continue;
+          }
+          const view = factory.create(item.name);
+          if (item.size === 'combo') applyItemSize(view, 'combo');
+          toolbar.items.add(view);
+        }
         rowViews.add(toolbar);
       }
       block.setTemplate({ tag: 'div', attributes: { class: ['ck', 'ck-ribbon__block', 'ck-ribbon__block_small'] }, children: rowViews });
@@ -118,11 +154,11 @@ export class RibbonGroupView extends View {
     for (const item of config.items) {
       const size: RibbonItemSize = typeof item === 'string' ? 'small' : item.size || 'small';
       const name = itemName(item);
-      if (size === 'small') {
+      if (size === 'small' || size === 'combo') {
         medium = null;
         if (!smallRows) smallRows = [[]];
         if (name === '-') smallRows.push([]);
-        else smallRows[smallRows.length - 1].push(name);
+        else smallRows[smallRows.length - 1].push({ name, size });
         continue;
       }
       flushSmall();
@@ -198,17 +234,29 @@ export class RibbonPanelView extends View {
   }
 }
 
+/** What a ribbon button is called: its tooltip without the keystroke, or its label. */
+function buttonName(element: HTMLElement): string {
+  const tooltip = element.getAttribute('data-cke-tooltip-text') || '';
+  const label = element.querySelector('.ck-button__label')?.textContent || '';
+  return (tooltip.replace(/\s*\([^)]*\)\s*$/, '') || label).trim();
+}
+
 export class RibbonView extends View {
   public readonly tabs = this.createCollection<ButtonView>();
   public readonly panels = this.createCollection<RibbonPanelView>();
   public readonly quickAccess: ToolbarView;
   public readonly collapseButton: ButtonView;
+  public readonly searchView: RibbonSearchView;
   public readonly focusTracker = new FocusTracker();
   public readonly keystrokes = new KeystrokeHandler();
   declare public activeTab: number;
   declare public isCollapsed: boolean;
   declare public ariaLabel: string;
   private readonly _barChildren = this.createCollection();
+  /** Context name of each tab (undefined for normal tabs). */
+  private readonly _tabContexts: Array<string | undefined> = [];
+  private readonly _tabGroups: RibbonGroupView[][] = [];
+  private _lastNormalTab = 0;
 
   constructor(locale?: Locale) {
     super(locale);
@@ -230,7 +278,8 @@ export class RibbonView extends View {
     this.collapseButton.bind('label').to(this, 'isCollapsed', (collapsed: boolean) => (collapsed ? t('Pin the ribbon') : t('Collapse the ribbon')));
     this.collapseButton.bind('isOn').to(this, 'isCollapsed');
     this.collapseButton.on('execute', () => this.toggleCollapsed());
-    this._barChildren.addMany([tabList, this.collapseButton]);
+    this.searchView = new RibbonSearchView(locale, () => this._searchEntries());
+    this._barChildren.addMany([tabList, this.searchView, this.collapseButton]);
 
     this.setTemplate({
       tag: 'div',
@@ -263,6 +312,7 @@ export class RibbonView extends View {
       this.quickAccess.fillFromConfig(config.quickAccess.filter(name => name === '|' || factory.has(name)), factory);
       if (this.quickAccess.items.length) this._barChildren.add(this.quickAccess, 0);
     }
+    if (config.search === false) this._barChildren.remove(this.searchView);
     for (const tab of config.tabs) {
       const groups = tab.groups.map(group => new RibbonGroupView(this.locale, group, factory)).filter(group => !group.isEmpty);
       if (!groups.length) continue;
@@ -270,7 +320,11 @@ export class RibbonView extends View {
       const tabId = `ck-ribbon-tab-${uid()}`;
       const panelId = `ck-ribbon-panel-${uid()}`;
       const button = new ButtonView(this.locale);
-      button.set({ label: tab.label, withText: true, role: 'tab', class: 'ck-ribbon__tab' });
+      button.set({ label: tab.label, withText: true, role: 'tab', class: tab.contextual ? 'ck-ribbon__tab ck-ribbon__tab_contextual' : 'ck-ribbon__tab' });
+      // Contextual tabs appear only while their context is active.
+      if (tab.contextual) button.isVisible = false;
+      this._tabContexts.push(tab.contextual);
+      this._tabGroups.push(groups);
       button.extendTemplate({ attributes: { id: tabId, 'aria-controls': panelId, 'aria-selected': button.bindTemplate.to('isOn', (on: boolean) => String(!!on)) } as any });
       button.on('execute', () => this._onTabClick(index));
       button.on('render', () => button.element!.addEventListener('dblclick', () => this.toggleCollapsed()));
@@ -285,6 +339,27 @@ export class RibbonView extends View {
     }
     if (config.collapsed) this.isCollapsed = true;
     this._syncActive();
+  }
+
+  /** Names of the contexts the ribbon has tabs for (e.g. `['table', 'image']`). */
+  public get contexts(): string[] {
+    return [...new Set(this._tabContexts.filter((context): context is string => !!context))];
+  }
+
+  /**
+   * Shows or hides the contextual tabs of a context. A tab that appears is not opened by itself (as
+   * in Word); when the open tab disappears, the last normal tab is opened again.
+   */
+  public setContextActive(context: string, isActive: boolean): void {
+    this._tabContexts.forEach((tabContext, i) => {
+      if (tabContext !== context) return;
+      const tab = this.tabs.get(i)!;
+      if (tab.isVisible === isActive) return;
+      tab.isVisible = isActive;
+      // On a narrow ribbon the tab row scrolls: bring the new tab into sight.
+      if (isActive) this._revealTab(i);
+      if (!isActive && this.activeTab === i) this.activeTab = this._lastNormalTab;
+    });
   }
 
   public toggleCollapsed(): void {
@@ -303,7 +378,51 @@ export class RibbonView extends View {
     if (this.isCollapsed) this.isCollapsed = false;
   }
 
+  private _revealTab(index: number): void {
+    const element = this.tabs.get(index)?.element;
+    const list = element?.parentElement;
+    if (!element || !list) return;
+    const tabBox = element.getBoundingClientRect();
+    const listBox = list.getBoundingClientRect();
+    if (tabBox.right > listBox.right) list.scrollLeft += tabBox.right - listBox.right;
+    else if (tabBox.left < listBox.left) list.scrollLeft -= listBox.left - tabBox.left;
+  }
+
+  /** Every button of every visible tab, for the command search. */
+  private _searchEntries(): RibbonSearchEntry[] {
+    const entries: RibbonSearchEntry[] = [];
+    const seen = new Set<string>();
+    this._tabGroups.forEach((groups, tabIndex) => {
+      const tab = this.tabs.get(tabIndex)!;
+      if (!tab.isVisible) return;
+      for (const group of groups) {
+        const buttons = [...group.toolbars.flatMap(toolbar => [...toolbar.items]), ...(group.launcherView ? [group.launcherView] : [])]
+          .map(item => item.element)
+          .flatMap(element => (element ? (element.matches('.ck-button') ? [element] : [...element.querySelectorAll<HTMLElement>(':scope > .ck-button, :scope > .ck-splitbutton > .ck-button')]) : []));
+        for (const element of buttons) {
+          const label = buttonName(element);
+          const key = label.toLowerCase();
+          if (!label || seen.has(key)) continue;
+          seen.add(key);
+          entries.push({
+            label,
+            path: `${tab.label} › ${group.label}`,
+            isEnabled: !element.classList.contains('ck-disabled'),
+            run: () => {
+              this.activeTab = tabIndex;
+              if (this.isCollapsed) this.isCollapsed = false;
+              element.focus();
+              element.click();
+            }
+          });
+        }
+      }
+    });
+    return entries;
+  }
+
   private _syncActive(): void {
+    if (!this._tabContexts[this.activeTab]) this._lastNormalTab = this.activeTab;
     this.tabs.forEach((tab, i) => {
       tab.isOn = i === this.activeTab;
       // Roving tab stop: only the active tab is reachable with Tab.
@@ -335,7 +454,10 @@ export class RibbonView extends View {
     const moveTab = (step: number) => (data: unknown, cancel: () => void) => {
       const index = this._focusedTabIndex();
       if (index === -1) return;
-      const next = (index + step + this.tabs.length) % this.tabs.length;
+      // Hidden contextual tabs are skipped.
+      let next = index;
+      do next = (next + step + this.tabs.length) % this.tabs.length;
+      while (next !== index && !this.tabs.get(next)!.isVisible);
       this.activeTab = next;
       this.tabs.get(next)!.focus();
       cancel();

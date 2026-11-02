@@ -140,6 +140,60 @@ describe('ribbon', () => {
     await editor.destroy();
   });
 
+  it('shows the font name and size as boxes with the current value', async () => {
+    const editor = await createEditor('<p>Text</p>');
+    const element = editor.ui.view.ribbon!.element!;
+    const family = element.querySelector('.ck-ribbon__item_combo.ck-font-family-dropdown .ck-button__label')!;
+    const size = element.querySelector('.ck-ribbon__item_combo.ck-font-size-dropdown .ck-button__label')!;
+    selectAllText(editor);
+    editor.execute('fontFamily', { value: 'Georgia, serif' });
+    editor.execute('fontSize', { value: 'big' });
+    expect(family.textContent).toBe('Georgia');
+    expect(size.textContent).toBe('Big');
+    // The box keeps its name in the tooltip.
+    expect(element.querySelector('.ck-font-size-dropdown > .ck-button')!.getAttribute('data-cke-tooltip-text')).toBe('Font Size');
+    await editor.destroy();
+  });
+
+  it('shows the Table and Picture tabs only in their context', async () => {
+    const editor = await createEditor('<p>Text</p><figure class="table"><table><tbody><tr><td>Cell</td></tr></tbody></table></figure>');
+    const ribbon = editor.ui.view.ribbon!;
+    const visibleTabs = () => [...ribbon.element!.querySelectorAll('[role="tab"]:not(.ck-hidden)')].map(tab => tab.textContent);
+    expect(visibleTabs()).not.toContain('Table');
+
+    const root = editor.model.document.getRoot()!;
+    const cell = (root.getChild(1) as any).getChild(0).getChild(0).getChild(0);
+    editor.model.change(writer => writer.setSelection(cell, 0));
+    expect(visibleTabs()).toContain('Table');
+    expect(visibleTabs()).not.toContain('Picture');
+
+    // Opening the Table tab and then leaving the table returns to the last normal tab.
+    ribbon.activeTab = visibleTabs().indexOf('Insert');
+    const tableTab = [...ribbon.tabs].findIndex(tab => tab.label === 'Table');
+    ribbon.activeTab = tableTab;
+    editor.model.change(writer => writer.setSelection(root.getChild(0) as any, 0));
+    expect(visibleTabs()).not.toContain('Table');
+    expect(ribbon.tabs.get(ribbon.activeTab)!.label).toBe('Insert');
+    await editor.destroy();
+  });
+
+  it('finds and runs commands from the search box', async () => {
+    const editor = await createEditor('<p>Text</p>');
+    const search = editor.ui.view.ribbon!.searchView;
+    const results = search.search('bold');
+    expect(results[0].label).toBe('Bold');
+    expect(results[0].path).toBe('Home › Font');
+    expect(search.search('zzz')).toEqual([]);
+    // A command on another tab opens that tab.
+    const exportResult = search.search('pdf')[0];
+    expect(exportResult.path).toMatch(/^View/);
+
+    selectAllText(editor);
+    results[0].run();
+    expect(editor.getData()).toBe('<p><strong>Text</strong></p>');
+    await editor.destroy();
+  });
+
   it('falls back to the toolbar when the ribbon is turned off', async () => {
     const editor = await createEditor('<p>Text</p>', { ribbon: false });
     expect(editor.ui.view.ribbon).toBeNull();

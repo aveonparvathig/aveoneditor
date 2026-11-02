@@ -96,6 +96,7 @@ export class ClassicEditorUI extends EditorUI {
       ribbon.on('launch', (evt, launcher: { command: string }) => {
         if (this.editor.commands.get(launcher.command)) this.editor.execute(launcher.command);
       });
+      this._initRibbonContexts(ribbon);
       this.editor.keystrokes.set('Ctrl+F1', (data, cancel) => {
         ribbon.toggleCollapsed();
         cancel();
@@ -104,6 +105,23 @@ export class ClassicEditorUI extends EditorUI {
     }
     view.toolbar.fillFromConfig(this._toolbarConfig, this.componentFactory);
     this.addToolbar(view.toolbar);
+  }
+
+  /** Shows the contextual tabs (Table, Picture) while the cursor is in a table or a picture is selected. */
+  private _initRibbonContexts(ribbon: RibbonView): void {
+    const model = this.editor.model;
+    const contexts = ribbon.contexts;
+    if (!contexts.length) return;
+    const update = () => {
+      const selection = model.document.selection;
+      const selected = selection.getSelectedElement();
+      const position = selection.getFirstPosition();
+      if (contexts.includes('table')) ribbon.setContextActive('table', !!(position && position.findAncestor('table')) || !!(selected && selected.is('element', 'table')));
+      if (contexts.includes('image')) ribbon.setContextActive('image', !!(selected && (selected.is('element', 'imageBlock') || selected.is('element', 'imageInline'))));
+    };
+    this.listenTo(model.document.selection, 'change:range', update);
+    this.listenTo(model.document, 'change:data', update);
+    update();
   }
 
   private _initPlaceholder(): void {

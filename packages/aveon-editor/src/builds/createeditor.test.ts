@@ -45,7 +45,7 @@ describe('presets and createEditor()', () => {
   it('creates an ERP editor with a ribbon using large, medium and small items', async () => {
     const editor = await createEditor(host('<p>Quote</p>'), { preset: 'erp' });
     const ribbon = editor.ui.view.ribbon!;
-    expect([...ribbon.element!.querySelectorAll('[role="tab"]')].map(tab => tab.textContent)).toEqual(['Home', 'Insert', 'Review', 'View']);
+    expect([...ribbon.element!.querySelectorAll('[role="tab"]:not(.ck-hidden)')].map(tab => tab.textContent)).toEqual(['Home', 'Insert', 'Review', 'View']);
     const paste = ribbon.element!.querySelector('.ck-ribbon__item_large')!;
     expect(paste.textContent).toBe('Paste');
     const medium = [...ribbon.element!.querySelectorAll('.ck-ribbon__item_medium')].map(item => item.textContent);
