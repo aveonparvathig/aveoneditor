@@ -89,6 +89,7 @@ export class ClassicEditorUI extends EditorUI {
     view.stickyPanel.bind('isActive').to(this.focusTracker, 'isFocused');
     view.stickyPanel.limiterElement = view.element;
     view.stickyPanel.bind('viewportTopOffset').to(this, 'viewportOffset', (offset: { top?: number }) => (offset && offset.top) || 0);
+    this._keepCaretBelowToolbar();
     if (view.ribbon) {
       const ribbon = view.ribbon;
       ribbon.fillFromConfig(this.editor.config.get('ribbon') as RibbonConfig, this.componentFactory);
@@ -105,6 +106,33 @@ export class ClassicEditorUI extends EditorUI {
     }
     view.toolbar.fillFromConfig(this._toolbarConfig, this.componentFactory);
     this.addToolbar(view.toolbar);
+  }
+
+  /**
+   * While the toolbar sticks to the top of the window it covers the text under it. Scrolling to the
+   * selection then stops below the toolbar, and a caret moved under it (arrow keys, typing, Enter)
+   * is scrolled back into sight.
+   */
+  private _keepCaretBelowToolbar(): void {
+    const stickyPanel = this.view.stickyPanel;
+    const editingView = this.editor.editing.view;
+    const coveredTop = () => {
+      if (!stickyPanel.isSticky) return 0;
+      const content = stickyPanel.element?.querySelector('.ck-sticky-panel__content');
+      return content ? Math.max(0, content.getBoundingClientRect().bottom) : 0;
+    };
+    editingView.getCoveredTop = coveredTop;
+    editingView.on('render', () => {
+      const covered = coveredTop();
+      if (!covered || !editingView.document.isFocused || this.editor.isReadOnly) return;
+      const editable = this.getEditableElement();
+      const selection = editable?.ownerDocument.defaultView?.getSelection();
+      if (!editable || !selection || !selection.rangeCount || !editable.contains(selection.focusNode)) return;
+      const range = selection.getRangeAt(0).cloneRange();
+      range.collapse(false);
+      const rect = range.getClientRects()[0] || (selection.focusNode as Element).getBoundingClientRect?.();
+      if (rect && rect.height && rect.top < covered && rect.bottom > 0) window.scrollBy(0, rect.top - covered - 8);
+    });
   }
 
   /** Shows the contextual tabs (Table, Picture) while the cursor is in a table or a picture is selected. */

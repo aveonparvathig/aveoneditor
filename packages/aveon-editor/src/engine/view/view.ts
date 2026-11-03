@@ -172,12 +172,18 @@ export class View extends Observable {
     for (const observer of this._observers.values()) observer.enable();
   }
 
+  /**
+   * How many pixels at the top of the window are covered (e.g. by a sticky toolbar), so scrolling to
+   * the selection keeps it below them. The editor UI sets this.
+   */
+  public getCoveredTop: () => number = () => 0;
+
   public scrollToTheSelection(options: { viewportOffset?: number } = {}): void {
     const range = this.document.selection.getFirstRange();
     if (!range) return;
     try {
       const domRange = this.domConverter.viewRangeToDom(range);
-      scrollViewportToShowTarget(domRange, options.viewportOffset ?? 20);
+      scrollViewportToShowTarget(domRange, options.viewportOffset ?? 20, this.getCoveredTop());
     } catch {
       // ignore
     }

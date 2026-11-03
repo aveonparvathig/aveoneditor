@@ -109,7 +109,14 @@ export class RibbonGroupView extends View {
   public readonly toolbars: ToolbarView[] = [];
   public readonly launcherView: ButtonView | null;
   public readonly label: string;
+  /** Shown instead of the group's items when the window is too narrow (like Word's collapsed groups). */
+  public readonly toggleView: ButtonView;
+  /** The group is collapsed to its toggle button. */
+  declare public isCompact: boolean;
+  /** A collapsed group's items are shown in a drop-down. */
+  declare public isOpen: boolean;
   private readonly _blocks = this.createCollection();
+  private _removeListeners = () => {};
 
   constructor(locale: Locale | undefined, config: RibbonGroupConfig, factory: ComponentFactory) {
     super(locale);
@@ -192,13 +199,67 @@ export class RibbonGroupView extends View {
       this.launcherView = launcher;
       footer.push(launcher);
     }
+
+    this.set('isCompact', false);
+    this.set('isOpen', false);
+    this.on('change:isCompact', (evt, name, compact: boolean) => {
+      if (!compact) this.isOpen = false;
+    });
+    this.toggleView = new ButtonView(locale);
+    this.toggleView.set({ label, withText: true, icon: icons.dropdownArrow, class: 'ck-ribbon__group-toggle', tooltip: false });
+    this.toggleView.bind('isOn').to(this, 'isOpen');
+    this.toggleView.extendTemplate({ attributes: { 'aria-haspopup': 'true', 'aria-expanded': this.toggleView.bindTemplate.to('isOn', (on: boolean) => String(!!on)) } as any });
+    this.toggleView.on('execute', () => (this.isOpen = !this.isOpen));
+
+    const bind = this.bindTemplate;
     this.setTemplate({
       tag: 'div',
-      attributes: { class: ['ck', 'ck-ribbon__group'], role: 'group', 'aria-labelledby': labelId },
+      attributes: {
+        class: ['ck', 'ck-ribbon__group', bind.if('isCompact', 'ck-ribbon__group_compact'), bind.if('isOpen', 'ck-ribbon__group_open')],
+        role: 'group',
+        'aria-labelledby': labelId
+      },
       children: [
-        { tag: 'div', attributes: { class: ['ck', 'ck-ribbon__group-body'] }, children: this._blocks },
-        { tag: 'div', attributes: { class: ['ck', 'ck-ribbon__group-footer'] }, children: footer }
+        this.toggleView,
+        {
+          tag: 'div',
+          attributes: { class: ['ck', 'ck-ribbon__group-popup'] },
+          children: [
+            { tag: 'div', attributes: { class: ['ck', 'ck-ribbon__group-body'] }, children: this._blocks },
+            { tag: 'div', attributes: { class: ['ck', 'ck-ribbon__group-footer'] }, children: footer }
+          ]
+        }
       ]
+    });
+  }
+
+  public override render(): void {
+    super.render();
+    const element = this.element!;
+    const doc = element.ownerDocument;
+    // An open drop-down closes on a click elsewhere, on Esc, and after one of its buttons runs.
+    const onPointerDown = (event: Event) => {
+      if (this.isOpen && !element.contains(event.target as Node) && !(event.target as Element)?.closest?.('.ck-dropdown__panel, .ck-balloon-panel')) this.isOpen = false;
+    };
+    // Ribbon buttons leave the focus in the text, so Esc is caught for the whole page while open.
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !this.isOpen) return;
+      event.stopPropagation();
+      event.preventDefault();
+      const hadFocus = element.contains(doc.activeElement);
+      this.isOpen = false;
+      if (hadFocus) this.toggleView.focus();
+    };
+    doc.addEventListener('mousedown', onPointerDown, true);
+    doc.addEventListener('keydown', onKeyDown, true);
+    this._removeListeners = () => {
+      doc.removeEventListener('mousedown', onPointerDown, true);
+      doc.removeEventListener('keydown', onKeyDown, true);
+    };
+    element.querySelector('.ck-ribbon__group-popup')!.addEventListener('click', event => {
+      const button = (event.target as Element).closest('.ck-button');
+      // Buttons that open a menu (dropdowns, split-button arrows) keep the group open.
+      if (button && !button.hasAttribute('aria-haspopup') && !button.closest('.ck-dropdown__panel')) this.isOpen = false;
     });
   }
 
@@ -207,13 +268,21 @@ export class RibbonGroupView extends View {
     return this.toolbars.every(toolbar => !toolbar.items.length);
   }
 
-  /** Keyboard stops: each toolbar, then the launcher. */
+  public override destroy(): void {
+    this._removeListeners();
+    super.destroy();
+  }
+
+  /** Keyboard stops: each toolbar, then the launcher (a collapsed, closed group: its toggle button). */
   public get focusStops(): Array<{ element: HTMLElement | null; focus(): void }> {
-    return [...this.toolbars, ...(this.launcherView ? [this.launcherView] : [])];
+    const items = [...this.toolbars, ...(this.launcherView ? [this.launcherView] : [])];
+    if (!this.isCompact) return items;
+    return this.isOpen ? [this.toggleView, ...items] : [this.toggleView];
   }
 
   public focus(): void {
-    this.toolbars[0]?.focus();
+    if (this.isCompact) this.toggleView.focus();
+    else this.toolbars[0]?.focus();
   }
 }
 
@@ -257,6 +326,7 @@ export class RibbonView extends View {
   private readonly _tabContexts: Array<string | undefined> = [];
   private readonly _tabGroups: RibbonGroupView[][] = [];
   private _lastNormalTab = 0;
+  private _resizeObserver: ResizeObserver | null = null;
 
   constructor(locale?: Locale) {
     super(locale);
@@ -298,12 +368,57 @@ export class RibbonView extends View {
     this.focusTracker.add(this.element!);
     this.keystrokes.listenTo(this.element as any);
     this._setUpKeyboard();
+    // Keep the ribbon one row high: refit when its width changes.
+    const ResizeObserverClass = this.element!.ownerDocument.defaultView?.ResizeObserver;
+    if (ResizeObserverClass) {
+      let width = -1;
+      this._resizeObserver = new ResizeObserverClass(entries => {
+        const next = Math.round(entries[0].contentRect.width);
+        if (next === width) return;
+        width = next;
+        this.fitGroups();
+      });
+      this._resizeObserver.observe(this.element!);
+    }
+    this.on('change:activeTab', () => this.fitGroups());
+    this.on('change:isCollapsed', () => this.fitGroups());
   }
 
   public override destroy(): void {
+    this._resizeObserver?.disconnect();
     this.focusTracker.destroy();
     this.keystrokes.destroy();
     super.destroy();
+  }
+
+  /**
+   * Fits the open tab's groups into one row: when they are too wide, groups collapse to a button
+   * that opens them as a drop-down (as Word does in a narrow window). The groups that free the most
+   * room go first (on a tie, the one further right), so as few groups as possible collapse.
+   */
+  public fitGroups(): void {
+    const panel = this._activePanel();
+    const element = panel?.element;
+    if (!panel || !element || !element.isConnected) return;
+    const groups = [...panel.groups];
+    const widths = () => groups.map(group => group.element!.getBoundingClientRect().width);
+    element.classList.remove('ck-ribbon__panel_wrap');
+    groups.forEach(group => (group.isCompact = true));
+    const compact = widths();
+    groups.forEach(group => (group.isCompact = false));
+    const full = widths();
+    let excess = element.scrollWidth - element.clientWidth;
+    const candidates = groups
+      .map((group, index) => ({ group, index, saving: full[index] - compact[index] }))
+      .filter(candidate => candidate.saving > 0)
+      .sort((a, b) => b.saving - a.saving || b.index - a.index);
+    for (const candidate of candidates) {
+      if (excess <= 1) break;
+      candidate.group.isCompact = true;
+      excess -= candidate.saving;
+    }
+    // Even the collapsed buttons do not fit (a phone): let them wrap.
+    if (element.scrollWidth > element.clientWidth + 1) element.classList.add('ck-ribbon__panel_wrap');
   }
 
   /** Builds tabs and groups; items that are not available (plugin not loaded) are skipped. */

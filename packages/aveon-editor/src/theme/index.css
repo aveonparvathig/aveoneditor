@@ -1017,12 +1017,18 @@ aveon-editor {
   border-bottom-color: transparent;
 }
 
+/* One row: groups that do not fit collapse to a button (RibbonView#fitGroups), so the ribbon never
+   grows tall enough to cover the text while it sticks to the top of the window. */
 .ck.ck-ribbon .ck-ribbon__panel {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: stretch;
   row-gap: var(--ck-spacing-small);
   padding: var(--ck-spacing-small) 0;
+}
+
+.ck.ck-ribbon .ck-ribbon__panel.ck-ribbon__panel_wrap {
+  flex-wrap: wrap;
 }
 
 .ck.ck-ribbon .ck-ribbon__panel.ck-hidden {
@@ -1030,17 +1036,76 @@ aveon-editor {
 }
 
 .ck.ck-ribbon .ck-ribbon__group {
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2px;
+  flex-shrink: 0;
   padding: 0 calc(var(--ck-spacing-small) + 2px);
   border-right: 1px solid var(--ck-color-toolbar-border);
 }
 
+.ck.ck-ribbon .ck-ribbon__group-popup {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2px;
+}
+
 .ck.ck-ribbon .ck-ribbon__group:last-child {
   border-right: 0;
+}
+
+/* A collapsed group: its name and an arrow; its items open below it. */
+.ck.ck-ribbon .ck-ribbon__group > .ck-button.ck-ribbon__group-toggle {
+  display: none;
+}
+
+.ck.ck-ribbon .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 4px;
+  align-self: center;
+  margin: auto 0;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+
+.ck.ck-ribbon .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle .ck-button__icon {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+}
+
+.ck.ck-ribbon .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle .ck-button__label {
+  display: inline;
+}
+
+.ck.ck-ribbon .ck-ribbon__group_compact > .ck-ribbon__group-popup {
+  display: none;
+}
+
+.ck.ck-ribbon .ck-ribbon__group_compact.ck-ribbon__group_open > .ck-ribbon__group-popup {
+  position: absolute;
+  top: calc(100% + var(--ck-spacing-small));
+  left: 0;
+  z-index: calc(var(--ck-z-panel) + 1);
+  display: flex;
+  min-height: 92px;
+  padding: var(--ck-spacing-small) calc(var(--ck-spacing-small) + 2px);
+  border: 1px solid var(--ck-color-toolbar-border);
+  border-radius: 6px;
+  background: var(--ck-color-toolbar-background);
+  box-shadow: 0 6px 18px hsla(220, 30%, 10%, 0.18);
+}
+
+/* Keep a drop-down near the right edge inside the window. */
+.ck.ck-ribbon .ck-ribbon__group_compact.ck-ribbon__group_open:last-child > .ck-ribbon__group-popup,
+.ck.ck-ribbon .ck-ribbon__group_compact.ck-ribbon__group_open:nth-last-child(2) > .ck-ribbon__group-popup {
+  right: 0;
+  left: auto;
 }
 
 .ck.ck-ribbon .ck-ribbon__group-body {

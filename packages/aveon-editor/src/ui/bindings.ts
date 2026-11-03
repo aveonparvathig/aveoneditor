@@ -6,10 +6,12 @@ import { keyCodes } from '../utils/keyboard';
 export function clickOutsideHandler({ emitter, activator, callback, contextElements }: { emitter: Emitter; activator: () => boolean; callback: () => void; contextElements: Array<HTMLElement | null> | (() => Array<HTMLElement | null>) }): void {
   const handler = (domEvt: MouseEvent) => {
     if (!activator()) return;
-    const elements = typeof contextElements === 'function' ? contextElements() : contextElements;
-    for (const contextElement of elements) {
-      if (contextElement && contextElement.contains(domEvt.target as Node)) return;
-    }
+    const elements = (typeof contextElements === 'function' ? contextElements() : contextElements).filter(Boolean) as HTMLElement[];
+    // The path is recorded when the click happens. The clicked node may already be gone (a view
+    // that redraws on mousedown, like the formula editor), and would then look like an outside click.
+    const path = typeof domEvt.composedPath === 'function' ? domEvt.composedPath() : [];
+    if (path.some(node => elements.includes(node as HTMLElement))) return;
+    if (elements.some(element => element.contains(domEvt.target as Node))) return;
     callback();
   };
   document.addEventListener('mousedown', handler);

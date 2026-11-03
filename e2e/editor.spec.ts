@@ -179,3 +179,18 @@ test('pasted GitHub Markdown becomes headings, tasks, maths and drawn diagrams',
   const back = await page.evaluate(() => (window as any).editor.plugins.get('Markdown').getMarkdown());
   expect(back).toContain('```mermaid\nflowchart LR\n    A --> B\n```');
 });
+
+test('ribbon: in a narrow window groups collapse to buttons instead of wrapping', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Ribbon checks run at desktop sizes.');
+  await page.setViewportSize({ width: 840, height: 700 });
+  await openDemo(page);
+  const ribbon = page.locator('.ck-ribbon');
+  // Tab row plus one row of groups.
+  await expect.poll(async () => (await ribbon.boundingBox())!.height).toBeLessThan(180);
+  const font = page.locator('.ck-ribbon__group_compact > .ck-ribbon__group-toggle', { hasText: 'Font' });
+  await expect(font).toBeVisible();
+  await font.click();
+  await expect(page.locator('.ck-ribbon__group_open .ck-ribbon__group-popup')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.ck-ribbon__group_open')).toHaveCount(0);
+});

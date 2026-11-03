@@ -53,11 +53,12 @@ export function getAncestors(node: Node): Node[] {
   return ancestors;
 }
 
-export function scrollViewportToShowTarget(target: Element | Range, viewportOffset = 20): void {
+/** Scrolls the window so `target` is visible; `coveredTop` is the height hidden by a sticky toolbar. */
+export function scrollViewportToShowTarget(target: Element | Range, viewportOffset = 20, coveredTop = 0): void {
   const rect = getRect(target);
   const viewportHeight = window.innerHeight;
-  if (rect.top < viewportOffset) {
-    window.scrollBy(0, rect.top - viewportOffset);
+  if (rect.top < coveredTop + viewportOffset) {
+    window.scrollBy(0, rect.top - coveredTop - viewportOffset);
   } else if (rect.bottom > viewportHeight - viewportOffset) {
     window.scrollBy(0, rect.bottom - viewportHeight + viewportOffset);
   }
