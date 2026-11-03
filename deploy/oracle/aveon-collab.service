@@ -1,0 +1,30 @@
+# systemd unit for the Aveon collaboration server.
+# Installed by deploy/oracle/setup.sh to /etc/systemd/system/aveon-collab.service.
+[Unit]
+Description=Aveon Editor collaboration server
+After=network.target
+
+[Service]
+Type=simple
+User=aveon
+WorkingDirectory=/opt/aveon
+Environment=NODE_ENV=production
+Environment=PORT=1234
+Environment=AVEON_COLLAB_DATA=/var/lib/aveon-collab
+# One process per CPU core (the Always Free ARM VM has up to 4).
+Environment=AVEON_COLLAB_WORKERS=4
+ExecStart=/usr/bin/node packages/collab-server/bin/aveon-collab.js
+Restart=always
+RestartSec=3
+# Give the server time to save open documents when stopping.
+TimeoutStopSec=30
+LimitNOFILE=65536
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/aveon-collab
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

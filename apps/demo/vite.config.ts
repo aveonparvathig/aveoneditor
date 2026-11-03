@@ -8,5 +8,15 @@ export default defineConfig({
       '@aveon/editor': resolve(__dirname, '../../packages/aveon-editor/src/index.ts')
     }
   },
-  server: { port: 5180, strictPort: true }
+  server: { port: 5180, strictPort: true },
+  build: {
+    // Every page of the demo, not just index.html.
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        integration: resolve(__dirname, 'integration.html'),
+        collaboration: resolve(__dirname, 'collaboration.html')
+      }
+    }
+  }
 });

@@ -3,7 +3,8 @@ import 'katex/dist/katex.min.css';
 import { createEditor } from '@aveon/editor';
 
 const params = new URLSearchParams(location.search);
-const url = `ws://${location.hostname}:1234`;
+// Set VITE_COLLAB_URL (e.g. wss://collab.example.com) when building for a hosted site.
+const url = import.meta.env.VITE_COLLAB_URL || `ws://${location.hostname}:1234`;
 const documentId = params.get('doc') || 'demo-collaboration';
 const initialData = '<h2>Project brief</h2><p>Edit this text in both editors at the same time.</p><ul><li>Goals</li><li>Timeline</li></ul>';
 

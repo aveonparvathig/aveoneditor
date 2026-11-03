@@ -1,0 +1,5 @@
+# Caddy gets a free HTTPS certificate for this name and forwards WebSocket traffic to the server.
+# setup.sh replaces COLLAB_DOMAIN with your domain (e.g. aveon-collab.duckdns.org).
+COLLAB_DOMAIN {
+	reverse_proxy 127.0.0.1:1234
+}

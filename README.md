@@ -302,7 +302,7 @@ Several people can edit the same document at once. Each sees the others' cursors
 npm run collab:server
 ```
 
-This listens on `ws://localhost:1234` and keeps documents in `./collab-data`. In your own Node application:
+This listens on `ws://localhost:1234` and keeps documents in `./collab-data`. To host it (and the demo site) for free, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). In your own Node application:
 
 ```js
 import { createCollaborationServer, FileStorage } from '@aveon/collab-server';
