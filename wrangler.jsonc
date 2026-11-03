@@ -1,0 +1,11 @@
+// Cloudflare Workers deploy of the demo site: `npm run build:demo`, then `npx wrangler deploy`.
+// The name must match the Worker's name in the Cloudflare dashboard.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "aveoneditor",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./apps/demo/dist",
+    "not_found_handling": "404-page"
+  }
+}
