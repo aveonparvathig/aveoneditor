@@ -30,6 +30,8 @@ import { Templates } from '../features/templates/templates';
 import { ExportDocument } from '../features/export/export';
 import { References } from '../features/references/references';
 import { Sketch } from '../features/sketch/sketch';
+import { Diagrams } from '../features/diagrams/diagrams';
+import { Markdown } from '../features/markdown/markdown';
 import { Comments } from '../features/comments/comments';
 import { TrackChanges } from '../features/trackchanges/trackchanges';
 import { RealTimeCollaboration } from '../features/collaboration/collaboration';
@@ -83,6 +85,8 @@ export const classicPreset: PluginConstructor[] = [
   ExportDocument,
   References,
   Sketch,
+  Diagrams,
+  Markdown,
   Comments,
   TrackChanges,
   RealTimeCollaboration
@@ -117,6 +121,7 @@ export const classicToolbar: string[] = [
   'codeBlock',
   'horizontalLine',
   'specialCharacters',
+  'insertDiagram',
   'math',
   'chemType',
   '|',
@@ -214,7 +219,8 @@ export const classicRibbon: RibbonConfig = {
             { name: 'insertImage', size: 'large', label: 'Pictures' },
             { name: 'mediaEmbed', size: 'medium', label: 'Video' },
             { name: 'horizontalLine', size: 'medium', label: 'Line' },
-            { name: 'insertSketch', size: 'medium', label: 'Sketch' }
+            { name: 'insertSketch', size: 'medium', label: 'Sketch' },
+            { name: 'insertDiagram', size: 'medium', label: 'Diagram' }
           ]
         },
         { label: 'Links', items: [{ name: 'link', size: 'large', label: 'Link' }] },
@@ -223,7 +229,8 @@ export const classicRibbon: RibbonConfig = {
           items: [
             { name: 'blockQuote', size: 'medium', label: 'Quote' },
             { name: 'codeBlock', size: 'medium', label: 'Code' },
-            { name: 'code', size: 'medium', label: 'Inline code' }
+            { name: 'code', size: 'medium', label: 'Inline code' },
+            { name: 'importMarkdown', size: 'medium', label: 'Markdown' }
           ]
         },
         {
@@ -318,7 +325,8 @@ export const classicRibbon: RibbonConfig = {
           items: [
             { name: 'exportPdf', size: 'large', label: 'PDF' },
             { name: 'exportWord', size: 'large', label: 'Word' },
-            { name: 'exportHtml', size: 'medium', label: 'HTML' }
+            { name: 'exportHtml', size: 'medium', label: 'HTML' },
+            { name: 'exportMarkdown', size: 'medium', label: 'Markdown' }
           ]
         }
       ]

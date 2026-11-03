@@ -19,7 +19,8 @@
     "bin"
   ],
   "scripts": {
-    "start": "node bin/aveon-collab.js --port 1234 --data ./collab-data"
+    "start": "node bin/aveon-collab.js --port 1234 --data ./collab-data",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "ws": "^8.18.0"

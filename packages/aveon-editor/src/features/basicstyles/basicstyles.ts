@@ -72,6 +72,8 @@ interface StyleDefinition {
   label: string;
   icon: string;
   keystroke?: string;
+  /** The browser's own formatting request for this style (e.g. the B button of the iOS text menu). */
+  inputType?: string;
   view: any;
   upcastAlso?: any[];
   schema?: (editor: Editor) => void;
@@ -96,6 +98,15 @@ function createEditingPlugin(def: StyleDefinition): any {
       editor.commands.add(def.attribute, new AttributeCommand(editor, def.attribute));
       if (def.keystroke) {
         editor.keystrokes.set(def.keystroke, def.attribute);
+      }
+      if (def.inputType) {
+        // Done by the editor instead of the browser, which would change the DOM behind the model's back.
+        this.listenTo(editor.editing.view.document, 'beforeinput', (evt: any, data: any) => {
+          if (data.inputType !== def.inputType) return;
+          data.preventDefault();
+          evt.stop();
+          editor.execute(def.attribute);
+        });
       }
     }
   };
@@ -143,6 +154,7 @@ function createFeaturePlugin(def: StyleDefinition): any {
 const boldDef: StyleDefinition = {
   attribute: 'bold',
   pluginName: 'Bold',
+  inputType: 'formatBold',
   label: 'Bold',
   icon: icons.bold,
   keystroke: 'CTRL+B',
@@ -163,6 +175,7 @@ const boldDef: StyleDefinition = {
 const italicDef: StyleDefinition = {
   attribute: 'italic',
   pluginName: 'Italic',
+  inputType: 'formatItalic',
   label: 'Italic',
   icon: icons.italic,
   keystroke: 'CTRL+I',
@@ -173,6 +186,7 @@ const italicDef: StyleDefinition = {
 const underlineDef: StyleDefinition = {
   attribute: 'underline',
   pluginName: 'Underline',
+  inputType: 'formatUnderline',
   label: 'Underline',
   icon: icons.underline,
   keystroke: 'CTRL+U',
@@ -183,6 +197,7 @@ const underlineDef: StyleDefinition = {
 const strikethroughDef: StyleDefinition = {
   attribute: 'strikethrough',
   pluginName: 'Strikethrough',
+  inputType: 'formatStrikeThrough',
   label: 'Strikethrough',
   icon: icons.strikethrough,
   keystroke: 'CTRL+SHIFT+X',
@@ -206,6 +221,7 @@ const codeDef: StyleDefinition = {
 const subscriptDef: StyleDefinition = {
   attribute: 'subscript',
   pluginName: 'Subscript',
+  inputType: 'formatSubscript',
   label: 'Subscript',
   icon: icons.subscript,
   view: 'sub',
@@ -215,6 +231,7 @@ const subscriptDef: StyleDefinition = {
 const superscriptDef: StyleDefinition = {
   attribute: 'superscript',
   pluginName: 'Superscript',
+  inputType: 'formatSuperscript',
   label: 'Superscript',
   icon: icons.superscript,
   view: 'sup',

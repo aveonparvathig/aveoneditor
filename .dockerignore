@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+.git
+.angular
+release
+collab-data
+api-data
+apps/cms-angular
+**/*.log

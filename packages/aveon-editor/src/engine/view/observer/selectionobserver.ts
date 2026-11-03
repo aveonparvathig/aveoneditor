@@ -98,6 +98,9 @@ export class SelectionObserver extends Observer {
 
   private _handleSelectionChange(domDocument: globalThis.Document): void {
     if (!this.isEnabled) return;
+    // A click that focuses the editable places the caret before the focus is confirmed (that waits
+    // 50 ms): confirm it now, or the click's caret position would be lost.
+    this.focusObserver.flush();
     // While the editing view is not focused, DOM selection changes come from the browser moving the
     // selection around (e.g. when a fake selection container is removed), not from the user.
     if (!this.document.isFocused) return;

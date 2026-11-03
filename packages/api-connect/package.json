@@ -1,0 +1,28 @@
+{
+  "name": "@aveon/api-connect",
+  "version": "0.1.0",
+  "description": "Aveon API Connect: tenant-aware uploads, documents, editor hosting and co-editing for every client of Aveon Editor.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "aveon-api-connect": "./bin/aveon-api-connect.js"
+  },
+  "files": [
+    "src",
+    "bin"
+  ],
+  "scripts": {
+    "start": "node bin/aveon-api-connect.js --config api-connect.config.json",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@aveon/collab-server": "*",
+    "sanitize-html": "^2.13.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

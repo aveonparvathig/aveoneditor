@@ -23,6 +23,10 @@ const READ_ONLY_LOCK = 'aveon-editor-element';
 const SYNC_DELAY = 150;
 
 type BaseElement = typeof HTMLElement;
+/** Connected elements, so a form submission can bring each one's value up to date first. */
+const elements = new Set<AveonEditorElement>();
+let listeningToForms = false;
+
 const Base: BaseElement = (typeof HTMLElement !== 'undefined' ? HTMLElement : class {}) as BaseElement;
 
 export class AveonEditorElement extends Base {
@@ -96,6 +100,8 @@ export class AveonEditorElement extends Base {
   }
 
   public connectedCallback(): void {
+    elements.add(this);
+    listenToForms(this.ownerDocument);
     if (this._editor || this._creating) return;
     this._initialValue = this._readInitialContent();
     this.textContent = '';
@@ -136,7 +142,17 @@ export class AveonEditorElement extends Base {
       });
   }
 
+  /** Brings the submitted value up to date now (it otherwise follows typing after a short pause). */
+  public flushValue(): void {
+    if (!this._syncTimer) return;
+    clearTimeout(this._syncTimer);
+    this._syncTimer = null;
+    this._syncFormValue();
+    this.dispatchEvent(new CustomEvent('change', { detail: { value: this.value }, bubbles: true }));
+  }
+
   public disconnectedCallback(): void {
+    elements.delete(this);
     // Moving the element (detach + re-attach in one task) keeps the editor.
     queueMicrotask(() => {
       if (this.isConnected || !this._editor) return;
@@ -220,6 +236,30 @@ export class AveonEditorElement extends Base {
  * Registers `<aveon-editor>` (or another tag name). Safe to call more than once.
  * Remember to load the theme stylesheet (and `katex/dist/katex.min.css` for equations).
  */
+/**
+ * Text typed just before the form is submitted (or read with `new FormData(form)`) must be part of
+ * it: listeners on the document run before any listener on the form.
+ */
+function listenToForms(doc: Document): void {
+  if (listeningToForms) return;
+  listeningToForms = true;
+  const fieldsOf = (form: EventTarget | null) => [...elements].filter(element => element.form === form);
+  doc.addEventListener('submit', event => fieldsOf(event.target).forEach(element => element.flushValue()), true);
+  // `new FormData(form)` collects the values before this event: correct the entries directly.
+  doc.addEventListener(
+    'formdata',
+    event => {
+      for (const element of fieldsOf(event.target)) {
+        element.flushValue();
+        // Only entries the browser included (a disabled field has none and must stay out).
+        const { formData } = event as FormDataEvent;
+        if (element.name && formData.has(element.name)) formData.set(element.name, element.value);
+      }
+    },
+    true
+  );
+}
+
 export function defineEditorElement(tagName = 'aveon-editor'): void {
   if (typeof customElements === 'undefined' || customElements.get(tagName)) return;
   // A subclass per tag name: one constructor cannot be registered twice.

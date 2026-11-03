@@ -69,6 +69,102 @@ export class MemoryStorage {
   }
 }
 
+const SQL = {
+  postgres: {
+    param: i => `$${i}`,
+    create: table => `CREATE TABLE IF NOT EXISTS ${table} (id VARCHAR(200) PRIMARY KEY, state TEXT NOT NULL, updated_at TIMESTAMPTZ NOT NULL)`,
+    upsert: table => `INSERT INTO ${table} (id, state, updated_at) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET state = EXCLUDED.state, updated_at = EXCLUDED.updated_at`
+  },
+  mssql: {
+    param: i => `@p${i}`,
+    create: table => `IF OBJECT_ID(N'${table}', N'U') IS NULL CREATE TABLE ${table} (id NVARCHAR(200) NOT NULL PRIMARY KEY, state NVARCHAR(MAX) NOT NULL, updated_at DATETIME2 NOT NULL)`,
+    upsert: table =>
+      `MERGE ${table} WITH (HOLDLOCK) AS t USING (SELECT @p1 AS id, @p2 AS state, @p3 AS updated_at) AS s ON t.id = s.id ` +
+      'WHEN MATCHED THEN UPDATE SET state = s.state, updated_at = s.updated_at WHEN NOT MATCHED THEN INSERT (id, state, updated_at) VALUES (s.id, s.state, s.updated_at);'
+  },
+  mysql: {
+    param: () => '?',
+    create: table => `CREATE TABLE IF NOT EXISTS ${table} (id VARCHAR(200) PRIMARY KEY, state LONGTEXT NOT NULL, updated_at DATETIME(3) NOT NULL)`,
+    upsert: table => `INSERT INTO ${table} (id, state, updated_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE state = VALUES(state), updated_at = VALUES(updated_at)`
+  },
+  sqlite: {
+    param: () => '?',
+    create: table => `CREATE TABLE IF NOT EXISTS ${table} (id TEXT PRIMARY KEY, state TEXT NOT NULL, updated_at TEXT NOT NULL)`,
+    upsert: table => `INSERT INTO ${table} (id, state, updated_at) VALUES (?, ?, ?) ON CONFLICT (id) DO UPDATE SET state = excluded.state, updated_at = excluded.updated_at`
+  }
+};
+
+/**
+ * Keeps documents in a SQL database shared by all collaboration servers, so any server can open
+ * any document (after a restart, a failover or when servers are added).
+ *
+ *   import pg from 'pg';
+ *   const storage = SqlStorage.postgres(new pg.Pool({ connectionString: process.env.DATABASE_URL }));
+ *
+ * Also `SqlStorage.mssql(pool)` (package `mssql`), `SqlStorage.mysql(pool)` (`mysql2/promise`) and
+ * `SqlStorage.sqlite(db)` (`node:sqlite`), or `new SqlStorage({ dialect, query })` with any driver
+ * whose `query(sql, params)` resolves to the result rows. The table (default `aveon_documents`) is
+ * created when missing unless `createTable: false`.
+ */
+export class SqlStorage {
+  constructor({ dialect = 'postgres', query, table = 'aveon_documents', createTable = true }) {
+    if (!SQL[dialect]) throw new Error(`aveon-collab: unknown SQL dialect "${dialect}" (postgres, mssql, mysql or sqlite).`);
+    if (!/^[A-Za-z_][\w.]*$/.test(table)) throw new Error(`aveon-collab: invalid table name "${table}".`);
+    this.dialect = SQL[dialect];
+    this.query = query;
+    this.table = table;
+    this._ready = createTable ? null : Promise.resolve();
+  }
+
+  static postgres(pool, options) {
+    return new SqlStorage({ ...options, dialect: 'postgres', query: (sql, params) => pool.query(sql, params).then(result => result.rows) });
+  }
+
+  static mssql(pool, options) {
+    return new SqlStorage({
+      ...options,
+      dialect: 'mssql',
+      query: (sql, params) => {
+        const request = pool.request();
+        params.forEach((value, i) => request.input(`p${i + 1}`, value));
+        return request.query(sql).then(result => result.recordset || []);
+      }
+    });
+  }
+
+  static mysql(pool, options) {
+    return new SqlStorage({ ...options, dialect: 'mysql', query: (sql, params) => pool.query(sql, params).then(([rows]) => (Array.isArray(rows) ? rows : [])) });
+  }
+
+  static sqlite(db, options) {
+    return new SqlStorage({
+      ...options,
+      dialect: 'sqlite',
+      query: async (sql, params) => {
+        const statement = db.prepare(sql);
+        return /^\s*select/i.test(sql) ? statement.all(...params) : (statement.run(...params), []);
+      }
+    });
+  }
+
+  _init() {
+    if (!this._ready) this._ready = this.query(this.dialect.create(this.table), []);
+    return this._ready;
+  }
+
+  async load(documentId) {
+    await this._init();
+    const rows = await this.query(`SELECT state FROM ${this.table} WHERE id = ${this.dialect.param(1)}`, [documentId]);
+    return rows.length ? JSON.parse(rows[0].state) : null;
+  }
+
+  async save(documentId, state) {
+    await this._init();
+    const updatedAt = this.dialect === SQL.sqlite ? new Date().toISOString() : new Date();
+    await this.query(this.dialect.upsert(this.table), [documentId, JSON.stringify(state), updatedAt]);
+  }
+}
+
 class Room {
   constructor(id, state) {
     this.id = id;
@@ -116,6 +212,11 @@ export function createCollaborationServer(options = {}) {
   const rooms = new Map();
   const loading = new Map();
   let nextClientId = 1;
+  const connections = new Set();
+  /** Saves under way, so stopping the server waits for them. */
+  const pendingSaves = new Set();
+  /** Running totals for monitoring (see `stats()`). */
+  const counters = { operations: 0, rejects: 0, resyncs: 0 };
 
   const wss = new WebSocketServer({
     port: options.server ? undefined : options.port ?? 1234,
@@ -237,13 +338,18 @@ export function createCollaborationServer(options = {}) {
     if (!room || !Array.isArray(message.ops)) return;
     if (message.version !== room.version) {
       // Based on an old version: the client rebases on these operations and sends again.
-      if (!room.opsSince(message.version)) return send(client.socket, { type: 'resync' });
+      if (!room.opsSince(message.version)) {
+        counters.resyncs++;
+        return send(client.socket, { type: 'resync' });
+      }
+      counters.rejects++;
       // The client already has the newer operations (each was broadcast to it, in order, before this
       // reply), so they are not sent again: it rebases on them and sends again from `version`.
       return send(client.socket, { type: 'reject', fromVersion: room.version, ops: [] });
     }
     const fromVersion = room.version;
     room.ops.push(...message.ops);
+    counters.operations += message.ops.length;
     // Old operations are dropped once a snapshot covers them (keeping some for reconnects).
     const excess = room.ops.length - keepOperations;
     if (excess > 0 && room.snapshot && room.snapshot.version > room.opsStart) {
@@ -306,26 +412,39 @@ export function createCollaborationServer(options = {}) {
           send(socket, { type: 'error', message: 'Server error.' });
         });
     });
-    socket.on('close', () => {
-      const room = client.room;
-      if (!room) return;
-      room.clients.delete(client);
-      room.presence.delete(client.id);
-      broadcast(room, { type: 'user-left', clientId: client.id });
-      if (!room.clients.size) {
-        // Keep the room in memory until it is saved, then let it go.
-        clearTimeout(room.saveTimer);
-        clearTimeout(room.presenceTimer);
-        room.presenceTimer = null;
-        storage
-          .save(room.id, room.toJSON())
-          .catch(error => console.error(`aveon-collab: saving "${room.id}" failed`, error))
-          .finally(() => {
-            if (!room.clients.size) rooms.delete(room.id);
-          });
-      }
+    connections.add(client);
+    client.closed = new Promise(resolve => {
+      socket.on('close', () => {
+        // After the messages the client sent before leaving (e.g. its last snapshot).
+        client.queue = client.queue.then(() => onClose(client)).finally(() => {
+          connections.delete(client);
+          resolve();
+        });
+      });
     });
   });
+
+  function onClose(client) {
+    const room = client.room;
+    if (!room) return;
+    room.clients.delete(client);
+    room.presence.delete(client.id);
+    broadcast(room, { type: 'user-left', clientId: client.id });
+    if (!room.clients.size) {
+      // Keep the room in memory until it is saved, then let it go.
+      clearTimeout(room.saveTimer);
+      clearTimeout(room.presenceTimer);
+      room.presenceTimer = null;
+      const saving = storage
+        .save(room.id, room.toJSON())
+        .catch(error => console.error(`aveon-collab: saving "${room.id}" failed`, error))
+        .finally(() => {
+          pendingSaves.delete(saving);
+          if (!room.clients.size) rooms.delete(room.id);
+        });
+      pendingSaves.add(saving);
+    }
+  }
 
   return {
     wss,
@@ -341,6 +460,10 @@ export function createCollaborationServer(options = {}) {
         else wss.once('listening', resolve);
       });
     },
+    /** Load figures for health checks and metrics. */
+    stats() {
+      return { connections: wss.clients.size, documents: rooms.size, ...counters };
+    },
     /** Users connected to a document. */
     users(documentId) {
       const room = rooms.get(documentId);
@@ -350,6 +473,9 @@ export function createCollaborationServer(options = {}) {
     async close() {
       for (const room of rooms.values()) clearTimeout(room.presenceTimer);
       for (const client of wss.clients) client.terminate();
+      // Let every connection finish its queued messages and leave its document first.
+      await Promise.all([...connections].map(client => client.closed));
+      await Promise.all([...pendingSaves]);
       await Promise.all([...rooms.values()].map(room => storage.save(room.id, room.toJSON())));
       await new Promise(resolve => wss.close(() => resolve()));
     }

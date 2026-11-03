@@ -38,6 +38,8 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
-    "katex": "^0.16.22"
+    "katex": "^0.16.22",
+    "marked": "^15.0.4",
+    "mermaid": "^11.4.1"
   }
 }

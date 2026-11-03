@@ -73,6 +73,8 @@ export interface MathConfig {
   chemistry?: MathChemistryConfig;
   /** Autoformat shortcuts in the visual editor (`/`, `^`, `_`, `<=`, brackets). Default `true`. */
   autoformat?: boolean;
+  /** Typing `$…$`, `` $`…`$ `` or a paragraph of `$$…$$` in the text inserts an equation, as on GitHub. Default `true`. */
+  dollarSyntax?: boolean;
   /** Toolbar customisation. */
   toolbar?: MathToolbarConfig;
   /** Colours offered by the colour pickers. */
@@ -483,6 +485,8 @@ export class MathEditing extends Plugin {
       dispatcher.on('element:script', upcastMath('script'), { priority: 'high' });
       dispatcher.on('element:math', upcastMathML(), { priority: 'high' });
       dispatcher.on('element:img', upcastImage(), { priority: 'high' });
+      // GitHub and Markdown tools write display equations as a `math` code block.
+      dispatcher.on('element:pre', upcastMathCodeBlock(), { priority: 'highest' });
     });
 
     editor.commands.add('math', new MathCommand(editor));
@@ -507,6 +511,21 @@ function upcastMath(kind: 'span' | 'script') {
     const numbered = display && (stripped.numbered || viewItem.getAttribute('data-numbered') === 'true');
 
     insertMathElement(evt, data, conversionApi, stripped.equation, display, numbered);
+  };
+}
+
+/** `<pre><code class="language-math">…</code></pre>` (a ```math block in Markdown) is a display equation. */
+function upcastMathCodeBlock() {
+  return (evt: EventInfo, data: any, conversionApi: any): void => {
+    const pre = data.viewItem as ViewElement;
+    const children = [...pre.getChildren()].filter((child: any) => !(child.is('$text') && !child.data.trim())) as any[];
+    const code = children.length === 1 && children[0].is('element', 'code') ? (children[0] as ViewElement) : null;
+    const isMath = (element: ViewElement | null) => !!element && (element.hasClass('language-math') || element.hasClass('lang-math'));
+    if (!(isMath(code) || isMath(pre) || pre.getAttribute('lang') === 'math')) return;
+    if (!conversionApi.consumable.test(pre, { name: true })) return;
+    const equation = collectText(pre).trim();
+    if (!equation) return;
+    insertMathElement(evt, data, conversionApi, equation, true);
   };
 }
 

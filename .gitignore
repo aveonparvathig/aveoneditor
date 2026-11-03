@@ -5,3 +5,6 @@ dist/
 .DS_Store
 release/
 collab-data/
+test-results/
+e2e-report/
+api-data/

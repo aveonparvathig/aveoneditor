@@ -1,0 +1,57 @@
+# Public host name for the editor files, API Connect and co-editing.
+host: editor.example.com
+ingress:
+  enabled: true
+  className: nginx
+  # TLS secret for the host (e.g. made by cert-manager); empty = plain HTTP.
+  tlsSecretName: ""
+  annotations: {}
+
+apiConnect:
+  image:
+    repository: aveon/api-connect
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  # Base of uploaded file links; default https://<host> (http:// without TLS).
+  publicUrl: ""
+  maxUploadBytes: 10485760
+  # Client accounts. Each needs a key: an HS256 secret in tenantSecrets (or existingSecret), or a
+  # publicKey (PEM) here for RS256 / ES256 tokens.
+  #   acme:
+  #     origins: ["https://cms.acme.com"]
+  #     issuer: ""
+  #     audience: ""
+  #     publicKey: ""
+  tenants: {}
+  # tenant id -> HS256 secret. Prefer existingSecret in production.
+  tenantSecrets: {}
+  # A Secret with one key per tenant: TENANT_<ID>_JWT_SECRET (id upper-cased, "-" as "_").
+  existingSecret: ""
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+    # ReadWriteMany is needed for more than one replica.
+    accessMode: ReadWriteOnce
+  resources:
+    requests: { cpu: 250m, memory: 256Mi }
+    limits: { cpu: "1", memory: 512Mi }
+
+collab:
+  enabled: true
+  image:
+    repository: aveon/collab-server
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+  # Pods; each runs `workers` processes. More than one pod needs the database below.
+  replicas: 1
+  workers: 2
+  database:
+    # postgres://user:password@host:5432/aveon - or use existingSecret.
+    postgresUrl: ""
+    existingSecret: ""
+    secretKey: postgres-url
+  resources:
+    requests: { cpu: "1", memory: 512Mi }
+    limits: { cpu: "2", memory: 1Gi }

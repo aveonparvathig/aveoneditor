@@ -36,6 +36,8 @@ import { Math as MathPlugin } from '../features/math/math';
 import { MergeFields } from '../features/mergefields/mergefields';
 import { Templates } from '../features/templates/templates';
 import { ExportDocument } from '../features/export/export';
+import { Diagrams } from '../features/diagrams/diagrams';
+import { Markdown } from '../features/markdown/markdown';
 import { References } from '../features/references/references';
 import { Comments } from '../features/comments/comments';
 import { TrackChanges } from '../features/trackchanges/trackchanges';
@@ -89,7 +91,7 @@ export const erpRibbon: RibbonConfig = {
       label: 'Insert',
       groups: [
         { label: 'Tables', items: [{ name: 'insertTable', size: 'large', label: 'Table' }, { name: 'tableCaption', size: 'medium', label: 'Caption' }] },
-        { label: 'Illustrations', items: [{ name: 'insertImage', size: 'large', label: 'Pictures' }, { name: 'horizontalLine', size: 'medium', label: 'Line' }] },
+        { label: 'Illustrations', items: [{ name: 'insertImage', size: 'large', label: 'Pictures' }, { name: 'horizontalLine', size: 'medium', label: 'Line' }, { name: 'insertDiagram', size: 'medium', label: 'Diagram' }] },
         { label: 'Links', items: [{ name: 'link', size: 'large', label: 'Link' }] },
         { label: 'Symbols', items: [{ name: 'specialCharacters', size: 'large', label: 'Symbol' }, { name: 'insertFootnote', size: 'medium', label: 'Footnote' }] }
       ]
@@ -127,7 +129,7 @@ export const erpRibbon: RibbonConfig = {
       label: 'View',
       groups: [
         { label: 'Views', items: [{ name: 'fullscreen', size: 'large' }] },
-        { label: 'Export', items: [{ name: 'exportPdf', size: 'large', label: 'PDF' }, { name: 'exportWord', size: 'large', label: 'Word' }] }
+        { label: 'Export', items: [{ name: 'exportPdf', size: 'large', label: 'PDF' }, { name: 'exportWord', size: 'large', label: 'Word' }, { name: 'exportMarkdown', size: 'medium', label: 'Markdown' }] }
       ]
     },
     tableContextTab,
@@ -177,6 +179,8 @@ export const erpPreset: EditorPreset = {
     Templates,
     ExportDocument,
     References,
+    Diagrams,
+    Markdown,
     Comments,
     TrackChanges,
     RealTimeCollaboration

@@ -607,6 +607,8 @@ export class RealTimeCollaboration extends Plugin {
       try {
         const anchor = model.createPositionFromPath(model.document.getRoot(selection.anchor.root)!, selection.anchor.path);
         const focus = model.createPositionFromPath(model.document.getRoot(selection.focus.root)!, selection.focus.path);
+        // Creating a position does not check its path; one past this copy's content breaks rendering.
+        if (!isValidPosition(anchor) || !isValidPosition(focus)) continue;
         wanted.set(`${CARET}:${user.clientId}`, model.createRange(focus));
         if (!anchor.isEqual(focus)) wanted.set(`${SELECTION}:${user.clientId}`, anchor.isBefore(focus) ? model.createRange(anchor, focus) : model.createRange(focus, anchor));
       } catch {

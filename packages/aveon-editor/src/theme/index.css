@@ -1766,6 +1766,201 @@ aveon-editor {
   cursor: crosshair;
 }
 
+/* ---------- Diagrams (Mermaid, maps, 3D models) ---------- */
+
+.ck-content figure.diagram,
+.ck.ck-editor__editable .ck-diagram {
+  margin: 1em 0;
+}
+
+.ck-content figure.diagram pre {
+  margin: 0;
+}
+
+.ck-content figure.diagram > svg,
+.ck-content figure.diagram > img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.ck.ck-editor__editable .ck-diagram__view,
+.ck.ck-dialog-overlay .ck-diagram__view {
+  min-height: 40px;
+  color: var(--ck-color-base-text);
+}
+
+.ck .ck-diagram__view.ck-mermaid,
+.ck .ck-diagram__view .ck-mermaid {
+  text-align: center;
+}
+
+.ck .ck-diagram__view svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.ck .ck-map,
+.ck .ck-stl {
+  position: relative;
+  max-width: 640px;
+  margin: 0 auto;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #eef3f8;
+}
+
+.ck .ck-map__canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: grab;
+  touch-action: none;
+}
+
+.ck .ck-map__canvas .ck-map__feature {
+  cursor: pointer;
+}
+
+.ck .ck-map__controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ck .ck-map__button,
+.ck .ck-stl__button {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2328;
+  font: 14px/1 var(--ck-font-face);
+  cursor: pointer;
+}
+
+.ck .ck-map__button:hover,
+.ck .ck-stl__button:hover {
+  background: #f3f4f6;
+}
+
+.ck .ck-stl__button[aria-pressed='true'] {
+  border-color: var(--ck-color-focus-border);
+  background: var(--ck-color-button-on-background);
+}
+
+.ck .ck-map__info {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  max-width: 60%;
+  max-height: 60%;
+  overflow: auto;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 2px 8px hsla(220, 30%, 10%, 0.2);
+  font: 12px/1.4 var(--ck-font-face);
+}
+
+.ck .ck-map__info th {
+  padding-right: 8px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.ck .ck-map__attribution {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 1px 6px;
+  background: hsla(0, 0%, 100%, 0.8);
+  font: 11px var(--ck-font-face);
+}
+
+.ck .ck-stl__canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: grab;
+}
+
+.ck .ck-stl__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  border-top: 1px solid var(--ck-color-base-border);
+  background: #fff;
+}
+
+.ck .ck-diagram__error {
+  padding: 8px 10px;
+  border: 1px solid #f5c2c7;
+  border-radius: 6px;
+  background: #fff5f5;
+  color: #a40e26;
+  font-size: 13px;
+}
+
+.ck.ck-dialog-overlay .ck-dialog.ck-dialog_diagram {
+  width: min(1000px, 100%);
+}
+
+.ck.ck-dialog-overlay .ck-diagram__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ck.ck-dialog-overlay .ck-diagram__type select {
+  padding: 4px 6px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.ck.ck-dialog-overlay .ck-diagram__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 12px;
+}
+
+.ck.ck-dialog-overlay .ck-diagram__source {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 320px;
+  padding: 8px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: 6px;
+  font: 13px/1.45 Consolas, 'Courier New', monospace;
+  resize: vertical;
+  tab-size: 4;
+}
+
+.ck.ck-dialog-overlay .ck-diagram__preview {
+  max-height: 60vh;
+  overflow: auto;
+}
+
+@media (max-width: 700px) {
+  .ck.ck-dialog-overlay .ck-diagram__body {
+    grid-template-columns: 1fr;
+  }
+
+  .ck.ck-dialog-overlay .ck-diagram__source {
+    min-height: 180px;
+  }
+}
+
 .ck.ck-dialog-overlay textarea.ck-dialog__input {
   resize: vertical;
   min-height: 4.5em;

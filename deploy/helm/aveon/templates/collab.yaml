@@ -1,0 +1,92 @@
+{{- if .Values.collab.enabled }}
+{{- $name := printf "%s-collab" (include "aveon.name" .) -}}
+{{- $collab := .Values.collab -}}
+{{- $hasDatabase := or $collab.database.postgresUrl $collab.database.existingSecret -}}
+{{- if and (gt (int $collab.replicas) 1) (not $hasDatabase) }}
+{{- fail "collab.replicas > 1 needs collab.database (PostgreSQL) so every pod can open every document" }}
+{{- end }}
+{{- if and $collab.database.postgresUrl (not $collab.database.existingSecret) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name }}
+  labels: {{- include "aveon.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  {{ $collab.database.secretKey }}: {{ $collab.database.postgresUrl | quote }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "aveon.labels" . | nindent 4 }}
+    app.kubernetes.io/component: collab
+spec:
+  replicas: {{ $collab.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: collab
+  template:
+    metadata:
+      labels:
+        {{- include "aveon.labels" . | nindent 8 }}
+        app.kubernetes.io/component: collab
+    spec:
+      # Time for every process to save its open documents.
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: collab
+          image: "{{ $collab.image.repository }}:{{ $collab.image.tag }}"
+          imagePullPolicy: {{ $collab.image.pullPolicy }}
+          {{- include "aveon.securityContext" . | nindent 10 }}
+          env:
+            - name: PORT
+              value: "1234"
+            - name: AVEON_COLLAB_WORKERS
+              value: {{ $collab.workers | quote }}
+            {{- if $hasDatabase }}
+            - name: AVEON_COLLAB_POSTGRES
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $collab.database.existingSecret | default $name }}
+                  key: {{ $collab.database.secretKey }}
+            {{- end }}
+          ports:
+            - name: ws
+              containerPort: 1234
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: ws
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: ws
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            {{- toYaml $collab.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels: {{- include "aveon.labels" . | nindent 4 }}
+  annotations:
+    # For Prometheus setups that discover services by annotation.
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "1234"
+spec:
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: collab
+  ports:
+    - name: ws
+      port: 1234
+      targetPort: ws
+{{- end }}

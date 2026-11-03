@@ -59,7 +59,8 @@ export class Autoformat extends Plugin {
     }
     if (commands.get('code')) {
       const codeCallback = getCallbackFunctionForInlineAutoformat(this.editor, 'code');
-      inlineAutoformatEditing(this.editor, this, /(`)([^`]+)(`)$/g, codeCallback);
+      // Not after a dollar: $`…`$ is an equation.
+      inlineAutoformatEditing(this.editor, this, /(?:^|[^$])(`)([^`]+)(`)$/g, codeCallback);
     }
     if (commands.get('strikethrough')) {
       const strikethroughCallback = getCallbackFunctionForInlineAutoformat(this.editor, 'strikethrough');

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: aveon
+description: Aveon Editor backend - API Connect (uploads, documents, editor files) and the real-time collaboration server
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

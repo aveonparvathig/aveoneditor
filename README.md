@@ -13,6 +13,10 @@ The code is an original, clean implementation. No CKEditor source is included.
 | `apps/cms-angular` | Angular 22 workspace with the `aveon-angular` library and a demo CMS page |
 | `apps/cms-angular/projects/aveon-angular` | The Angular integration library (`<aveon-editor>`) |
 | `packages/collab-server` | Real-time collaboration server (`@aveon/collab-server`, WebSocket) |
+| `packages/api-connect` | Backend contract for all clients (`@aveon/api-connect`): tenant tokens, uploads, documents, editor hosting |
+| `deploy` | Docker images, Helm chart and server setup scripts |
+| `e2e` | Browser tests (Playwright) in Chromium, Firefox, WebKit and phone profiles |
+| `docs/angular-14-21` | Forms support for `<aveon-editor>` in Angular 14–21 |
 
 ## Getting started
 
@@ -198,6 +202,8 @@ editor.model.document.on('change:data', () => save(editor.getData()));
 
 Use `<aveon-editor>` from `aveon-angular` (see above) with the same presets: `[editor]="ClassicEditor" [config]="erpConfig"` where `erpConfig = resolveEditorOptions({ preset: 'erp' })`.
 
+`aveon-angular` needs Angular 22. For Angular 14–21, use the `<aveon-editor>` element with `CUSTOM_ELEMENTS_SCHEMA` and copy `docs/angular-14-21/aveon-editor-value-accessor.directive.ts` into your app: it makes `[(ngModel)]`, `[formControl]` and `formControlName` work on the element, including the disabled state.
+
 ### Image uploads
 
 With `upload` (or `upload-url`), images are sent to your server instead of being stored inside the HTML as base64:
@@ -278,6 +284,35 @@ templates: [
 
 A drawing pad with colours, pen widths, undo and clear; saved as SVG (`<figure class="sketch">`). Double-click a sketch to edit it. Only stroked paths are accepted when content is loaded, so stored HTML cannot carry scripts through a sketch.
 
+### Diagrams (Insert tab)
+
+Diagrams written as text, the same four kinds GitHub draws:
+
+| Type | Draws |
+| --- | --- |
+| `mermaid` | Flowcharts, sequence, class, state, Gantt, pie and other [Mermaid](https://mermaid.js.org) diagrams (`info` shows the Mermaid version) |
+| `geojson`, `topojson` | Maps: drag to move, + / − or Ctrl+wheel to zoom, click a shape for its properties; `stroke`, `fill`, `marker-color` and the other simplestyle properties are used |
+| `stl` | 3D models (ASCII STL): drag to turn; Solid, Surface angle and Wireframe views |
+
+**Diagram** opens an editor with a live preview and a sample for each type; double-click a diagram to edit it. Diagrams are saved as their source, `<figure class="diagram" data-diagram="mermaid"><pre><code class="language-mermaid">…</code></pre></figure>`, and `<pre><code class="language-mermaid">` (a GitHub or Markdown code block) is read the same way. PDF, Word and HTML exports contain the drawing.
+
+Mermaid (about 650 KB) is downloaded only when a document contains a Mermaid diagram and always runs in its `strict` security mode. Maps and models are drawn without any library, so they work offline; maps have no background map unless you configure a tile server you are allowed to use:
+
+```ts
+diagrams: {
+  types: ['mermaid', 'geojson', 'topojson', 'stl'],
+  mermaid: { theme: 'neutral' },
+  map: { tiles: 'https://tiles.example.com/{z}/{x}/{y}.png', attribution: '© OpenStreetMap contributors' }
+}
+```
+
+### GitHub-style math and Markdown
+
+- **Typing math**: `$a^2+b^2$` (or `` $`…`$ `` when the formula has a `$`) becomes an equation when the closing `$` is typed, and a paragraph of `$$…$$` becomes a display equation. Prices stay text ("$5 and $10"), as does a dollar typed after a backslash. Ctrl+Z gives the text back; `math: { dollarSyntax: false }` turns it off. A ```` ```math ```` code block is read as a display equation.
+- **Pasting Markdown**: plain text that looks like Markdown (headings, lists, task lists, tables, code blocks, math, diagrams) is converted when pasted. Ctrl+Shift+V still pastes plain text; `markdown: { paste: 'never' }` turns it off (`'always'` converts every plain-text paste).
+- **Markdown files**: **Insert → Markdown** inserts a `.md` file at the cursor; **View → Export → Markdown** downloads the document as GitHub-flavoured Markdown, with equations as `$…$` / `$$…$$` and diagrams as fenced code blocks, ready for a README, wiki or issue. In code: `editor.plugins.get('Markdown').getMarkdown()`, `.setMarkdown(text)` and `.insertMarkdown(text)`. Colours, fonts and alignment have no Markdown form and are left out; underline, subscript, superscript and highlight become `<ins>`, `<sub>`, `<sup>` and `<mark>`.
+- **Code blocks** also offer JSON, SQL, YAML, Shell and Markdown, and read the short names Markdown uses (`js`, `ts`, `py`, `sh`, `yml`…).
+
 ### Comments and track changes (Review tab)
 
 Set the current user with `user: { id, name }`.
@@ -334,6 +369,87 @@ The first person to open a document provides its initial content; everyone after
 
 **Tested** with real WebSocket connections (concurrent typing in the same paragraph, deleting text another person is editing, presence, comments, offline edits) and with a deterministic simulation of three people editing at random with randomly delayed and reordered messages. Every run has to converge without any client falling back to a full reload.
 
+## Hosting for many clients (cloud and on-premises)
+
+One release serves every client. Editor files come from a central host (or a client's own web server), and every client's editor talks to the same backend contract, **API Connect**, wherever it runs.
+
+### API Connect (`packages/api-connect`)
+
+Uploads, documents, templates and merge data for all clients (tenants), with the editor files and co-editing on the same port:
+
+```bash
+ACME_JWT_SECRET=… npm run api:connect
+```
+
+`api-connect.config.json`:
+
+```json
+{
+  "port": 8080,
+  "dataDir": "./api-data",
+  "publicUrl": "https://api.example.com",
+  "editorDir": "./release/0.1.0/editor",
+  "collaboration": { "dataDir": "./collab-data" },
+  "tenants": {
+    "acme": { "secretEnv": "ACME_JWT_SECRET", "origins": ["https://cms.acme.com"] },
+    "globex": { "publicKeyFile": "./keys/globex.pem", "issuer": "https://erp.globex.com", "origins": ["https://erp.globex.com"] }
+  }
+}
+```
+
+Each client's backend signs a short-lived JWT (HS256 with a shared secret, or RS256 / ES256 with its own key) with `tenant`, `sub` (user id), `name`, `exp` and optionally `docs` (document ids the user may open; `quote-*` matches a prefix). API Connect never sees the clients' passwords.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /v1/uploads` | Image upload (field `upload`); the real file type is checked, not the declared one. Returns `{ "url": … }` |
+| `GET /v1/files/<tenant>/…` | Uploaded files (random names, `nosniff`, sandboxed, cached for a year) |
+| `GET` / `PUT /v1/documents/<id>` | Load and save a document; saved HTML is sanitised to what the editor produces |
+| `GET /v1/templates`, `GET /v1/merge-data/<record>` | Per-tenant templates; merge data from your `mergeData()` hook |
+| `wss://…/v1/collab?doc=<tenant>:<id>` | Co-editing with the same tokens; document ids start with the tenant |
+| `GET /editor/v<version>/…` | The editor files (immutable cache, CORS) |
+| `GET /health` | Health check |
+
+Each tenant's tokens only work from its own `origins`, and only on its own documents and files. In Node you can also mount it in an existing server: `createApiConnect({ … }).handle(request, response)`.
+
+The editor side:
+
+```ts
+AveonEditor.createEditor('#body', {
+  preset: 'cms',
+  user: { id: session.userId, name: session.userName },
+  upload: { url: 'https://api.example.com/v1/uploads', headers: () => ({ Authorization: `Bearer ${getToken()}` }) },
+  collaboration: { url: 'wss://api.example.com/v1/collab', documentId: `acme:${recordId}`, token: () => getToken() }
+});
+```
+
+### Collaboration server options
+
+`aveon-collab` (or the `collab-server` image) keeps documents in a shared database so any server can open any document:
+
+```bash
+node packages/collab-server/bin/aveon-collab.js --port 1234 --workers 4 --postgres postgres://user:pass@db/aveon
+```
+
+Also `--sqlite FILE`, `--mssql "<connection string>"`, `--mysql URL` or `--data DIR` (install `pg`, `mssql` or `mysql2` for those databases). In code: `SqlStorage.postgres(pool)`, `SqlStorage.mssql(pool)`, `SqlStorage.mysql(pool)`, `SqlStorage.sqlite(db)`. A worker process that stops is started again. `GET /health` and `GET /metrics` (Prometheus) answer on the same port. Behind a load balancer, route by the `doc` query parameter (Nginx `hash $arg_doc consistent;`) so everyone in a document reaches the same server.
+
+### Releases, Docker and Kubernetes
+
+```bash
+npm run release
+```
+
+builds `release/<version>/`: the editor files for the central host with `integrity.json` and a ready-to-paste `snippet.html` (SHA-384 integrity attributes), npm packages for a private registry, `SHA256SUMS`, and `aveon-offline-v<version>.zip` for air-gapped clients.
+
+```bash
+docker build -f deploy/docker/api-connect.Dockerfile -t aveon/api-connect:0.1.0 .
+```
+
+```bash
+docker build -f deploy/docker/collab-server.Dockerfile -t aveon/collab-server:0.1.0 .
+```
+
+Both images run as a non-root user and have health checks. `deploy/helm/aveon` installs both on Kubernetes or OpenShift behind one host: API Connect at `/` (editor files, uploads, documents) and co-editing at `/collab`, with the ingress hashing on `?doc=` and long WebSocket timeouts. Tenants and their secrets go in the chart's values (or an existing Secret); more than one co-editing pod requires `collab.database`.
+
 ## Features
 
 Everything in `classicPreset`, with the same command and toolbar item names as CKEditor 5:
@@ -346,6 +462,7 @@ Everything in `classicPreset`, with the same command and toolbar item names as C
 - **Images**: insert via URL or file upload (Base64 adapter included, custom adapters supported), caption, alt text, inline, block and side styles, resize, widget toolbar.
 - **Tables**: insert grid, header row and column, insert and delete rows and columns, Tab navigation, widget toolbar.
 - **Media embed**, **special characters**, **find and replace**, **source editing**, **word count**, **autoformat** (Markdown-like shortcuts), **text transformation**.
+- **GitHub-style content**: Markdown import, export and paste; `$…$` and `$$…$$` math while typing; Mermaid diagrams, GeoJSON and TopoJSON maps, and STL 3D models (see "Diagrams" above).
 - **Math equations**: a visual formula editor with ten toolbar tabs (General, Symbols, Arrows, Greek, Matrices, Scripts and layouts, Decorations, Big operators, Chemistry, Contextual, plus an opt-in Publishers tab), slot navigation, selection, smart delete, autoformat, clipboard, undo, formatting (bold, italic, colour, background, size, display style), matrix frames, lines, alignment and spacing, elementary arithmetic layouts, fence editing, nudging and equation numbering. Four input modes: Visual, LaTeX, MathML and Handwriting (built-in basic recogniser, or your own service through `math.handwriting.recognizer`), all with a live KaTeX preview. A `chemType` button opens chemistry mode with upright element symbols, a periodic table, charges, states of matter and reaction arrows. Output is `<span class="math-tex">\(…\)</span>` by default (display mode `\[…\]`, numbered equations carry `\tag{n}`), `<script type="math/tex">`, presentation MathML with a TeX annotation, or an `<img>` with an SVG data URI (`math.outputType`); every form is read back. Every equation carries `role="math"` and a spoken description in English, Spanish, French or German (`addSpeechDictionary()` for more). Right-to-left notation, a decimal comma, custom toolbars and colours are configurable. Load `katex/dist/katex.min.css` in the page.
 
 The theme in `packages/aveon-editor/src/theme/index.css` uses `ck-*` class names and `--ck-*` variables: the CKEditor 5 theme customization docs apply directly.
@@ -365,6 +482,8 @@ The theme in `packages/aveon-editor/src/theme/index.css` uses `ck-*` class names
 
 `npm test` runs Vitest (jsdom) in `packages/aveon-editor`: engine tests (round-trips, editing view updates, content insertion and deletion, undo, auto-paragraphing, selection mapping) and feature tests (nested lists, code blocks, tables, formatting commands with undo and redo, images, tables and links through commands).
 
+`npm run test:servers` runs the collaboration server and API Connect tests (Node's test runner). `npm run test:browsers` runs the Playwright tests against the demo in desktop Chromium, Firefox and WebKit and in Android and iPhone profiles (install the browsers once with `npx playwright install`).
+
 ## Known limitations
 
 - Undo is linear with position-level transformation of operations. In real-time collaboration each person undoes their own recent edits; undo history is cleared when edits have to be replayed after a conflict, and conflicting edits (e.g. typing inside text someone else deleted) are dropped. Collaboration needs the `@aveon/collab-server` service running.
@@ -373,4 +492,5 @@ The theme in `packages/aveon-editor/src/theme/index.css` uses `ck-*` class names
 - Pasting from Word or Google Docs keeps the semantic HTML but does not run the dedicated clean-up filters CKEditor ships for those sources.
 - The UI is English only. Translations can be added through the locale's `t()` function.
 - The built-in handwriting recogniser is basic (digits, Latin letters, common operators, fractions, roots, scripts); connect a recognition service for production handwriting. Image output embeds KaTeX HTML in SVG and needs the KaTeX fonts on the viewing page. The formula canvas needs physical key presses (no IME composition). See `docs/MATH_FEATURE_SPEC.md` for the remaining MathType items.
-- No Markdown output, mentions, emoji, restricted editing or AI assistant features. PDF export goes through the browser's print dialog, and Word export is a `.doc` (HTML) file rather than `.docx`.
+- Diagrams: only ASCII STL is read (not binary STL); maps use the Web Mercator projection and show no background map unless `diagrams.map.tiles` is set; Word may not show the SVG drawings in a `.doc` export. Math is drawn with KaTeX, which covers fewer LaTeX commands than the MathJax that GitHub uses (`math.engine` can plug MathJax in).
+- No mentions, emoji, restricted editing or AI assistant features. PDF export goes through the browser's print dialog, and Word export is a `.doc` (HTML) file rather than `.docx`.

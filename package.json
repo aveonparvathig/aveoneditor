@@ -16,9 +16,16 @@
     "build:angular": "cd apps/cms-angular && npx ng build aveon-angular && npx ng build",
     "pack:release": "npm run build && cd packages/aveon-editor && npm pack --pack-destination ../../release && cd ../../apps/cms-angular && npx ng build aveon-angular && cd dist/aveon-angular && npm pack --pack-destination ../../../../release",
     "collab:server": "node packages/collab-server/bin/aveon-collab.js --port 1234 --data ./collab-data",
-    "build:demo": "npm run build -w aveon-demo"
+    "build:demo": "npm run build -w aveon-demo",
+    "release": "node scripts/release.mjs",
+    "test:servers": "npm test -w @aveon/collab-server && npm test -w @aveon/api-connect",
+    "api:connect": "node packages/api-connect/bin/aveon-api-connect.js --config api-connect.config.json",
+    "test:browsers": "playwright test"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
   }
 }

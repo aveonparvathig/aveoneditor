@@ -59,6 +59,8 @@ section.footnotes ol { padding-left: 1.4em; }
 ins.suggestion-insert { color: #1a7f37; text-decoration: underline; }
 del.suggestion-delete { color: #cf222e; }
 figure.sketch svg { max-width: 100%; height: auto; }
+figure.diagram { text-align: center; }
+figure.diagram > svg, figure.diagram > img { max-width: 100%; height: auto; }
 `;
 
 /** The document as a complete HTML page. */
@@ -67,6 +69,8 @@ export function buildExportDocument(editor: Editor, options: { forWord?: boolean
   let body = editor.getData();
   const mergeFields = editor.plugins.has('MergeFields') ? (editor.plugins.get('MergeFields') as any) : null;
   if (mergeFields && mergeFields.isPreviewing && mergeFields.previewData) body = renderMergeFields(body, mergeFields.previewData);
+  // Diagrams are stored as their source; exports show the drawing.
+  if (editor.plugins.has('Diagrams')) body = (editor.plugins.get('Diagrams') as any).toStaticHtml(body);
   // Comment anchors are editor-only highlights.
   body = body.replace(/<span class="comment-anchor" data-comment="[^"]*">([\s\S]*?)<\/span>/g, '$1');
   const title = escapeHtml(config.title || firstHeading(body) || 'Document');

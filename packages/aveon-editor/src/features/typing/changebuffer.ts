@@ -12,7 +12,7 @@ export class ChangeBuffer {
   public isLocked = false;
   private _batch: Batch | null = null;
   private readonly _changeCallback: (evt: unknown, batch: Batch) => void;
-  private readonly _selectionChangeCallback: () => void;
+  private readonly _selectionChangeCallback: (evt: unknown, data?: { directChange?: boolean }) => void;
 
   constructor(model: Model, limit = 20) {
     this.model = model;
@@ -22,7 +22,10 @@ export class ChangeBuffer {
         this._reset(true);
       }
     };
-    this._selectionChangeCallback = () => {
+    this._selectionChangeCallback = (evt, data) => {
+      // Only when the selection was moved (a click, an arrow key); the caret following the typed
+      // text is an indirect change and must not split the undo step.
+      if (data?.directChange === false) return;
       this._reset();
     };
     this.model.document.on('change', this._changeCallback);

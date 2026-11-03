@@ -8,7 +8,6 @@ import { KeystrokeHandler } from '../../utils/keystrokehandler';
 import { FocusCycler } from '../../ui/focuscycler';
 import { submitHandler, clickOutsideHandler } from '../../ui/bindings';
 import { icons } from '../../ui/icons';
-import { ClickObserver } from '../link/linkui';
 import { MathCommand, getSelectedMathElement, renderEquation, getMathML, type MathNumberingConfig, type MathHandwritingConfig, type MathChemistryConfig } from './mathediting';
 import { FormulaEditorView } from './ui/formulaview';
 import { MathToolbarView } from './ui/mathtoolbarview';
@@ -487,13 +486,18 @@ export class MathUI extends Plugin {
       });
     }
 
-    // Clicking an equation widget opens the editor.
-    editor.editing.view.addObserver(ClickObserver);
-    this.listenTo(editor.editing.view.document, 'click', () => {
-      if (getSelectedMathElement(editor.model.document.selection)) {
-        this._showForm(false);
-      }
-    });
+    // A click selects an equation (so Delete and Backspace remove it, as for other widgets); a
+    // double-click opens it for editing, like footnotes and sketches.
+    const attach = () => {
+      editor.ui.getEditableElement()?.addEventListener('dblclick', () => {
+        // The click has selected the widget by now.
+        setTimeout(() => {
+          if (getSelectedMathElement(editor.model.document.selection)) this._showForm(false);
+        }, 0);
+      });
+    };
+    if ((editor.ui as any).isReady) attach();
+    else editor.ui.once('ready', attach);
 
     editor.keystrokes.set('Ctrl+Alt+M', (data: any, cancel: () => void) => {
       const command = editor.commands.get('math') as MathCommand;

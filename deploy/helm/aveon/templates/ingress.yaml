@@ -1,0 +1,66 @@
+{{- if .Values.ingress.enabled }}
+{{- $base := include "aveon.name" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $base }}-api
+  labels: {{- include "aveon.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: {{ printf "%dm" (add1 (div (int .Values.apiConnect.maxUploadBytes) 1048576)) | quote }}
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tlsSecretName }}
+  tls:
+    - hosts: [{{ .Values.host | quote }}]
+      secretName: {{ .Values.ingress.tlsSecretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $base }}-api
+                port:
+                  name: http
+{{- if .Values.collab.enabled }}
+---
+# Co-editing has its own Ingress: everyone in a document must reach the same pod (hash of ?doc=),
+# and WebSockets stay open far longer than normal requests.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $base }}-collab
+  labels: {{- include "aveon.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$arg_doc"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tlsSecretName }}
+  tls:
+    - hosts: [{{ .Values.host | quote }}]
+      secretName: {{ .Values.ingress.tlsSecretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.host | quote }}
+      http:
+        paths:
+          - path: /collab
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $base }}-collab
+                port:
+                  name: ws
+{{- end }}
+{{- end }}

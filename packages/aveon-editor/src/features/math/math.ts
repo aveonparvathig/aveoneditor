@@ -1,6 +1,7 @@
 import { Plugin } from '../../core/plugin';
 import { MathEditing } from './mathediting';
 import { MathUI } from './mathui';
+import { MathTyping } from './mathtyping';
 
 /**
  * Math equations: inline and display LaTeX equations rendered with KaTeX (or a custom engine),
@@ -18,6 +19,6 @@ export class Math extends Plugin {
   }
 
   public static override get requires() {
-    return [MathEditing, MathUI];
+    return [MathEditing, MathUI, MathTyping];
   }
 }

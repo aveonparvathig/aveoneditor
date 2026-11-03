@@ -32,8 +32,32 @@ const DEFAULT_LANGUAGES: CodeBlockLanguageDefinition[] = [
   { language: 'python', label: 'Python' },
   { language: 'ruby', label: 'Ruby' },
   { language: 'typescript', label: 'TypeScript' },
-  { language: 'xml', label: 'XML' }
+  { language: 'xml', label: 'XML' },
+  { language: 'json', label: 'JSON' },
+  { language: 'sql', label: 'SQL' },
+  { language: 'yaml', label: 'YAML' },
+  { language: 'bash', label: 'Shell' },
+  { language: 'markdown', label: 'Markdown' }
 ];
+
+/** Short names used in Markdown fences (```js) for the languages above. */
+const LANGUAGE_ALIASES: Record<string, string> = {
+  js: 'javascript',
+  jsx: 'javascript',
+  ts: 'typescript',
+  tsx: 'typescript',
+  py: 'python',
+  rb: 'ruby',
+  csharp: 'cs',
+  'c#': 'cs',
+  'c++': 'cpp',
+  sh: 'bash',
+  shell: 'bash',
+  zsh: 'bash',
+  yml: 'yaml',
+  md: 'markdown',
+  htm: 'html'
+};
 
 export function getNormalizedAndLocalizedLanguageDefinitions(editor: Editor): CodeBlockLanguageDefinition[] {
   const t = editor.t;
@@ -363,8 +387,10 @@ export class CodeBlockEditing extends Plugin {
         const classes = (codeElement ? Array.from(codeElement.getClassNames()) : []) as string[];
         let language = normalizedLanguagesDefs[0].language;
         for (const cls of classes) {
-          if (classToLanguage[cls]) {
-            language = classToLanguage[cls];
+          const alias = LANGUAGE_ALIASES[cls.replace(/^language-/, '')];
+          const match = classToLanguage[cls] || (alias && classToLanguage[`language-${alias}`]);
+          if (match) {
+            language = match;
             break;
           }
         }

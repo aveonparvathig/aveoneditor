@@ -1,0 +1,134 @@
+{{- $name := printf "%s-api" (include "aveon.name" .) -}}
+{{- $api := .Values.apiConnect -}}
+{{- if and (gt (int $api.replicas) 1) $api.persistence.enabled (ne $api.persistence.accessMode "ReadWriteMany") }}
+{{- fail "apiConnect.replicas > 1 needs apiConnect.persistence.accessMode: ReadWriteMany (all replicas share uploads)" }}
+{{- end }}
+{{- $tenants := dict -}}
+{{- range $id, $tenant := $api.tenants -}}
+{{- $entry := dict "origins" ($tenant.origins | default list) -}}
+{{- if $tenant.publicKey }}
+{{- $_ := set $entry "publicKey" $tenant.publicKey -}}
+{{- else }}
+{{- $_ := set $entry "secretEnv" (include "aveon.tenantEnv" $id) -}}
+{{- end }}
+{{- if $tenant.issuer }}{{- $_ := set $entry "issuer" $tenant.issuer -}}{{- end }}
+{{- if $tenant.audience }}{{- $_ := set $entry "audience" $tenant.audience -}}{{- end }}
+{{- $_ := set $tenants $id $entry -}}
+{{- end -}}
+{{- $config := dict "port" 8080 "dataDir" "/data" "editorDir" "/app/editor" "publicUrl" (include "aveon.publicUrl" .) "maxUploadBytes" $api.maxUploadBytes "tenants" $tenants -}}
+{{- if .Values.collab.enabled }}{{- $_ := set $config "collaboration" false -}}{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}
+  labels: {{- include "aveon.labels" . | nindent 4 }}
+data:
+  api-connect.config.json: {{ toJson $config | quote }}
+{{- if and $api.tenantSecrets (not $api.existingSecret) }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name }}
+  labels: {{- include "aveon.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  {{- range $id, $secret := $api.tenantSecrets }}
+  {{ include "aveon.tenantEnv" $id }}: {{ $secret | quote }}
+  {{- end }}
+{{- end }}
+{{- if $api.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}
+  labels: {{- include "aveon.labels" . | nindent 4 }}
+spec:
+  accessModes: [{{ $api.persistence.accessMode }}]
+  {{- if $api.persistence.storageClass }}
+  storageClassName: {{ $api.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $api.persistence.size }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "aveon.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api-connect
+spec:
+  replicas: {{ $api.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: api-connect
+  template:
+    metadata:
+      labels:
+        {{- include "aveon.labels" . | nindent 8 }}
+        app.kubernetes.io/component: api-connect
+      annotations:
+        # Restart pods when the client list changes.
+        checksum/config: {{ toJson $config | sha256sum }}
+    spec:
+      containers:
+        - name: api-connect
+          image: "{{ $api.image.repository }}:{{ $api.image.tag }}"
+          imagePullPolicy: {{ $api.image.pullPolicy }}
+          {{- include "aveon.securityContext" . | nindent 10 }}
+          ports:
+            - name: http
+              containerPort: 8080
+          {{- if or $api.existingSecret $api.tenantSecrets }}
+          envFrom:
+            - secretRef:
+                name: {{ $api.existingSecret | default $name }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 20
+          resources:
+            {{- toYaml $api.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ $name }}
+        - name: data
+          {{- if $api.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ $name }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels: {{- include "aveon.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: api-connect
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

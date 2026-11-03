@@ -1,0 +1,14 @@
+Aveon is installed for {{ .Values.host }}.
+
+Editor files:  {{ include "aveon.publicUrl" . }}/editor/v{{ .Chart.AppVersion }}/aveon-editor.standalone.js
+Uploads:       {{ include "aveon.publicUrl" . }}/v1/uploads
+{{- if .Values.collab.enabled }}
+Co-editing:    {{ if .Values.ingress.tlsSecretName }}wss{{ else }}ws{{ end }}://{{ .Values.host }}/collab
+{{- else }}
+Co-editing:    {{ if .Values.ingress.tlsSecretName }}wss{{ else }}ws{{ end }}://{{ .Values.host }}/v1/collab
+{{- end }}
+Health:        {{ include "aveon.publicUrl" . }}/health
+{{- if not .Values.apiConnect.tenants }}
+
+No client accounts yet: add them under apiConnect.tenants (and their secrets) and upgrade.
+{{- end }}
