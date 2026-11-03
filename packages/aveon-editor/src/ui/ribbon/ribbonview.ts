@@ -36,6 +36,13 @@ export interface RibbonGroupConfig {
   items: RibbonItem[];
   /** A "more options" corner button (like Word's dialog launchers) that runs this command. */
   launcher?: { command: string; label?: string };
+  /**
+   * How long the group keeps its full size in a narrow window: groups with a lower priority collapse
+   * to a button first (default 0). Give the everyday groups (Font, Paragraph) a higher one.
+   */
+  priority?: number;
+  /** Icon of the collapsed group's button, from `icons` (default: the icon of its first button). */
+  icon?: keyof typeof icons;
 }
 
 export interface RibbonTabConfig {
@@ -57,6 +64,8 @@ export interface RibbonConfig {
   collapsed?: boolean;
   /** The command search box in the tab row (default true). */
   search?: boolean;
+  /** Label of the tab that is open at first (default: the first tab), e.g. Home after a File tab. */
+  startTab?: string;
 }
 
 function itemName(item: RibbonItem): string {
@@ -109,6 +118,8 @@ export class RibbonGroupView extends View {
   public readonly toolbars: ToolbarView[] = [];
   public readonly launcherView: ButtonView | null;
   public readonly label: string;
+  /** See `RibbonGroupConfig#priority`. */
+  public readonly priority: number;
   /** Shown instead of the group's items when the window is too narrow (like Word's collapsed groups). */
   public readonly toggleView: ButtonView;
   /** The group is collapsed to its toggle button. */
@@ -130,6 +141,7 @@ export class RibbonGroupView extends View {
       return toolbar;
     };
 
+    this.priority = config.priority || 0;
     let medium: ToolbarView | null = null;
     let smallRows: Array<Array<{ name: string; size: RibbonItemSize }>> | null = null;
     const flushSmall = () => {
@@ -206,7 +218,13 @@ export class RibbonGroupView extends View {
       if (!compact) this.isOpen = false;
     });
     this.toggleView = new ButtonView(locale);
-    this.toggleView.set({ label, withText: true, icon: icons.dropdownArrow, class: 'ck-ribbon__group-toggle', tooltip: false });
+    // The collapsed group shows the icon of its first button that has one, like a large button.
+    const iconOf = (item: any) => {
+      const button = item.buttonView || item;
+      return button.icon || (button.actionView && button.actionView.icon);
+    };
+    const firstIcon = this.toolbars.flatMap(toolbar => [...toolbar.items]).map(iconOf).find(Boolean);
+    this.toggleView.set({ label, withText: true, icon: (config.icon && icons[config.icon]) || firstIcon || icons.paragraph, class: 'ck-ribbon__group-toggle', tooltip: false });
     this.toggleView.bind('isOn').to(this, 'isOpen');
     this.toggleView.extendTemplate({ attributes: { 'aria-haspopup': 'true', 'aria-expanded': this.toggleView.bindTemplate.to('isOn', (on: boolean) => String(!!on)) } as any });
     this.toggleView.on('execute', () => (this.isOpen = !this.isOpen));
@@ -393,8 +411,9 @@ export class RibbonView extends View {
 
   /**
    * Fits the open tab's groups into one row: when they are too wide, groups collapse to a button
-   * that opens them as a drop-down (as Word does in a narrow window). The groups that free the most
-   * room go first (on a tie, the one further right), so as few groups as possible collapse.
+   * that opens them as a drop-down (as Word does in a narrow window). Groups with the lowest priority
+   * go first, so the everyday tools stay in sight longest; among equals the group that frees the most
+   * room goes first (on a tie, the one further right), so as few groups as possible collapse.
    */
   public fitGroups(): void {
     const panel = this._activePanel();
@@ -411,7 +430,7 @@ export class RibbonView extends View {
     const candidates = groups
       .map((group, index) => ({ group, index, saving: full[index] - compact[index] }))
       .filter(candidate => candidate.saving > 0)
-      .sort((a, b) => b.saving - a.saving || b.index - a.index);
+      .sort((a, b) => a.group.priority - b.group.priority || b.saving - a.saving || b.index - a.index);
     for (const candidate of candidates) {
       if (excess <= 1) break;
       candidate.group.isCompact = true;
@@ -453,6 +472,8 @@ export class RibbonView extends View {
       this.panels.add(panel);
     }
     if (config.collapsed) this.isCollapsed = true;
+    const startTab = config.startTab ? this.tabs.map(tab => tab.label).indexOf(config.startTab) : -1;
+    if (startTab > 0) this.activeTab = startTab;
     this._syncActive();
   }
 
@@ -544,6 +565,7 @@ export class RibbonView extends View {
       tab.tabindex = i === this.activeTab ? 0 : -1;
     });
     this.panels.forEach((panel, i) => (panel.isActive = i === this.activeTab));
+    this._revealTab(this.activeTab);
   }
 
   private _activePanel(): RibbonPanelView | null {

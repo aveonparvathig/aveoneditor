@@ -136,7 +136,7 @@ Pick the route that matches the host application. All of them use the same prese
 | --- | --- | --- |
 | `basic` | Comments, short descriptions | Single toolbar: headings, bold, italic, underline, link, lists, quote |
 | `cms` (default) | Articles, pages, product texts | Full ribbon: fonts, styles, tables, images, media, symbols, source view (no equations, so KaTeX is never loaded) |
-| `erp` | Quotes, notes, emails, records | Compact ribbon (Home, Insert, View): fonts, Font dialog, tables, images, lists, find |
+| `erp` | Quotes, notes, emails, records | Compact ribbon (File, Home, Insert, Review, View): fonts, Font dialog, tables, images, lists, find, export |
 | `full` | Teaching, technical content | Everything, including equations, chemistry and handwriting |
 
 ### 1. A tag in any page: `<aveon-editor>`
@@ -227,14 +227,16 @@ ribbon: {
       label: 'Home',
       groups: [
         { label: 'Clipboard', items: [{ name: 'paste', size: 'large' }, { name: 'cut', size: 'medium' }, { name: 'copy', size: 'medium' }] },
-        { label: 'Font', items: ['bold', 'italic', 'underline', '-', 'fontColor', 'highlight'], launcher: { command: 'fontDialog' } }
+        { label: 'Font', priority: 2, items: ['bold', 'italic', 'underline', '-', 'fontColor', 'highlight'], launcher: { command: 'fontDialog' } }
       ]
     }
   ]
 }
 ```
 
-`large` shows a big icon above the label (one per column), `medium` an icon beside the label (stacked three high), and plain names are small icon buttons in rows (`-` starts a new row, `|` adds a separator). Unavailable items are skipped, and empty groups and tabs are hidden. `classicRibbon` and `erpRibbon` are exported as starting points.
+`large` shows a big icon above the label (one per column), `medium` an icon beside the label (stacked three high), and plain names are small icon buttons in rows (`-` starts a new row, `|` adds a separator). Unavailable items are skipped, and empty groups and tabs are hidden. `classicRibbon` and `erpRibbon` are exported as starting points: File (templates, Markdown import, export), Home, Insert, References, Mailings, Review and View, each command in one place, opening on Home (`startTab`).
+
+In a narrow window the ribbon stays one row: groups collapse to a button with their icon that opens them as a drop-down. Groups with a lower `priority` collapse first, so give the everyday ones (Font, Paragraph) a higher one; `icon` picks the collapsed button's icon from `icons`. On a phone-width ribbon the tabs tighten and the command search shrinks to its magnifier until clicked.
 
 ## Business documents, references and review
 

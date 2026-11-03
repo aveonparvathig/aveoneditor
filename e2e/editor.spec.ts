@@ -187,10 +187,28 @@ test('ribbon: in a narrow window groups collapse to buttons instead of wrapping'
   const ribbon = page.locator('.ck-ribbon');
   // Tab row plus one row of groups.
   await expect.poll(async () => (await ribbon.boundingBox())!.height).toBeLessThan(180);
-  const font = page.locator('.ck-ribbon__group_compact > .ck-ribbon__group-toggle', { hasText: 'Font' });
-  await expect(font).toBeVisible();
-  await font.click();
+  // The everyday groups stay open; the less used ones collapse first.
+  await expect(page.locator('.ck-ribbon__group:not(.ck-ribbon__group_compact) .ck-ribbon__group-label', { hasText: 'Font' })).toBeVisible();
+  const clipboard = page.locator('.ck-ribbon__group_compact > .ck-ribbon__group-toggle', { hasText: 'Clipboard' });
+  await expect(clipboard).toBeVisible();
+  await clipboard.click();
   await expect(page.locator('.ck-ribbon__group_open .ck-ribbon__group-popup')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('.ck-ribbon__group_open')).toHaveCount(0);
+});
+
+test('ribbon: on a phone-width ribbon every tab fits and search opens from its icon', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Ribbon checks run at desktop sizes.');
+  await page.setViewportSize({ width: 560, height: 700 });
+  await openDemo(page);
+  const cut = await page.evaluate(() =>
+    [...document.querySelectorAll('.ck-ribbon__tab:not(.ck-hidden)')]
+      .filter(tab => tab.getBoundingClientRect().right > tab.parentElement!.getBoundingClientRect().right + 1)
+      .map(tab => tab.textContent)
+  );
+  expect(cut).toEqual([]);
+  const search = page.getByRole('combobox', { name: 'Search commands' });
+  expect((await search.boundingBox())!.width).toBeLessThan(40);
+  await search.click();
+  await expect.poll(async () => (await search.boundingBox())!.width).toBeGreaterThan(120);
 });

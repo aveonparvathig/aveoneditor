@@ -7,10 +7,9 @@
  */
 
 import { ClassicEditor } from './classiceditor';
-import { classicPreset, classicDefaultConfig, classicRibbon, tableContextTab, pictureContextTab } from './presets';
+import { classicPreset, classicDefaultConfig, classicRibbon, erpRibbon } from './presets';
 import type { EditorConfig } from '../core/editor';
 import type { PluginConstructor } from '../core/plugin';
-import type { RibbonConfig } from '../ui/ribbon/ribbonview';
 import { Essentials } from '../features/essentials/essentials';
 import { Paragraph } from '../features/paragraph/paragraph';
 import { Heading } from '../features/heading/heading';
@@ -67,74 +66,6 @@ export const basicPreset: EditorPreset = {
 export const cmsPreset: EditorPreset = {
   plugins: classicPreset.filter(plugin => plugin !== MathPlugin),
   config: { ...classicDefaultConfig, ribbon: classicRibbon }
-};
-
-/** Business documents and records (quotes, notes, emails, task descriptions). */
-export const erpRibbon: RibbonConfig = {
-  quickAccess: ['undo', 'redo', 'collaborators'],
-  tabs: [
-    {
-      label: 'Home',
-      groups: [
-        { label: 'Clipboard', items: [{ name: 'paste', size: 'large' }, { name: 'cut', size: 'medium' }, { name: 'copy', size: 'medium' }, { name: 'formatPainter', size: 'medium', label: 'Format' }] },
-        {
-          label: 'Font',
-          items: [{ name: 'fontFamily', size: 'combo' }, { name: 'fontSize', size: 'combo' }, 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', '|', 'fontColor', 'fontBackgroundColor', 'highlight'],
-          launcher: { command: 'fontDialog', label: 'Font options' }
-        },
-        { label: 'Paragraph', items: ['bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '-', 'alignment', 'blockQuote', 'horizontalLine'] },
-        { label: 'Styles', items: ['styleGallery'] },
-        { label: 'Editing', items: [{ name: 'findAndReplace', size: 'medium', label: 'Find' }, { name: 'selectAll', size: 'medium', label: 'Select all' }] }
-      ]
-    },
-    {
-      label: 'Insert',
-      groups: [
-        { label: 'Tables', items: [{ name: 'insertTable', size: 'large', label: 'Table' }, { name: 'tableCaption', size: 'medium', label: 'Caption' }] },
-        { label: 'Illustrations', items: [{ name: 'insertImage', size: 'large', label: 'Pictures' }, { name: 'horizontalLine', size: 'medium', label: 'Line' }, { name: 'insertDiagram', size: 'medium', label: 'Diagram' }] },
-        { label: 'Links', items: [{ name: 'link', size: 'large', label: 'Link' }] },
-        { label: 'Symbols', items: [{ name: 'specialCharacters', size: 'large', label: 'Symbol' }, { name: 'insertFootnote', size: 'medium', label: 'Footnote' }] }
-      ]
-    },
-    {
-      label: 'Mailings',
-      groups: [
-        {
-          label: 'Fields',
-          items: [
-            { name: 'mergeFields', size: 'large', label: 'Insert Merge Field' },
-            { name: 'mergeFieldsPreview', size: 'large', label: 'Preview Results' }
-          ]
-        },
-        { label: 'Templates', items: [{ name: 'insertTemplate', size: 'large', label: 'Templates' }] }
-      ]
-    },
-    {
-      label: 'Review',
-      groups: [
-        { label: 'Comments', items: [{ name: 'addComment', size: 'large', label: 'New Comment' }, { name: 'toggleComments', size: 'medium', label: 'Show Comments' }] },
-        {
-          label: 'Tracking',
-          items: [
-            { name: 'trackChanges', size: 'large', label: 'Track Changes' },
-            { name: 'acceptSuggestion', size: 'medium', label: 'Accept' },
-            { name: 'rejectSuggestion', size: 'medium', label: 'Reject' },
-            { name: 'acceptAllSuggestions', size: 'medium', label: 'Accept all' },
-            { name: 'rejectAllSuggestions', size: 'medium', label: 'Reject all' }
-          ]
-        }
-      ]
-    },
-    {
-      label: 'View',
-      groups: [
-        { label: 'Views', items: [{ name: 'fullscreen', size: 'large' }] },
-        { label: 'Export', items: [{ name: 'exportPdf', size: 'large', label: 'PDF' }, { name: 'exportWord', size: 'large', label: 'Word' }, { name: 'exportMarkdown', size: 'medium', label: 'Markdown' }] }
-      ]
-    },
-    tableContextTab,
-    pictureContextTab
-  ]
 };
 
 export const erpPreset: EditorPreset = {

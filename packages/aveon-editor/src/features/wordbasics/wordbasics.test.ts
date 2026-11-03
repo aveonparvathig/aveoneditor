@@ -186,7 +186,7 @@ describe('ribbon', () => {
     expect(search.search('zzz')).toEqual([]);
     // A command on another tab opens that tab.
     const exportResult = search.search('pdf')[0];
-    expect(exportResult.path).toMatch(/^View/);
+    expect(exportResult.path).toMatch(/^File/);
 
     selectAllText(editor);
     results[0].run();

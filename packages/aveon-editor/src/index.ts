@@ -8,7 +8,7 @@ export { ClassicEditor, ClassicEditorUI, ClassicEditorUIView } from './builds/cl
 export { InlineEditor, InlineEditorUI, InlineEditorUIView } from './builds/inlineeditor';
 export { BalloonEditor, BalloonEditorUI, BalloonEditorUIView, BalloonToolbar } from './builds/ballooneditor';
 export { DecoupledEditor, DecoupledEditorUI, DecoupledEditorUIView } from './builds/decouplededitor';
-export { classicPreset, classicToolbar, classicDefaultConfig, classicRibbon } from './builds/presets';
-export { createEditor, resolveEditorOptions, editorPresets, basicPreset, cmsPreset, erpPreset, erpRibbon, fullPreset } from './builds/createeditor';
+export { classicPreset, classicToolbar, classicDefaultConfig, classicRibbon, erpRibbon } from './builds/presets';
+export { createEditor, resolveEditorOptions, editorPresets, basicPreset, cmsPreset, erpPreset, fullPreset } from './builds/createeditor';
 export type { CreateEditorOptions, UploadOptions, PresetName, EditorPreset } from './builds/createeditor';
 export { AveonEditorElement, defineEditorElement } from './integrations/editorelement';

@@ -922,6 +922,7 @@ aveon-editor {
 }
 
 .ck.ck-ribbon .ck-ribbon__bar {
+  container: ck-ribbon-bar / inline-size;
   display: flex;
   align-items: center;
   gap: var(--ck-spacing-small);
@@ -1062,25 +1063,49 @@ aveon-editor {
   display: none;
 }
 
+/* Drawn like a large button: the group's icon above its name and a small arrow. */
 .ck.ck-ribbon .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle {
   display: inline-flex;
-  flex-direction: row-reverse;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  align-self: center;
-  margin: auto 0;
+  align-self: stretch;
+  min-width: 56px;
+  margin: 0;
   padding: 6px 8px;
   white-space: nowrap;
 }
 
 .ck.ck-ribbon .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle .ck-button__icon {
-  width: 12px;
-  height: 12px;
+  width: 24px;
+  height: 24px;
   margin: 0;
+  color: var(--ck-ribbon-icon-accent);
 }
 
 .ck.ck-ribbon .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle .ck-button__label {
-  display: inline;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  font-size: 0.92em;
+}
+
+.ck.ck-ribbon .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle .ck-button__label::after {
+  content: '';
+  width: 5px;
+  height: 5px;
+  margin-top: -3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 120ms ease;
+}
+
+.ck.ck-ribbon .ck-ribbon__group_compact.ck-ribbon__group_open > .ck-button.ck-ribbon__group-toggle .ck-button__label::after {
+  margin-top: 3px;
+  transform: rotate(225deg);
 }
 
 .ck.ck-ribbon .ck-ribbon__group_compact > .ck-ribbon__group-popup {
@@ -1370,6 +1395,41 @@ aveon-editor {
   box-shadow: 0 0 0 2px hsla(208, 79%, 51%, 0.2);
 }
 
+/* In a narrow tab row the tabs keep the room: the search box shrinks to its magnifier and opens
+   while it has the focus. */
+@container ck-ribbon-bar (max-width: 820px) {
+  .ck.ck-ribbon .ck-ribbon__search {
+    flex: 0 0 2em;
+    min-width: 0;
+  }
+
+  .ck.ck-ribbon .ck-ribbon__search:focus-within {
+    flex-basis: 13em;
+  }
+
+  .ck.ck-ribbon .ck-ribbon__search-input {
+    padding-right: 0;
+    cursor: pointer;
+  }
+
+  .ck.ck-ribbon .ck-ribbon__search:not(:focus-within) .ck-ribbon__search-input::placeholder {
+    color: transparent;
+  }
+}
+
+/* A phone: tighter tabs, so all of them fit (the row still scrolls sideways if they do not). */
+@container ck-ribbon-bar (max-width: 600px) {
+  .ck.ck-ribbon .ck-button.ck-ribbon__tab {
+    padding: 0 var(--ck-spacing-small);
+    font-size: 1em;
+  }
+
+  .ck.ck-ribbon .ck-ribbon__quick-access {
+    padding-right: 2px;
+    margin-right: 0;
+  }
+}
+
 .ck.ck-ribbon .ck-ribbon__search-results {
   position: absolute;
   top: calc(100% + 4px);
@@ -1417,12 +1477,6 @@ aveon-editor {
 
 .ck.ck-ribbon .ck-ribbon__search-empty {
   padding: 6px 8px;
-}
-
-@media (max-width: 640px) {
-  .ck.ck-ribbon .ck-ribbon__search {
-    flex-basis: 9em;
-  }
 }
 
 /* Colour buttons: a bar under the icon showing the colour at the cursor. */

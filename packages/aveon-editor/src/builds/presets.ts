@@ -137,7 +137,6 @@ export const classicToolbar: string[] = [
   'sourceEditing'
 ];
 
-/** Word-style ribbon: everyday tools on Home, everything you can add on Insert. */
 /** Contextual tab shown while the cursor is in a table (like Word's Table Layout tab). */
 export const tableContextTab: RibbonTabConfig = {
   label: 'Table',
@@ -178,88 +177,140 @@ export const pictureContextTab: RibbonTabConfig = {
   ]
 };
 
-export const classicRibbon: RibbonConfig = {
-  quickAccess: ['undo', 'redo', 'collaborators'],
-  tabs: [
+/** Home tab: the everyday tools. Font and Paragraph stay in sight longest in a narrow window. */
+const homeTab: RibbonTabConfig = {
+  label: 'Home',
+  groups: [
     {
-      label: 'Home',
-      groups: [
-        {
-          label: 'Clipboard',
-          items: [
-            { name: 'paste', size: 'large' },
-            { name: 'cut', size: 'medium' },
-            { name: 'copy', size: 'medium' },
-            { name: 'formatPainter', size: 'medium', label: 'Format' }
-          ]
-        },
-        {
-          label: 'Font',
-          items: [{ name: 'fontFamily', size: 'combo' }, { name: 'fontSize', size: 'combo' }, 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', '|', 'fontColor', 'fontBackgroundColor', 'highlight'],
-          launcher: { command: 'fontDialog', label: 'Font options' }
-        },
-        { label: 'Paragraph', items: ['bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '-', 'alignment', 'blockQuote', 'codeBlock', 'horizontalLine'] },
-        { label: 'Styles', items: ['styleGallery'] },
-        {
-          label: 'Editing',
-          items: [
-            { name: 'findAndReplace', size: 'medium', label: 'Find' },
-            { name: 'selectAll', size: 'medium', label: 'Select all' }
-          ]
-        }
+      label: 'Clipboard',
+      items: [
+        { name: 'paste', size: 'large' },
+        { name: 'cut', size: 'medium' },
+        { name: 'copy', size: 'medium' },
+        { name: 'formatPainter', size: 'medium', label: 'Format' }
       ]
     },
     {
+      label: 'Font',
+      priority: 3,
+      icon: 'fontFamily',
+      items: [{ name: 'fontFamily', size: 'combo' }, { name: 'fontSize', size: 'combo' }, 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', '|', 'fontColor', 'fontBackgroundColor', 'highlight'],
+      launcher: { command: 'fontDialog', label: 'Font options' }
+    },
+    { label: 'Paragraph', priority: 2, icon: 'paragraph', items: ['bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '-', 'alignment', 'blockQuote', 'codeBlock'] },
+    { label: 'Styles', priority: 1, icon: 'heading', items: ['styleGallery'] },
+    {
+      label: 'Editing',
+      items: [
+        { name: 'findAndReplace', size: 'medium', label: 'Find' },
+        { name: 'selectAll', size: 'medium', label: 'Select all' }
+      ]
+    }
+  ]
+};
+
+/** File tab: bring content in and take it out. */
+const fileTab: RibbonTabConfig = {
+  label: 'File',
+  groups: [
+    {
+      label: 'Start from',
+      items: [
+        { name: 'insertTemplate', size: 'large', label: 'Template' },
+        { name: 'importMarkdown', size: 'large', label: 'Markdown' }
+      ]
+    },
+    {
+      label: 'Save as',
+      priority: 1,
+      items: [
+        { name: 'exportPdf', size: 'large', label: 'PDF' },
+        { name: 'exportWord', size: 'large', label: 'Word' },
+        { name: 'exportHtml', size: 'medium', label: 'Web page' },
+        { name: 'exportMarkdown', size: 'medium', label: 'Markdown' }
+      ]
+    }
+  ]
+};
+
+/** Mailings tab: personalised letters and e-mails. */
+const mailingsTab: RibbonTabConfig = {
+  label: 'Mailings',
+  groups: [
+    {
+      label: 'Merge Fields',
+      items: [
+        { name: 'mergeFields', size: 'large', label: 'Insert Field' },
+        { name: 'mergeFieldsPreview', size: 'large', label: 'Preview Results' }
+      ]
+    }
+  ]
+};
+
+/** Review tab: comments and suggested changes. */
+const reviewTab: RibbonTabConfig = {
+  label: 'Review',
+  groups: [
+    {
+      label: 'Comments',
+      items: [
+        { name: 'addComment', size: 'large', label: 'New Comment' },
+        { name: 'toggleComments', size: 'medium', label: 'Show Comments' }
+      ]
+    },
+    {
+      label: 'Track Changes',
+      priority: 1,
+      items: [
+        { name: 'trackChanges', size: 'large', label: 'Track Changes' },
+        { name: 'acceptSuggestion', size: 'medium', label: 'Accept' },
+        { name: 'rejectSuggestion', size: 'medium', label: 'Reject' },
+        { name: 'acceptAllSuggestions', size: 'medium', label: 'Accept all' },
+        { name: 'rejectAllSuggestions', size: 'medium', label: 'Reject all' }
+      ]
+    }
+  ]
+};
+
+/**
+ * Word-style ribbon. Every command has one place: File brings content in and out, Home has the
+ * everyday formatting, Insert everything you can add, and the other tabs the rest. It opens on Home.
+ */
+export const classicRibbon: RibbonConfig = {
+  quickAccess: ['undo', 'redo', 'collaborators'],
+  startTab: 'Home',
+  tabs: [
+    fileTab,
+    homeTab,
+    {
       label: 'Insert',
       groups: [
-        { label: 'Tables', items: [{ name: 'insertTable', size: 'large', label: 'Table' }] },
+        { label: 'Tables', priority: 2, items: [{ name: 'insertTable', size: 'large', label: 'Table' }] },
         {
-          label: 'Illustrations',
+          label: 'Media',
+          priority: 2,
           items: [
-            { name: 'insertImage', size: 'large', label: 'Pictures' },
+            { name: 'insertImage', size: 'large', label: 'Picture' },
             { name: 'mediaEmbed', size: 'medium', label: 'Video' },
-            { name: 'horizontalLine', size: 'medium', label: 'Line' },
             { name: 'insertSketch', size: 'medium', label: 'Sketch' },
             { name: 'insertDiagram', size: 'medium', label: 'Diagram' }
           ]
         },
-        { label: 'Links', items: [{ name: 'link', size: 'large', label: 'Link' }] },
+        { label: 'Links', priority: 2, items: [{ name: 'link', size: 'large', label: 'Link' }] },
         {
-          label: 'Text',
-          items: [
-            { name: 'blockQuote', size: 'medium', label: 'Quote' },
-            { name: 'codeBlock', size: 'medium', label: 'Code' },
-            { name: 'code', size: 'medium', label: 'Inline code' },
-            { name: 'importMarkdown', size: 'medium', label: 'Markdown' }
-          ]
-        },
-        {
-          label: 'Symbols',
+          label: 'Equations & Symbols',
+          priority: 1,
           items: [
             { name: 'math', size: 'large', label: 'Equation' },
             { name: 'specialCharacters', size: 'large', label: 'Symbol' },
             { name: 'chemType', size: 'medium', label: 'Chemistry' }
           ]
-        }
-      ]
-    },
-    {
-      label: 'Layout',
-      groups: [
-        { label: 'Alignment', items: [{ name: 'alignment', size: 'large', label: 'Align' }] },
-        {
-          label: 'Indent',
-          items: [
-            { name: 'outdent', size: 'medium', label: 'Decrease' },
-            { name: 'indent', size: 'medium', label: 'Increase' }
-          ]
         },
         {
-          label: 'Lists',
+          label: 'Text',
           items: [
-            { name: 'bulletedList', size: 'medium', label: 'Bullets' },
-            { name: 'numberedList', size: 'medium', label: 'Numbering' },
-            { name: 'todoList', size: 'medium', label: 'Checklist' }
+            { name: 'horizontalLine', size: 'medium', label: 'Line' },
+            { name: 'code', size: 'medium', label: 'Inline code' }
           ]
         }
       ]
@@ -267,70 +318,58 @@ export const classicRibbon: RibbonConfig = {
     {
       label: 'References',
       groups: [
-        { label: 'Table of Contents', items: [{ name: 'tableOfContents', size: 'large', label: 'Table of Contents' }] },
-        { label: 'Footnotes', items: [{ name: 'insertFootnote', size: 'large', label: 'Insert Footnote' }] },
-        { label: 'Captions', items: [{ name: 'tableCaption', size: 'large', label: 'Insert Caption' }] }
+        { label: 'Contents', items: [{ name: 'tableOfContents', size: 'large', label: 'Table of Contents' }] },
+        { label: 'Notes', items: [{ name: 'insertFootnote', size: 'large', label: 'Footnote' }] },
+        { label: 'Captions', items: [{ name: 'tableCaption', size: 'large', label: 'Caption' }] }
       ]
     },
-    {
-      label: 'Mailings',
-      groups: [
-        {
-          label: 'Fields',
-          items: [
-            { name: 'mergeFields', size: 'large', label: 'Insert Merge Field' },
-            { name: 'mergeFieldsPreview', size: 'large', label: 'Preview Results' }
-          ]
-        },
-        { label: 'Templates', items: [{ name: 'insertTemplate', size: 'large', label: 'Templates' }] }
-      ]
-    },
-    {
-      label: 'Review',
-      groups: [
-        {
-          label: 'Comments',
-          items: [
-            { name: 'addComment', size: 'large', label: 'New Comment' },
-            { name: 'toggleComments', size: 'medium', label: 'Show Comments' }
-          ]
-        },
-        {
-          label: 'Tracking',
-          items: [
-            { name: 'trackChanges', size: 'large', label: 'Track Changes' },
-            { name: 'acceptSuggestion', size: 'medium', label: 'Accept' },
-            { name: 'rejectSuggestion', size: 'medium', label: 'Reject' },
-            { name: 'acceptAllSuggestions', size: 'medium', label: 'Accept all' },
-            { name: 'rejectAllSuggestions', size: 'medium', label: 'Reject all' }
-          ]
-        },
-        { label: 'Find', items: [{ name: 'findAndReplace', size: 'large', label: 'Find' }] },
-        {
-          label: 'Formatting',
-          items: [
-            { name: 'removeFormat', size: 'medium', label: 'Clear formatting' },
-            { name: 'formatPainter', size: 'medium', label: 'Format Painter' }
-          ]
-        }
-      ]
-    },
+    mailingsTab,
+    reviewTab,
     {
       label: 'View',
       groups: [
-        { label: 'Views', items: [{ name: 'fullscreen', size: 'large' }] },
-        { label: 'Source', items: [{ name: 'sourceEditing', size: 'large', label: 'HTML source' }] },
+        { label: 'Show', items: [{ name: 'fullscreen', size: 'large' }] },
+        { label: 'Source', items: [{ name: 'sourceEditing', size: 'large', label: 'HTML Source' }] }
+      ]
+    },
+    tableContextTab,
+    pictureContextTab
+  ]
+};
+
+/** Business documents (quotes, notes, e-mails): the same layout without the scientific tools. */
+export const erpRibbon: RibbonConfig = {
+  quickAccess: ['undo', 'redo', 'collaborators'],
+  startTab: 'Home',
+  tabs: [
+    fileTab,
+    homeTab,
+    {
+      label: 'Insert',
+      groups: [
+        { label: 'Tables', priority: 2, items: [{ name: 'insertTable', size: 'large', label: 'Table' }, { name: 'tableCaption', size: 'medium', label: 'Caption' }] },
         {
-          label: 'Export',
+          label: 'Media',
+          priority: 2,
           items: [
-            { name: 'exportPdf', size: 'large', label: 'PDF' },
-            { name: 'exportWord', size: 'large', label: 'Word' },
-            { name: 'exportHtml', size: 'medium', label: 'HTML' },
-            { name: 'exportMarkdown', size: 'medium', label: 'Markdown' }
+            { name: 'insertImage', size: 'large', label: 'Picture' },
+            { name: 'insertDiagram', size: 'medium', label: 'Diagram' },
+            { name: 'horizontalLine', size: 'medium', label: 'Line' }
+          ]
+        },
+        { label: 'Links', priority: 2, items: [{ name: 'link', size: 'large', label: 'Link' }] },
+        {
+          label: 'Symbols',
+          items: [
+            { name: 'specialCharacters', size: 'large', label: 'Symbol' },
+            { name: 'insertFootnote', size: 'medium', label: 'Footnote' }
           ]
         }
       ]
     },
+    mailingsTab,
+    reviewTab,
+    { label: 'View', groups: [{ label: 'Show', items: [{ name: 'fullscreen', size: 'large' }] }] },
     tableContextTab,
     pictureContextTab
   ]

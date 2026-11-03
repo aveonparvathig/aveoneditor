@@ -45,10 +45,13 @@ describe('presets and createEditor()', () => {
   it('creates an ERP editor with a ribbon using large, medium and small items', async () => {
     const editor = await createEditor(host('<p>Quote</p>'), { preset: 'erp' });
     const ribbon = editor.ui.view.ribbon!;
-    expect([...ribbon.element!.querySelectorAll('[role="tab"]:not(.ck-hidden)')].map(tab => tab.textContent)).toEqual(['Home', 'Insert', 'Review', 'View']);
-    const paste = ribbon.element!.querySelector('.ck-ribbon__item_large')!;
+    expect([...ribbon.element!.querySelectorAll('[role="tab"]:not(.ck-hidden)')].map(tab => tab.textContent)).toEqual(['File', 'Home', 'Insert', 'Review', 'View']);
+    // It opens on Home, after the File tab.
+    expect(ribbon.tabs.get(ribbon.activeTab)!.label).toBe('Home');
+    const home = ribbon.panels.get(ribbon.activeTab)!.element!;
+    const paste = home.querySelector('.ck-ribbon__item_large')!;
     expect(paste.textContent).toBe('Paste');
-    const medium = [...ribbon.element!.querySelectorAll('.ck-ribbon__item_medium')].map(item => item.textContent);
+    const medium = [...home.querySelectorAll('.ck-ribbon__item_medium')].map(item => item.textContent);
     expect(medium.slice(0, 3)).toEqual(['Cut', 'Copy', 'Format']);
     // The short label replaces the full name, which moves to the tooltip.
     const format = [...ribbon.element!.querySelectorAll<HTMLElement>('.ck-ribbon__item_medium')].find(item => item.textContent === 'Format')!;
