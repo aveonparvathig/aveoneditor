@@ -11,7 +11,7 @@ export default defineConfig({
       cssFileName: 'aveon-editor'
     },
     rollupOptions: {
-      external: ['katex', 'marked', /^mermaid(\/|$)/]
+      external: ['katex', 'marked', /^mermaid(\/|$)/, /^mathjax-full(\/|$)/]
     },
     sourcemap: true,
     target: 'es2022',

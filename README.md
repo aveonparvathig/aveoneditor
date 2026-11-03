@@ -272,9 +272,9 @@ templates: [
 
 **Templates** fills an empty document or inserts at the cursor. Templates can contain merge fields.
 
-### Export (View tab)
+### Export (File tab)
 
-**PDF** opens the browser's print dialog with a clean copy of the document (choose "Save as PDF"). **Word** downloads a `.doc` file that Word opens natively. **HTML** downloads a standalone page. Configure with `export: { fileName, title, stylesheets, css }`; `buildExportDocument(editor)` returns the HTML for server-side PDF tools. While merge-field preview is on, exports contain the preview values.
+**PDF** opens the browser's print dialog with a clean copy of the document (choose "Save as PDF"). **Word** downloads a `.doc` file that Word opens natively. **HTML** downloads a standalone page. Configure with `export: { fileName, title, stylesheets, css }`; `buildExportDocument(editor)` returns the HTML for server-side PDF tools. While merge-field preview is on, exports contain the preview values. Equations are exported as self-contained images (SVG, or PNG in the Word file) with their spoken text as `alt`, so they look right without KaTeX or its fonts; `buildExportDocumentWithImages(editor)` returns that HTML.
 
 ### References tab
 
@@ -313,6 +313,15 @@ diagrams: {
 - **Typing math**: `$a^2+b^2$` (or `` $`…`$ `` when the formula has a `$`) becomes an equation when the closing `$` is typed, and a paragraph of `$$…$$` becomes a display equation. Prices stay text ("$5 and $10"), as does a dollar typed after a backslash. Ctrl+Z gives the text back; `math: { dollarSyntax: false }` turns it off. A ```` ```math ```` code block is read as a display equation.
 - **Pasting Markdown**: plain text that looks like Markdown (headings, lists, task lists, tables, code blocks, math, diagrams) is converted when pasted. Ctrl+Shift+V still pastes plain text; `markdown: { paste: 'never' }` turns it off (`'always'` converts every plain-text paste).
 - **Markdown files**: **Insert → Markdown** inserts a `.md` file at the cursor; **View → Export → Markdown** downloads the document as GitHub-flavoured Markdown, with equations as `$…$` / `$$…$$` and diagrams as fenced code blocks, ready for a README, wiki or issue. In code: `editor.plugins.get('Markdown').getMarkdown()`, `.setMarkdown(text)` and `.insertMarkdown(text)`. Colours, fonts and alignment have no Markdown form and are left out; underline, subscript, superscript and highlight become `<ins>`, `<sub>`, `<sup>` and `<mark>`.
+### Equations outside the editor
+
+- **Read-only pages**: saved content keeps equations as `<span class="math-tex">\(…\)</span>`. Add one script to the page that shows it and they are drawn with the browser's own MathML (no download, no fonts, read by screen readers): `<script type="module" src="aveon-math-viewer.js"></script>` (from `dist/standalone`), or `renderEquations(element)` from the package. Add `?output=svg` (or `{ output: 'svg' }`) for images, or `katex` when the page loads KaTeX's stylesheet. Call `AveonMathViewer.renderEquations(element)` again for content added later.
+- **Images**: `math: { outputType: 'image' }` stores each equation as a self-contained SVG (drawn as paths, no fonts needed), sized and aligned to the text line. `renderEquationSvg()`, `renderEquationImageTag()` and `svgToPng()` make images in code; `replaceEquationsWithImages(html)` converts a whole document. The drawing uses MathJax, downloaded only when an image is made, and it also draws `\ce{…}` chemistry.
+- **MathType (WIRIS) content**: formula images with `data-mathml` (including MathType's « » ¨ § encoding) and MathType's MathML load as editable equations, using the LaTeX annotation when there is one.
+- **Word**: equations pasted from Word (Office Math) arrive as editable equations instead of a broken picture.
+
+### Code blocks
+
 - **Code blocks** also offer JSON, SQL, YAML, Shell and Markdown, and read the short names Markdown uses (`js`, `ts`, `py`, `sh`, `yml`…).
 
 ### Comments and track changes (Review tab)
@@ -493,6 +502,6 @@ The theme in `packages/aveon-editor/src/theme/index.css` uses `ck-*` class names
 - Image resizing is offered through the toolbar option, not drag handles. Without the `upload` option images are stored inside the HTML as Base64.
 - Pasting from Word or Google Docs keeps the semantic HTML but does not run the dedicated clean-up filters CKEditor ships for those sources.
 - The UI is English only. Translations can be added through the locale's `t()` function.
-- The built-in handwriting recogniser is basic (digits, Latin letters, common operators, fractions, roots, scripts); connect a recognition service for production handwriting. Image output embeds KaTeX HTML in SVG and needs the KaTeX fonts on the viewing page. The formula canvas needs physical key presses (no IME composition). See `docs/MATH_FEATURE_SPEC.md` for the remaining MathType items.
+- The built-in handwriting recogniser is basic (digits, Latin letters, common operators, fractions, roots, scripts); connect a recognition service for production handwriting. The formula canvas needs physical key presses (no IME composition). See `docs/MATH_FEATURE_SPEC.md` for the remaining MathType items.
 - Diagrams: only ASCII STL is read (not binary STL); maps use the Web Mercator projection and show no background map unless `diagrams.map.tiles` is set; Word may not show the SVG drawings in a `.doc` export. Math is drawn with KaTeX, which covers fewer LaTeX commands than the MathJax that GitHub uses (`math.engine` can plug MathJax in).
-- No mentions, emoji, restricted editing or AI assistant features. PDF export goes through the browser's print dialog, and Word export is a `.doc` (HTML) file rather than `.docx`.
+- No mentions, emoji, restricted editing or AI assistant features. PDF export goes through the browser's print dialog, and Word export is a `.doc` (HTML) file rather than `.docx`, so equations in it are pictures, not editable Word equations. The equation viewer's default MathML output looks as good as the browser's maths fonts.

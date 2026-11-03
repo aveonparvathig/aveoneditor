@@ -14,6 +14,7 @@ import { ButtonView } from '../../ui/button/buttonview';
 import { icons } from '../../ui/icons';
 import { escapeHtml, downloadFile } from '../shared/upcast';
 import { renderMergeFields } from '../mergefields/mergefields';
+import { hasEquations, replaceEquationsWithImages } from '../math/mathexport';
 import type { Editor } from '../../core/editor';
 
 export interface ExportConfig {
@@ -63,16 +64,31 @@ figure.diagram { text-align: center; }
 figure.diagram > svg, figure.diagram > img { max-width: 100%; height: auto; }
 `;
 
-/** The document as a complete HTML page. */
-export function buildExportDocument(editor: Editor, options: { forWord?: boolean; extraHead?: string } = {}): string {
-  const config = (editor.config.get('export') as ExportConfig | undefined) || {};
+/** The document's HTML as exports show it: merge-field values, drawn diagrams, no comment highlights. */
+function exportBody(editor: Editor): string {
   let body = editor.getData();
   const mergeFields = editor.plugins.has('MergeFields') ? (editor.plugins.get('MergeFields') as any) : null;
   if (mergeFields && mergeFields.isPreviewing && mergeFields.previewData) body = renderMergeFields(body, mergeFields.previewData);
   // Diagrams are stored as their source; exports show the drawing.
   if (editor.plugins.has('Diagrams')) body = (editor.plugins.get('Diagrams') as any).toStaticHtml(body);
   // Comment anchors are editor-only highlights.
-  body = body.replace(/<span class="comment-anchor" data-comment="[^"]*">([\s\S]*?)<\/span>/g, '$1');
+  return body.replace(/<span class="comment-anchor" data-comment="[^"]*">([\s\S]*?)<\/span>/g, '$1');
+}
+
+/**
+ * The document as a complete HTML page, with equations drawn as self-contained images (PNG for Word,
+ * which does not show SVG reliably; SVG otherwise), so they look right without KaTeX or its fonts.
+ */
+export async function buildExportDocumentWithImages(editor: Editor, options: { forWord?: boolean; extraHead?: string } = {}): Promise<string> {
+  let body = exportBody(editor);
+  if (hasEquations(body)) body = await replaceEquationsWithImages(body, { format: options.forWord ? 'png' : 'svg' });
+  return buildExportDocument(editor, { ...options, body });
+}
+
+/** The document as a complete HTML page (equations as the editor writes them; see `buildExportDocumentWithImages`). */
+export function buildExportDocument(editor: Editor, options: { forWord?: boolean; extraHead?: string; body?: string } = {}): string {
+  const config = (editor.config.get('export') as ExportConfig | undefined) || {};
+  const body = options.body ?? exportBody(editor);
   const title = escapeHtml(config.title || firstHeading(body) || 'Document');
   const css = exportStyles + (config.css || '');
   if (options.forWord) {
@@ -103,19 +119,23 @@ export class ExportCommand extends Command {
     this.isEnabled = true;
   }
 
-  /** Starts the export; returns the generated HTML. */
-  public override execute(): string {
+  /** Starts the export; resolves with the generated HTML once the file is offered or printed. */
+  public override execute(): Promise<string> {
+    return this._export();
+  }
+
+  private async _export(): Promise<string> {
     const editor = this.editor;
     const config = (editor.config.get('export') as ExportConfig | undefined) || {};
     const fileName = config.fileName || 'document';
     if (this._format === 'word') {
-      const html = buildExportDocument(editor, { forWord: true });
+      const html = await buildExportDocumentWithImages(editor, { forWord: true });
       // A byte-order mark makes Word read the file as UTF-8.
       downloadFile('﻿' + html, `${fileName}.doc`, 'application/msword');
       return html;
     }
     if (this._format === 'html') {
-      const html = buildExportDocument(editor);
+      const html = await buildExportDocumentWithImages(editor);
       downloadFile(html, `${fileName}.html`, 'text/html');
       return html;
     }
@@ -125,7 +145,7 @@ export class ExportCommand extends Command {
       .filter(node => !(node as HTMLElement).closest('.ck-body-wrapper'))
       .map(node => node.outerHTML)
       .join('');
-    const html = buildExportDocument(editor, { extraHead: `${pageStyles}<style>${exportStyles}${config.css || ''} @page { margin: 18mm; } .document { padding: 0; }</style>` });
+    const html = await buildExportDocumentWithImages(editor, { extraHead: `${pageStyles}<style>${exportStyles}${config.css || ''} @page { margin: 18mm; } .document { padding: 0; }</style>` });
     printHtml(doc, html);
     return html;
   }

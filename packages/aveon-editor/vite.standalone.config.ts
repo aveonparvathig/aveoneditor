@@ -1,15 +1,18 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 
-/** Script-tag build (`dist/standalone`): minified, KaTeX bundled as a lazily loaded chunk. */
+/**
+ * Script-tag build (`dist/standalone`): minified, KaTeX and MathJax bundled as lazily loaded chunks.
+ * Also builds the equation viewer for read-only pages (`aveon-math-viewer.js`).
+ */
 export default defineConfig({
   build: {
     outDir: 'dist/standalone',
     emptyOutDir: true,
     lib: {
-      entry: resolve(__dirname, 'src/standalone.ts'),
+      entry: { 'aveon-editor.standalone': resolve(__dirname, 'src/standalone.ts'), 'aveon-math-viewer': resolve(__dirname, 'src/viewer.ts') },
       formats: ['es'],
-      fileName: () => 'aveon-editor.standalone.js'
+      fileName: (_format, entryName) => `${entryName}.js`
     },
     rollupOptions: {
       output: {

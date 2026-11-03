@@ -180,6 +180,25 @@ test('pasted GitHub Markdown becomes headings, tasks, maths and drawn diagrams',
   expect(back).toContain('```mermaid\nflowchart LR\n    A --> B\n```');
 });
 
+test('an equation pasted from Word arrives as an editable equation', async ({ page }) => {
+  await openDemo(page, '<p>Start</p><p></p>');
+  await page.evaluate(() => {
+    const editor = (window as any).editor;
+    editor.editing.view.focus();
+    editor.model.change((writer: any) => writer.setSelection(editor.model.document.getRoot().getChild(1), 0));
+    // What Word puts on the clipboard: Office Math in a conditional comment, then a picture of it.
+    const html =
+      '<html><body><!--StartFragment--><p class=MsoNormal>Energy: <!--[if gte msEquation 12]><m:oMath><m:r><m:t>E=m</m:t></m:r>' +
+      '<m:sSup><m:e><m:r><m:t>c</m:t></m:r></m:e><m:sup><m:r><m:t>2</m:t></m:r></m:sup></m:sSup></m:oMath><![endif]-->' +
+      '<![if !msEquation]><img src="file:///C:/Temp/msohtmlclip1/01/clip_image001.png"><![endif]></p><!--EndFragment--></body></html>';
+    const transfer = new DataTransfer();
+    transfer.setData('text/html', html);
+    editor.ui.getEditableElement().dispatchEvent(new ClipboardEvent('paste', { clipboardData: transfer, bubbles: true, cancelable: true }));
+  });
+  await expect.poll(() => data(page)).toContain('\\(E=mc^{2}\\)');
+  expect(await data(page)).not.toContain('clip_image001');
+});
+
 test('ribbon: in a narrow window groups collapse to buttons instead of wrapping', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Ribbon checks run at desktop sizes.');
   await page.setViewportSize({ width: 840, height: 700 });

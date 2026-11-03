@@ -81,7 +81,7 @@ describe('templates and export', () => {
     expect(html).toContain('<div class="document"><h2>Report</h2>');
     editor.execute('mergeFieldsPreview');
     expect(buildExportDocument(editor)).toContain('Body 28 Oct 2026');
-    const word = editor.execute('exportWord') as unknown as string;
+    const word = await (editor.execute('exportWord') as unknown as Promise<string>);
     expect(word).toContain('urn:schemas-microsoft-com:office:word');
     await editor.destroy();
   });

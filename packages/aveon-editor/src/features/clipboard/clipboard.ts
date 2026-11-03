@@ -11,6 +11,7 @@ import type { Item as ViewItem } from '../../engine/view/item';
 import { keyCodes, parseKeystroke } from '../../utils/keyboard';
 import { env } from '../../utils/env';
 import { LiveRange } from '../../engine/model/liverange';
+import { extractWordEquations } from '../math/omml';
 
 export interface ClipboardInputEventData {
   dataTransfer: DataTransfer;
@@ -272,8 +273,10 @@ export class Clipboard extends Plugin {
 }
 
 export function normalizeClipboardHtml(html: string): string {
-  return html
+  // Word's equations live in conditional comments: keep them (as MathML) before comments go.
+  return extractWordEquations(html)
     .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<!\[if [^\]]*\]>|<!\[endif\]>/gi, '')
     .replace(/<meta[^>]*>/gi, '')
     .replace(/<\?xml[^>]*>/gi, '')
     .replace(/<(\/?)o:p>/gi, '')

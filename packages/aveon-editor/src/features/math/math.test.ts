@@ -79,7 +79,10 @@ describe('math', () => {
   it('outputs images, speaks other languages and offers the chemType button', async () => {
     const editor = await createEditor('<p><span class="math-tex">\\(\\frac{1}{2}\\)</span></p>', { math: { outputType: 'image', speechLanguage: 'es' } });
     const data = editor.getData();
-    expect(data.startsWith('<p><img class="math-tex" src="data:image/svg+xml;charset=utf-8,')).toBe(true);
+    expect(data).toMatch(/^<p><img class="math-tex"[^>]* src="data:image\/svg\+xml;charset=utf-8,/);
+    // Drawn as paths, sized and aligned to the text line.
+    expect(data).toMatch(/style="vertical-align:-?[\d.]+px;?"/);
+    expect(decodeURIComponent(data)).toContain('<path');
     expect(data).toContain('data-equation="\\frac{1}{2}"');
     expect(data).toContain('alt="1 medio"');
     expect(data).toContain('role="math"');

@@ -10,8 +10,8 @@ Source analysis: wiris.com (MathType, ChemType, Office Tools, HTML editors), doc
 
 | Status | Count | Meaning |
 | --- | --- | --- |
-| Done | 85 | Works in Aveon today |
-| Partial | 15 | Exists in a reduced form |
+| Done | 86 | Works in Aveon today |
+| Partial | 14 | Exists in a reduced form |
 | Missing | 0 | Needs to be built |
 
 Priority is marked P1 (core visual editor), P2 (parity for everyday use), P3 (publishing, chemistry, handwriting, platform).
@@ -119,13 +119,13 @@ Priority is marked P1 (core visual editor), P2 (parity for everyday use), P3 (pu
 | --- | --- | --- | --- | --- | --- |
 | 73 | MathML in content | Saved content contains `<math>` (full MathML mode available) | Done (`math.outputType: 'mathml'`, `<math>` upcast with and without TeX annotation) | `math.outputType: 'mathml'` writing `<math>` with LaTeX annotation; upcast `<math>` | P1 |
 | 74 | LaTeX conversion | Copy or convert formulas to LaTeX | Done | – | – |
-| 75 | Image rendering | Formulas shown as PNG (or SVG) images with embedded MathML and fonts | Done (`math.outputType: 'image'` writes `<img>` with an SVG data URI, `data-equation`, `alt`; `math.imageRenderer` for a server/MathJax SVG; read back on load) | Optional `math.outputType: 'image'` producing SVG via a server or client renderer; keep MathML in a data attribute | P3 |
+| 75 | Image rendering | Formulas shown as PNG (or SVG) images with embedded MathML and fonts | Done (`math.outputType: 'image'` writes `<img>` with a self-contained SVG data URI (paths drawn by a lazily loaded MathJax, no fonts), size, baseline, `data-equation`, `alt`; `math.imageRenderer` for a server renderer; read back on load) | Optional `math.outputType: 'image'` producing SVG via a server or client renderer; keep MathML in a data attribute | P3 |
 | 76 | Pluggable render engine | Wiris cloud or on-premise rendering service | Done (KaTeX default, custom function, e.g. MathJax) | – | – |
-| 77 | Browser MathML fallback | Full MathML mode converts unsupported markup for display | Partial (KaTeX HTML + hidden MathML) | Keep; document | – |
+| 77 | Browser MathML fallback | Full MathML mode converts unsupported markup for display | Done (read-only pages: `aveon-math-viewer.js` / `renderEquations()` turns saved equations into native MathML, or SVG images or KaTeX) | – | – |
 | 78 | Inline and display equations | Equation display mode in the Publishers tab | Done | – | – |
 | 79 | Live preview while editing | Editing area shows the formula as it is built | Done | Keep the preview as the WYSIWYG canvas (#3) | – |
-| 80 | Export as image | Copy equation as EPS/SVG/PNG into other software | Partial (`renderEquationToSvg()` API; no PNG/EPS export) | "Copy as SVG/PNG" actions in the widget toolbar | P3 |
-| 81 | Round-trip of input formats | MathML in, MathML out, LaTeX accepted | Done (span, script, `$…$`, `$$…$$`) | Add MathML with #73 | – |
+| 80 | Export as image | Copy equation as EPS/SVG/PNG into other software | Partial (PDF, Word and HTML exports draw equations as SVG or PNG images; `renderEquationSvg()`, `svgToPng()`, `replaceEquationsWithImages()`; no "Copy as image" button, no EPS) | "Copy as SVG/PNG" actions in the widget toolbar | P3 |
+| 81 | Round-trip of input formats | MathML in, MathML out, LaTeX accepted | Done (span, script, `$…$`, `$$…$$`, MathML, MathType `data-mathml` images, Word equations pasted as Office Math) | Add MathML with #73 | – |
 | 82 | Rendering performance | Service-side caching of rendered formulas | Done (KaTeX output cached per equation) | Cache rendered DOM per equation string; lazy render off-screen formulas | P2 |
 
 ## G. Accessibility and localisation

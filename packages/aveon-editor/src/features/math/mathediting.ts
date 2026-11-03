@@ -7,8 +7,10 @@ import type { Element as ModelElement } from '../../engine/model/element';
 import type { Element as ViewElement } from '../../engine/view/element';
 import type { EventInfo } from '../../utils/eventinfo';
 import { parseLatex, toLatex } from './model/latex';
-import { toMathML, parseMathML, getTexAnnotation, type MathMLElementLike } from './model/mathml';
+import { toMathML, parseMathML, getTexAnnotation, domToMathMLLike, type MathMLElementLike } from './model/mathml';
 import { toSpeech } from './model/speech';
+import { parseDelimitedEquation, stripTag } from './model/delimiters';
+import { loadMathImageRenderer, isMathImageRendererReady, renderEquationSvgSync, svgToDataUri, getSvgMetrics } from './mathimage';
 import type { MathToolbarConfig } from './ui/catalogue';
 import type { ColorDefinition } from '../../ui/colorgrid/colorgridview';
 import type { HandwritingRecognizer } from './ui/handwriting/recognizer';
@@ -187,10 +189,15 @@ export function getSpeechLanguage(editor: Editor): string {
   return (editor.config.get('math.speechLanguage') as string) || editor.locale.contentLanguage || editor.locale.uiLanguage || 'en';
 }
 
-/** An SVG image of the equation (KaTeX HTML inside a `foreignObject`; needs the KaTeX fonts in the page). */
+/**
+ * An SVG image of the equation. Once the image renderer has loaded (`loadMathImageRenderer()`; the
+ * editor loads it for `outputType: 'image'`) it is drawn as paths and needs no fonts. Before that it
+ * falls back to KaTeX HTML inside a `foreignObject`, which needs the KaTeX fonts in the page.
+ */
 export function renderEquationToSvg(editor: Editor, equation: string, display: boolean): string {
   const custom = editor.config.get('math.imageRenderer') as ((equation: string, display: boolean) => string) | undefined;
   if (custom) return custom(equation, display);
+  if (isMathImageRendererReady()) return renderEquationSvgSync(equation, display);
   const html = katexLib ? katexLib.renderToString(equation, { displayMode: display, throwOnError: false, output: 'html' }) : escapeXml(equation);
   const fontSize = 18;
   const estimate = Math.max(1, equation.replace(/\\[a-zA-Z]+/g, 'x').replace(/[{}^_\\]/g, '').length);
@@ -201,10 +208,6 @@ export function renderEquationToSvg(editor: Editor, equation: string, display: b
 
 function escapeXml(text: string): string {
   return text.replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]!);
-}
-
-function svgToDataUri(svg: string): string {
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg).replace(/%20/g, ' ')}`;
 }
 
 /** Presentation MathML for a LaTeX equation, with the TeX source as annotation. */
@@ -245,29 +248,7 @@ function toAlpha(n: number): string {
   return out;
 }
 
-/** Strips `\( \)`, `\[ \]`, `$ $` and `$$ $$` delimiters and reports whether the equation is in display mode. */
-export function parseDelimitedEquation(text: string): MathValue {
-  const trimmed = text.trim();
-  const patterns: Array<{ start: string; end: string; display: boolean }> = [
-    { start: '\\[', end: '\\]', display: true },
-    { start: '$$', end: '$$', display: true },
-    { start: '\\(', end: '\\)', display: false },
-    { start: '$', end: '$', display: false }
-  ];
-  for (const { start, end, display } of patterns) {
-    if (trimmed.length >= start.length + end.length && trimmed.startsWith(start) && trimmed.endsWith(end)) {
-      return { equation: trimmed.slice(start.length, trimmed.length - end.length).trim(), display };
-    }
-  }
-  return { equation: trimmed, display: false };
-}
-
-/** Removes a trailing `\tag{…}` and reports whether one was present. */
-export function stripTag(equation: string): { equation: string; numbered: boolean } {
-  const match = /\\tag\*?\{[^}]*\}\s*$/.exec(equation);
-  if (!match) return { equation, numbered: false };
-  return { equation: equation.slice(0, match.index).trim(), numbered: true };
-}
+export { parseDelimitedEquation, stripTag };
 
 /** Wraps the equation with the delimiters used in the data output. */
 export function delimitEquation(equation: string, display: boolean): string {
@@ -363,10 +344,20 @@ export class MathEditing extends Plugin {
     return [Widget];
   }
 
-  /** Waits for KaTeX so equations render immediately once the editor is ready. */
+  /**
+   * Waits for KaTeX so equations render immediately once the editor is ready, and for the image
+   * renderer when the data holds images, so `getData()` has the finished drawings.
+   */
   public override afterInit(): Promise<unknown> | void {
-    if (typeof this.editor.config.get('math.engine') === 'function') return;
-    return loadKatex().catch(error => console.warn('math-katex-unavailable: KaTeX could not be loaded.', error));
+    const editor = this.editor;
+    const waits: Array<Promise<unknown>> = [];
+    if (typeof editor.config.get('math.engine') !== 'function') {
+      waits.push(loadKatex().catch(error => console.warn('math-katex-unavailable: KaTeX could not be loaded.', error)));
+    }
+    if (editor.config.get('math.outputType') === 'image' && !editor.config.get('math.imageRenderer')) {
+      waits.push(loadMathImageRenderer().catch(error => console.warn('math-image-unavailable: the equation image renderer could not be loaded.', error)));
+    }
+    return Promise.all(waits);
   }
 
   public override init(): void {
@@ -429,7 +420,14 @@ export class MathEditing extends Plugin {
           const outputType = ((editor.config.get('math.outputType') as MathOutputType) || 'span') as MathOutputType;
           const speech = altTextEnabled() ? speechOf(equation) : undefined;
           if (outputType === 'image') {
-            const attributes: Record<string, string> = { src: svgToDataUri(renderEquationToSvg(editor, tagged, display)), class: display ? 'math-tex math-tex-display' : 'math-tex', 'data-equation': equation, alt: speech || equation, role: 'math' };
+            const svg = renderEquationToSvg(editor, tagged, display);
+            const attributes: Record<string, string> = { src: svgToDataUri(svg), class: display ? 'math-tex math-tex-display' : 'math-tex', 'data-equation': equation, alt: speech || equation, role: 'math' };
+            const metrics = getSvgMetrics(svg);
+            if (metrics.width && metrics.height) {
+              attributes.width = String(Math.round(metrics.width));
+              attributes.height = String(Math.round(metrics.height));
+              if (!display && metrics.verticalAlign) attributes.style = `vertical-align:${metrics.verticalAlign}px`;
+            }
             if (numbered) attributes['data-numbered'] = 'true';
             return writer.createEmptyElement('img', attributes);
           }
@@ -532,12 +530,51 @@ function upcastMathCodeBlock() {
 function upcastImage() {
   return (evt: EventInfo, data: any, conversionApi: any): void => {
     const viewItem = data.viewItem as ViewElement;
+    if (!conversionApi.consumable.test(viewItem, { name: true })) return;
     const equation = viewItem.getAttribute('data-equation');
-    if (!equation || !conversionApi.consumable.test(viewItem, { name: true })) return;
-    const display = viewItem.hasClass('math-tex-display');
-    const numbered = display && viewItem.getAttribute('data-numbered') === 'true';
-    insertMathElement(evt, data, conversionApi, String(equation), display, numbered);
+    if (equation) {
+      const display = viewItem.hasClass('math-tex-display');
+      const numbered = display && viewItem.getAttribute('data-numbered') === 'true';
+      insertMathElement(evt, data, conversionApi, String(equation), display, numbered);
+      return;
+    }
+    // MathType (WIRIS) image formulas keep their MathML in `data-mathml`.
+    const mathml = viewItem.getAttribute('data-mathml');
+    if (!mathml) return;
+    const converted = mathTypeMathMLToLatex(String(mathml));
+    if (!converted) return;
+    const stripped = stripTag(converted.equation);
+    insertMathElement(evt, data, conversionApi, stripped.equation, converted.display, converted.display && stripped.numbered);
   };
+}
+
+/**
+ * Reads MathType's "modified XML encoding", used to keep MathML in an HTML attribute: « » ¨ § `
+ * stand for < > " & ' (see WIRIS's MathML attribute reference). Plain MathML is returned as is.
+ */
+export function decodeMathTypeMathML(value: string): string {
+  if (!/[«»]/.test(value)) return value;
+  return value.replace(/[«»¨§`]/g, ch => ({ '«': '<', '»': '>', '¨': '"', '§': '&', '`': "'" })[ch]!);
+}
+
+/** LaTeX of a MathType formula's MathML (its LaTeX annotation when it has one). */
+export function mathTypeMathMLToLatex(value: string): { equation: string; display: boolean } | null {
+  if (typeof DOMParser === 'undefined') return null;
+  const doc = new DOMParser().parseFromString(`<!doctype html><body>${decodeMathTypeMathML(value)}`, 'text/html');
+  const math = doc.body.querySelector('math');
+  if (!math) return null;
+  const like = domToMathMLLike(math);
+  const annotation = getTexAnnotation(like);
+  let equation = annotation && annotation.trim() ? annotation.trim() : '';
+  if (!equation) {
+    try {
+      equation = toLatex(parseMathML(like));
+    } catch {
+      equation = (math.textContent || '').trim();
+    }
+  }
+  if (!equation) return null;
+  return { equation, display: math.getAttribute('display') === 'block' };
 }
 
 function upcastMathML() {
