@@ -65,6 +65,18 @@ sudo tar czf backup.tgz /var/lib/aveon-collab   # back up documents
 
 Without `VITE_COLLAB_URL` the collaboration page connects to `ws://<page host>:1234`, which is what local development uses.
 
+### Or on Vercel
+
+The demo site can go on Vercel instead. `vercel.json` already holds the build settings.
+
+1. Sign in at <https://vercel.com> → *Add New → Project*, and import the repository. Leave the root directory as the repository root.
+2. Under *Environment Variables*, add `VITE_COLLAB_URL` = `wss://aveon-collab.duckdns.org`.
+3. Deploy. The site is at `https://<project>.vercel.app`, and every push redeploys it. Pushes to other branches get preview addresses.
+
+Or, from the command line: `npx vercel` (preview) and `npx vercel --prod`.
+
+The collaboration server cannot run on Vercel: Vercel functions do not keep WebSocket connections open, and the server needs them. Keep it on the Oracle VM. Vercel's free Hobby plan is for non-commercial use only; a business site needs the Pro plan. Cloudflare Pages has no such limit.
+
 ## Using the server from your own app
 
 ```js
