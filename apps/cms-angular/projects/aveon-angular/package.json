@@ -11,5 +11,5 @@
     "tslib": "^2.3.0"
   },
   "sideEffects": false,
-  "description": "Angular integration for Aveon Editor (<aveon-editor> component mirroring the CKEditor 5 Angular wrapper API)"
+  "description": "Angular integration for Aveon Editor (<aveon-editor> component)"
 }

@@ -1,8 +1,8 @@
 # Aveon Editor
 
-Aveon Editor is a rich text editor built on its own engine that mirrors the CKEditor 5 architecture: a document **model**, an editing **view**, **conversion** between them, **operations** with undo/redo, a **plugin** system, a UI framework and a theme. It ships the full CKEditor 5 classic-build feature set plus the commonly requested extras, uses the same `ck-*` class names and `--ck-*` CSS variables (so CKEditor styling guides apply), and comes with an Angular wrapper whose `<aveon-editor>` component mirrors `<ckeditor>`.
+Aveon Editor is a rich text editor built on its own engine: a document **model**, an editing **view**, **conversion** between them, **operations** with undo/redo, a **plugin** system, a UI framework and a theme. It ships a full classic-build feature set plus the commonly requested extras, styles everything through `ck-*` class names and `--ck-*` CSS variables, and comes with an Angular wrapper, the `<aveon-editor>` component.
 
-The code is an original, clean implementation. No CKEditor source is included.
+The code is an original, clean implementation.
 
 **Live demo:** <https://aveoneditor.ceo-02c.workers.dev/> · **Downloads:** [latest release](https://github.com/aveonparvathig/aveoneditor/releases/latest) (offline zip, browser files and npm packages) · **Docs:** [integration kit](docs/INTEGRATION_KIT.md) · [deployment](docs/DEPLOYMENT.md) · [math](docs/MATH_FEATURE_SPEC.md)
 
@@ -82,9 +82,9 @@ editor.enableReadOnlyMode('my-lock');
 await editor.destroy();
 ```
 
-Editor types, like CKEditor 5: `ClassicEditor`, `InlineEditor`, `BalloonEditor`, `DecoupledEditor`.
+Editor types: `ClassicEditor`, `InlineEditor`, `BalloonEditor`, `DecoupledEditor`.
 
-Configuration keys mirror CKEditor 5: `plugins`, `extraPlugins`, `removePlugins`, `toolbar` (array or `{ items, shouldNotGroupWhenFull, removeItems }`), `placeholder`, `initialData`, `language`, `heading.options`, `image.toolbar`, `image.upload.types`, `table.contentToolbar`, `fontFamily.options`, `fontSize.options`, `fontColor.colors`, `codeBlock.languages`, `link.defaultProtocol`, `math.engine`, `math.outputType`, `math.katexOptions`, `math.altText`, `math.defaultMode`, `math.autoformat`, `math.toolbar`, `math.colors`, `math.numbering`, `math.handwriting`, `math.chemistry`, `math.speechLanguage`, `math.direction`, `math.decimalSeparator`, `math.imageRenderer`, `mediaEmbed.providers`, `wordCount.container`, `autosave.save`, and so on.
+Configuration keys: `plugins`, `extraPlugins`, `removePlugins`, `toolbar` (array or `{ items, shouldNotGroupWhenFull, removeItems }`), `placeholder`, `initialData`, `language`, `heading.options`, `image.toolbar`, `image.upload.types`, `table.contentToolbar`, `fontFamily.options`, `fontSize.options`, `fontColor.colors`, `codeBlock.languages`, `link.defaultProtocol`, `math.engine`, `math.outputType`, `math.katexOptions`, `math.altText`, `math.defaultMode`, `math.autoformat`, `math.toolbar`, `math.colors`, `math.numbering`, `math.handwriting`, `math.chemistry`, `math.speechLanguage`, `math.direction`, `math.decimalSeparator`, `math.imageRenderer`, `mediaEmbed.providers`, `wordCount.container`, `autosave.save`, and so on.
 
 ## Using the editor in Angular
 
@@ -127,7 +127,7 @@ Add the theme once, for example in `styles.css`:
 @import 'katex/dist/katex.min.css';
 ```
 
-Inputs and outputs match the CKEditor 5 Angular component: `editor`, `config`, `data`, `tagName`, `disabled`, `disableTwoWayDataBinding`, and `ready`, `change`, `focus`, `blur`, `error`. The component implements `ControlValueAccessor`, so `ngModel`, `formControl` and `formControlName` work, including the disabled state. `AveonEditorModule` is available for module-based applications. Migrating a template from CKEditor means replacing the `<ckeditor>` tag and the editor class.
+Inputs and outputs: `editor`, `config`, `data`, `tagName`, `disabled`, `disableTwoWayDataBinding`, and `ready`, `change`, `focus`, `blur`, `error`. The component implements `ControlValueAccessor`, so `ngModel`, `formControl` and `formControlName` work, including the disabled state. `AveonEditorModule` is available for module-based applications.
 
 ## Integrating into a CMS or ERP
 
@@ -478,7 +478,7 @@ Both images run as a non-root user and have health checks. `deploy/helm/aveon` i
 
 ## Features
 
-Everything in `classicPreset`, with the same command and toolbar item names as CKEditor 5:
+Everything in `classicPreset`, with these command and toolbar item names:
 
 - **Essentials**: typing with IME and autocorrect reconciliation, Enter and Shift+Enter, delete, undo and redo, select all, clipboard copy, cut and paste (HTML and plain text), keyboard navigation, autosave.
 - **Text**: paragraph, headings (`heading` dropdown), bold, italic, underline, strikethrough, inline code, subscript, superscript, remove format, font family, font size, font color, font background color, highlight.
@@ -491,7 +491,7 @@ Everything in `classicPreset`, with the same command and toolbar item names as C
 - **GitHub-style content**: Markdown import, export and paste; `$…$` and `$$…$$` math while typing; Mermaid diagrams, GeoJSON and TopoJSON maps, and STL 3D models (see "Diagrams" above).
 - **Math equations**: a visual formula editor with ten toolbar tabs (General, Symbols, Arrows, Greek, Matrices, Scripts and layouts, Decorations, Big operators, Chemistry, Contextual, plus an opt-in Publishers tab), slot navigation, selection, smart delete, autoformat, clipboard, undo, formatting (bold, italic, colour, background, size, display style), matrix frames, lines, alignment and spacing, elementary arithmetic layouts, fence editing, nudging and equation numbering. Four input modes: Visual, LaTeX, MathML and Handwriting (built-in basic recogniser, or your own service through `math.handwriting.recognizer`), all with a live KaTeX preview. A `chemType` button opens chemistry mode with upright element symbols, a periodic table, charges, states of matter and reaction arrows. Output is `<span class="math-tex">\(…\)</span>` by default (display mode `\[…\]`, numbered equations carry `\tag{n}`), `<script type="math/tex">`, presentation MathML with a TeX annotation, or an `<img>` with an SVG data URI (`math.outputType`); every form is read back. Every equation carries `role="math"` and a spoken description in English, Spanish, French or German (`addSpeechDictionary()` for more). Right-to-left notation, a decimal comma, custom toolbars and colours are configurable. Load `katex/dist/katex.min.css` in the page.
 
-The theme in `packages/aveon-editor/src/theme/index.css` uses `ck-*` class names and `--ck-*` variables: the CKEditor 5 theme customization docs apply directly.
+The theme in `packages/aveon-editor/src/theme/index.css` uses `ck-*` class names and `--ck-*` variables; override the variables to restyle the editor.
 
 Every control (toolbar and ribbon buttons, menu rows, dialog buttons and inputs) is one tile, sized by `--ck-tile-size` (36px; 44px on a phone-width ribbon) with a `--ck-icon-size` (20px) icon and `--ck-tile-radius` (8px) corners. Toggled tiles show a tinted background with a short accent bar; a corner caret marks a menu. The colours come from `--ck-color-accent`, `--ck-color-accent-tint`, `--ck-color-ground`, `--ck-color-surface-hover`, `--ck-color-surface-pressed`, `--ck-color-text-muted` and the `--ck-color-base-*` set; override them on `:root` or on a wrapper. A dark set ships for `data-theme="dark"` (put it on `<html>`, on a wrapper, or use `<aveon-editor theme="dark">`); dialogs, balloons and tooltips follow the editor's theme. The UI font is `Inter` when the page loads it, otherwise the system font.
 
@@ -517,7 +517,7 @@ Every control (toolbar and ribbon buttons, menu rows, dialog buttons and inputs)
 - Undo is linear with position-level transformation of operations. In real-time collaboration each person undoes their own recent edits; undo history is cleared when edits have to be replayed after a conflict, and conflicting edits (e.g. typing inside text someone else deleted) are dropped. Collaboration needs the `@aveon/collab-server` service running.
 - Tables do not support multi-cell selection, merging or splitting cells, or table and cell properties (borders, colors).
 - Image resizing is offered through the toolbar option, not drag handles. Without the `upload` option images are stored inside the HTML as Base64.
-- Pasting from Word or Google Docs keeps the semantic HTML but does not run the dedicated clean-up filters CKEditor ships for those sources.
+- Pasting from Word or Google Docs keeps the semantic HTML but does not run dedicated clean-up filters for those sources.
 - The UI is English only. Translations can be added through the locale's `t()` function.
 - The built-in handwriting recogniser is basic (digits, Latin letters, common operators, fractions, roots, scripts); connect a recognition service for production handwriting. The formula canvas needs physical key presses (no IME composition). See `docs/MATH_FEATURE_SPEC.md` for the remaining MathType items.
 - Diagrams: only ASCII STL is read (not binary STL); maps use the Web Mercator projection and show no background map unless `diagrams.map.tiles` is set; Word may not show the SVG drawings in a `.doc` export. Math is drawn with KaTeX, which covers fewer LaTeX commands than the MathJax that GitHub uses (`math.engine` can plug MathJax in).

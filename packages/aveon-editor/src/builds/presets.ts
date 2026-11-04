@@ -38,7 +38,7 @@ import { TrackChanges } from '../features/trackchanges/trackchanges';
 import { RealTimeCollaboration } from '../features/collaboration/collaboration';
 import type { RibbonConfig, RibbonTabConfig } from '../ui/ribbon/ribbonview';
 
-/** Plugins matching the CKEditor 5 classic build, plus the commonly requested extras. */
+/** Plugins of the classic build, plus the commonly requested extras. */
 export const classicPreset: PluginConstructor[] = [
   Essentials,
   Paragraph,
@@ -94,7 +94,7 @@ export const classicPreset: PluginConstructor[] = [
   RealTimeCollaboration
 ];
 
-/** Toolbar matching the CKEditor 5 classic build defaults, extended with the extra features. */
+/** Default classic-build toolbar, extended with the extra features. */
 export const classicToolbar: string[] = [
   'undo',
   'redo',

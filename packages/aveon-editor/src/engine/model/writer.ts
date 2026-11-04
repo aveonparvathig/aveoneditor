@@ -167,7 +167,7 @@ export class Writer {
     if (!range.isFlat) throw new Error('writer-move-range-not-flat');
     const position = Position._createAt(itemOrPosition as any, offset);
     if (position.root !== range.root && position.root !== range.root) {
-      // allowed across trees? CKEditor disallows; we require same tree.
+      // allowed across trees? No; we require the same tree.
     }
     if (!isSameTree(range.root, position.root)) throw new Error('writer-move-different-document');
     const version = (range.root as any).document ? (range.root as any).document.version : null;

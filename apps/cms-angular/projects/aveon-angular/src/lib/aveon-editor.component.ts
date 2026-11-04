@@ -40,8 +40,7 @@ export interface AveonEditorBlurEvent {
 const DISABLED_LOCK = Symbol('aveon-angular-disabled');
 
 /**
- * `<aveon-editor>` component. The inputs and outputs mirror the official CKEditor 5 Angular
- * component (`<ckeditor>`), so existing templates only need the tag and the editor class changed.
+ * `<aveon-editor>` component.
  */
 @Component({
   selector: 'aveon-editor',

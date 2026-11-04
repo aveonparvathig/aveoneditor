@@ -46,7 +46,7 @@ export abstract class EditorUI extends Observable {
     this.focusTracker.destroy();
     for (const domElement of this._editableElementsMap.values()) {
       (domElement as any).aveonEditable = null;
-      (domElement as any).ckeditorInstance = null;
+      (domElement as any).aveonEditorInstance = null;
     }
     this._editableElementsMap = new Map();
     this._focusableToolbarDefinitions = [];
@@ -54,8 +54,8 @@ export abstract class EditorUI extends Observable {
 
   public setEditableElement(rootName: string, domElement: HTMLElement): void {
     this._editableElementsMap.set(rootName, domElement);
-    if (!(domElement as any).ckeditorInstance) {
-      (domElement as any).ckeditorInstance = this.editor;
+    if (!(domElement as any).aveonEditorInstance) {
+      (domElement as any).aveonEditorInstance = this.editor;
     }
     this.focusTracker.add(domElement);
     const setUpKeystrokeHandling = () => {
@@ -73,7 +73,7 @@ export abstract class EditorUI extends Observable {
     const domElement = this._editableElementsMap.get(rootName);
     if (!domElement) return;
     this._editableElementsMap.delete(rootName);
-    (domElement as any).ckeditorInstance = null;
+    (domElement as any).aveonEditorInstance = null;
     this.focusTracker.remove(domElement);
   }
 

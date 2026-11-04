@@ -1,4 +1,4 @@
-/* Aveon Editor theme (same class names and --ck-* variables as CKEditor 5). */
+/* Aveon Editor theme (ck-* class names and --ck-* variables). */
 @import '@aveon/editor/theme.css';
 @import 'katex/dist/katex.min.css';
 

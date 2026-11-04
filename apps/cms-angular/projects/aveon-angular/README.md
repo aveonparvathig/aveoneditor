@@ -1,6 +1,6 @@
 # aveon-angular
 
-Angular integration for [Aveon Editor](../../../../README.md). The `<aveon-editor>` component mirrors the inputs and outputs of the CKEditor 5 Angular component, so a template migrates by changing the tag and the editor class.
+Angular integration for [Aveon Editor](../../../../README.md). The `<aveon-editor>` component takes the editor class and configuration as inputs and emits the editor events as outputs.
 
 ## Usage
 

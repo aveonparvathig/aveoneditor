@@ -2,7 +2,7 @@
   "name": "aveon-editor-monorepo",
   "private": true,
   "version": "0.1.1",
-  "description": "Aveon Editor - a modern rich text editor engine with a CKEditor 5 compatible architecture and API surface",
+  "description": "Aveon Editor - a modern rich text editor engine",
   "workspaces": [
     "packages/*",
     "apps/demo"

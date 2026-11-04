@@ -10,7 +10,7 @@ import { AveonEditorComponent, type AveonEditorChangeEvent } from 'aveon-angular
   templateUrl: './app.html',
 })
 export class App {
-  /** The editor class, bound to `[editor]` like the CKEditor Angular component. */
+  /** The editor class, bound to `[editor]`. */
   protected readonly Editor = ClassicEditor;
 
   protected readonly config: EditorConfig = {

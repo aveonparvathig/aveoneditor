@@ -186,7 +186,7 @@ export class QuoteComponent {
 | `focus`, `blur` | `{ event, editor }` |
 | `error` | The error when the editor could not start |
 
-`ngModel`, `formControl` and `formControlName` all work. For NgModule apps, import `AveonEditorModule`. Migrating from CKEditor 5: replace `<ckeditor>` with `<aveon-editor>` and the editor class; the inputs and outputs are the same.
+`ngModel`, `formControl` and `formControlName` all work. For NgModule apps, import `AveonEditorModule`.
 
 ### 3.4 Angular 14–21
 
@@ -380,7 +380,7 @@ Without API Connect, run `@aveon/collab-server` on its own (`npx aveon-collab --
 | `user` | `{ id, name }` for comments, track changes and co-editing |
 | `collaboration` | `{ url, documentId, token }` |
 | `extraPlugins`, `removePlugins` | Plugin classes or names |
-| `toolbar`, `ribbon`, `fontFamily`, `fontSize`, `heading`, `table`, `image`, `math`, … | Any editor configuration (CKEditor 5 key names) |
+| `toolbar`, `ribbon`, `fontFamily`, `fontSize`, `heading`, `table`, `image`, `math`, … | Any editor configuration |
 
 `target` is an element or CSS selector; a `<textarea>` is replaced and kept in sync. `resolveEditorOptions(options)` returns the same configuration without creating an editor (for `ClassicEditor.create()` or Angular).
 

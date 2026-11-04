@@ -1,4 +1,4 @@
-/* Aveon Editor theme. CSS custom properties use the --ck-* namespace so existing CKEditor 5 theming guides apply. */
+/* Aveon Editor theme. CSS custom properties use the --ck-* namespace. */
 
 :root {
   /* The tile system: every control is one --ck-tile-size square with a --ck-icon-size icon. */

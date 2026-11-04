@@ -1,6 +1,6 @@
 # Math re-engineering spec: 100 MathType features for Aveon Editor
 
-Source analysis: wiris.com (MathType, ChemType, Office Tools, HTML editors), docs.wiris.com (MathType Web toolbar and icons, contextual tab, keyboard shortcuts, accessibility, chemistry, custom toolbar, toolbar XML reference, handwriting parameters) and the CKEditor 5 "Math equations and chemical formulas" page. MathType is a commercial product by Wiris; the list below is a clean-room functional specification, not a copy of their code.
+Source analysis: wiris.com (MathType, ChemType, Office Tools, HTML editors), docs.wiris.com (MathType Web toolbar and icons, contextual tab, keyboard shortcuts, accessibility, chemistry, custom toolbar, toolbar XML reference, handwriting parameters). MathType is a commercial product by Wiris; the list below is a clean-room functional specification, not a copy of their code.
 
 **What MathType is**: a WYSIWYG formula editor that opens in a dialog from the host editor, builds formulas from toolbar templates and symbols (10 tabs, 500+ symbols), stores them as MathML, renders them as images (PNG/SVG) with generated alt text, and offers handwriting input, a chemistry mode (ChemType), LaTeX/MathML code windows and deep accessibility support.
 
@@ -29,7 +29,7 @@ Priority is marked P1 (core visual editor), P2 (parity for everyday use), P3 (pu
 | 7 | Undo/redo in the formula editor | Ctrl+Z / Ctrl+Y inside the dialog | Done (snapshot stack, Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) | Command stack for the formula tree | P1 |
 | 8 | Cut/copy/paste of fragments | Formula fragments are copied as MathML and pasted into slots; external MathML/LaTeX paste accepted | Done (Ctrl+C/X/V inside the canvas: structure on an internal clipboard, LaTeX as plain text; pasted LaTeX is parsed) | Clipboard serialisation of selected subtree as MathML and LaTeX; paste parser | P2 |
 | 9 | Insert and update semantics | OK inserts a new formula; opening an existing one and pressing OK updates it | Done | – | – |
-| 10 | Open existing formula for editing | Double-click (CKEditor) or click the formula | Done (click, Ctrl+Alt+M) | Add double-click as well for parity | – |
+| 10 | Open existing formula for editing | Double-click or click the formula | Done (click, Ctrl+Alt+M) | Add double-click as well for parity | – |
 | 11 | Classic / handwriting mode switch | Button in the dialog switches between toolbar editing and handwriting | Done (Handwriting mode tab; "Edit in the visual editor" switches back with the recognised formula) | Mode tabs in the dialog; depends on #22 | P3 |
 | 12 | Default mode per device | Mobile opens handwriting, desktop opens classic, user can switch | Done (`math.defaultMode: 'auto'` opens handwriting on touch devices, visual elsewhere) | Device detection + `math.defaultMode` option | P3 |
 
@@ -159,7 +159,7 @@ Priority is marked P1 (core visual editor), P2 (parity for everyday use), P3 (pu
 | 97 | Toolbar customisation | XML definition: presets (general, quizzes, chemistry, evaluate, PARCC grade bands, prototype), add/remove tabs, sections and items, custom buttons with MathML content and cursor offset, `removeLinks` | Done (`math.toolbar`: tab order, removed tabs and items, custom LaTeX buttons with slot focus; `math.colors`) | JSON toolbar definition (`math.toolbar`) with presets, tab/section/item refs and `createButton` with template + offset | P2 |
 | 98 | Editor parameters | `editorParameters`: language, toolbar, autoformat on/off, read-only; `mathTypeParameters` for services | Done (`engine`, `outputType`, `katexOptions`, `altText`, `defaultMode`, `autoformat`, `toolbar`, `colors`, `numbering`) | Extend `MathConfig` with `language`, `toolbar`, `autoformat`, `defaultMode`, `handwriting`, `chemistry` | P2 |
 | 99 | Services deployment | Cloud or on-premise Java/PHP/.NET/Ruby services for rendering, alt text and handwriting | Partial (client-side only: KaTeX rendering, built-in speech and handwriting; service hooks via `math.engine`, `math.imageRenderer` and `math.handwriting.recognizer`) | Optional service adapters for image rendering (#75) and handwriting (#22) | P3 |
-| 100 | Host integrations | CKEditor, TinyMCE, Froala, generic HTML, Word, PowerPoint, Google Docs/Slides, WPS, Moodle, Canvas, Blackboard, Brightspace, Schoology | Partial (Aveon classic/inline/balloon/decoupled editors and the Angular wrapper) | Out of scope for office suites; the generic plugin shape allows other hosts later | – |
+| 100 | Host integrations | TinyMCE, Froala, generic HTML, Word, PowerPoint, Google Docs/Slides, WPS, Moodle, Canvas, Blackboard, Brightspace, Schoology | Partial (Aveon classic/inline/balloon/decoupled editors and the Angular wrapper) | Out of scope for office suites; the generic plugin shape allows other hosts later | – |
 
 ## Proposed architecture for the re-engineering
 
@@ -186,4 +186,3 @@ Suggested order: Phase 1 = A + B (keyboard parts) + C (General, Symbols, Greek, 
 - https://docs.wiris.com/en_US/custom-toolbar
 - https://docs.wiris.com/html-editors-reference/toolbar-xml-reference
 - https://docs.wiris.com/html-editors-reference/mathtype-hand-parameters
-- https://ckeditor.com/docs/ckeditor5/latest/features/math-equations.html
