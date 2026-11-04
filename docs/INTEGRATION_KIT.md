@@ -26,6 +26,7 @@ npm install https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1
 
 | Document | Link |
 |---|---|
+| Live demo | <https://aveoneditor.ceo-02c.workers.dev/> ([integration examples](https://aveoneditor.ceo-02c.workers.dev/integration.html)) |
 | Integration kit (this guide) | <https://github.com/aveonparvathig/aveoneditor/blob/master/docs/INTEGRATION_KIT.md> |
 | Full reference (README) | <https://github.com/aveonparvathig/aveoneditor#readme> |
 | Hosting and deployment | <https://github.com/aveonparvathig/aveoneditor/blob/master/docs/DEPLOYMENT.md> |
@@ -395,7 +396,7 @@ It renders every saved equation once the page loads; add `?output=svg` to the sc
 | Merge data | `http://localhost:8080/v1/merge-data/<record>` | `https://api.example.com/v1/merge-data/<record>` |
 | Co-editing | `ws://localhost:8080/v1/collab` | `wss://api.example.com/v1/collab` |
 | Health | `http://localhost:8080/health` | `https://api.example.com/health` |
-| Demo | `http://localhost:5180` (`npm run dev`) | Cloudflare Pages or Vercel, see [DEPLOYMENT.md](DEPLOYMENT.md) |
+| Demo | `http://localhost:5180` (`npm run dev`) | <https://aveoneditor.ceo-02c.workers.dev/> |
 | Angular demo | `http://localhost:4201` (`npm run dev:angular`) | |
 
 Replace `editor.example.com` and `api.example.com` with your hosts. The editor files can also be served by API Connect itself (`https://api.example.com/editor/v0.1.0/…`).

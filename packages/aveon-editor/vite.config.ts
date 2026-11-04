@@ -20,6 +20,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    include: ['src/**/*.test.ts']
+    include: ['src/**/*.test.ts'],
+    // The first equation image in a test file loads MathJax (about 1.4 MB), which takes more than
+    // the default 5 s on slower CI machines.
+    testTimeout: 30000
   }
 });

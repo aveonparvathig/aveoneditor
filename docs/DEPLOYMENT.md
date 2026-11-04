@@ -63,6 +63,8 @@ sudo tar czf backup.tgz /var/lib/aveon-collab   # back up documents
    Node 22 is picked up from `.nvmrc`.
 3. Save and deploy. The site is at `https://<project>.pages.dev`, with `/integration.html` and `/collaboration.html`. Every push to `master` redeploys it.
 
+The live demo runs this way at <https://aveoneditor.ceo-02c.workers.dev/>.
+
 If Cloudflare created a **Worker** instead (the newer *Create app* flow, whose deploy command is `npx wrangler deploy`), set the build command to `npm run build:demo`. `wrangler.jsonc` tells it to serve `apps/demo/dist`. Its `name` must match the Worker's name in the dashboard.
 
 Without `VITE_COLLAB_URL` the collaboration page connects to `ws://<page host>:1234`, which is what local development uses.
