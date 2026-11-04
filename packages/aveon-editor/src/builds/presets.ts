@@ -31,6 +31,7 @@ import { ExportDocument } from '../features/export/export';
 import { References } from '../features/references/references';
 import { Sketch } from '../features/sketch/sketch';
 import { Diagrams } from '../features/diagrams/diagrams';
+import { Figure } from '../features/figure/figure';
 import { Markdown } from '../features/markdown/markdown';
 import { Comments } from '../features/comments/comments';
 import { TrackChanges } from '../features/trackchanges/trackchanges';
@@ -84,6 +85,7 @@ export const classicPreset: PluginConstructor[] = [
   Templates,
   ExportDocument,
   References,
+  Figure,
   Sketch,
   Diagrams,
   Markdown,
@@ -153,7 +155,10 @@ export const tableContextTab: RibbonTabConfig = {
   ]
 };
 
-/** Contextual tab shown while a picture is selected (like Word's Picture Format tab). */
+/**
+ * Contextual tab shown while a picture, sketch or diagram is selected (like Word's Picture Format
+ * tab). The figure commands work on all of them; alt text is for images only.
+ */
 export const pictureContextTab: RibbonTabConfig = {
   label: 'Picture',
   contextual: 'image',
@@ -162,18 +167,28 @@ export const pictureContextTab: RibbonTabConfig = {
       label: 'Accessibility',
       items: [
         { name: 'imageTextAlternative', size: 'large', label: 'Alt Text' },
-        { name: 'toggleImageCaption', size: 'medium', label: 'Caption' }
+        { name: 'toggleFigureCaption', size: 'medium', label: 'Caption' }
       ]
     },
     {
-      label: 'Wrap Text',
+      label: 'Position',
+      priority: 2,
       items: [
-        { name: 'imageStyle:inline', size: 'medium', label: 'In line' },
-        { name: 'imageStyle:block', size: 'medium', label: 'Centered' },
-        { name: 'imageStyle:side', size: 'medium', label: 'Side' }
+        { name: 'figureAlign:left', size: 'medium', label: 'Left' },
+        { name: 'figureAlign:center', size: 'medium', label: 'Center' },
+        { name: 'figureAlign:right', size: 'medium', label: 'Right' },
+        { name: 'figureAlign:side', size: 'medium', label: 'Side' },
+        { name: 'imageStyle:inline', size: 'medium', label: 'In line' }
       ]
     },
-    { label: 'Size', items: [{ name: 'resizeImage', size: 'large', label: 'Size' }] }
+    {
+      label: 'Size',
+      priority: 1,
+      items: [
+        { name: 'resizeFigure', size: 'large', label: 'Size' },
+        { name: 'cropFigure', size: 'large', label: 'Crop' }
+      ]
+    }
   ]
 };
 
@@ -401,7 +416,7 @@ export const classicDefaultConfig: EditorConfig = {
   toolbar: classicToolbar,
   ribbon: classicRibbon,
   image: {
-    toolbar: ['imageTextAlternative', 'toggleImageCaption', '|', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'resizeImage']
+    toolbar: ['imageTextAlternative', 'toggleFigureCaption', '|', 'figureAlign:left', 'figureAlign:center', 'figureAlign:right', 'imageStyle:inline', '|', 'resizeFigure', 'cropFigure']
   },
   table: {
     contentToolbar: ['tableColumn', 'tableRow']

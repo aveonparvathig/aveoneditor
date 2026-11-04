@@ -25,8 +25,8 @@ import { ButtonView } from '../../ui/button/buttonview';
 import { icons } from '../../ui/icons';
 import { applyTheme } from '../../ui/theme';
 import { Widget } from '../widget/widget';
-import { toWidget } from '../widget/utils';
-import { upcastAtomic, collectViewText, escapeHtml } from '../shared/upcast';
+import { Figure, FigureEditing, toFigureWidget } from '../figure/figure';
+import { upcastAtomic, upcastFigure, collectViewText, escapeHtml } from '../shared/upcast';
 import { editOnDoubleClick } from '../references/references';
 import { renderMermaid, type MermaidConfig } from './mermaid';
 import { parseMapSource, mountMap, renderMapSvg, fitView, type MapOptions } from './maps';
@@ -334,7 +334,7 @@ export class Diagrams extends Plugin {
   }
 
   public static override get requires() {
-    return [Widget];
+    return [Widget, Figure];
   }
 
   public override init(): void {
@@ -343,22 +343,28 @@ export class Diagrams extends Plugin {
     const config = (editor.config.get('diagrams') as DiagramsConfig | undefined) || {};
     const types = (config.types || DIAGRAM_TYPES).filter(type => DIAGRAM_TYPES.includes(type));
     const max = config.maxSourceLength ?? 1_000_000;
+    const figures = editor.plugins.get('FigureEditing') as FigureEditing;
     editor.model.schema.register(MODEL, { inheritAllFrom: '$blockObject', allowAttributes: ['diagramType', 'diagramSource'] });
+    // Width, alignment, caption and resize handles come from the figure tools (no crop: it is drawn).
+    figures.register(MODEL, { viewClass: 'diagram' });
 
-    const create = (type: DiagramType | null, view: ViewElement, writer: any) => {
+    const create = (type: DiagramType | null, view: ViewElement, writer: any, attributes: Record<string, unknown> = {}) => {
       if (!type) return null;
-      const source = collectViewText(view).replace(/\r\n?/g, '\n').replace(/\n$/, '');
-      return source.length <= max ? writer.createElement(MODEL, { diagramType: type, diagramSource: source }) : null;
+      // The source is the code block's text; a caption is converted on its own.
+      const pre = [...view.getChildren()].find((child: any) => child.is('element', 'pre')) as ViewElement | undefined;
+      const source = collectViewText(pre || view).replace(/\r\n?/g, '\n').replace(/\n$/, '');
+      return source.length <= max ? writer.createElement(MODEL, { diagramType: type, diagramSource: source, ...attributes }) : null;
     };
     editor.conversion.for('upcast').add(dispatcher => {
       dispatcher.on(
         'element:figure',
-        upcastAtomic(
+        upcastFigure(
           view => view.hasClass('diagram'),
           (view, writer) => {
             const type = String(view.getAttribute('data-diagram') || '') as DiagramType;
-            return create(types.includes(type) ? type : null, view, writer);
-          }
+            return create(types.includes(type) ? type : null, view, writer, figures.readAttributes(view));
+          },
+          child => child.is('element', 'figcaption')
         ),
         { priority: 'high' }
       );
@@ -374,8 +380,9 @@ export class Diagrams extends Plugin {
       );
     });
 
-    editor.conversion.for('dataDowncast').elementToElement({
-      model: MODEL,
+    // The figure holds the source (or the drawing) and, after it, the caption slot.
+    editor.conversion.for('dataDowncast').elementToStructure({
+      model: { name: MODEL, attributes: ['diagramType', 'diagramSource'] },
       view: (element: ModelElement, { writer }: any) => {
         const { type, source } = readValue(element);
         const figure = writer.createContainerElement('figure', { class: 'diagram', 'data-diagram': type });
@@ -384,28 +391,22 @@ export class Diagrams extends Plugin {
         writer.insert(writer.createPositionAt(code, 0), writer.createText(source));
         writer.insert(writer.createPositionAt(pre, 0), code);
         writer.insert(writer.createPositionAt(figure, 0), pre);
+        writer.insert(writer.createPositionAt(figure, 'end'), writer.createSlot());
         return figure;
       }
     });
-    editor.conversion.for('editingDowncast').elementToElement({
-      model: MODEL,
+    editor.conversion.for('editingDowncast').elementToStructure({
+      model: { name: MODEL, attributes: ['diagramType', 'diagramSource'] },
       view: (element: ModelElement, { writer }: any) => {
         const value = readValue(element);
         const figure = writer.createContainerElement('figure', { class: `ck-diagram ck-diagram_${value.type}`, title: t('Double-click to edit') });
         const drawing = writer.createRawElement('div', { class: 'ck-diagram__view' }, (dom: HTMLElement) => this._draw(dom, value));
         writer.insert(writer.createPositionAt(figure, 0), drawing);
-        return toWidget(figure, writer, { label: t(TYPE_LABELS[value.type]) });
+        writer.insert(writer.createPositionAt(figure, 'end'), writer.createSlot());
+        return toFigureWidget(figure, writer, { label: t(TYPE_LABELS[value.type]) });
       }
     });
-    // A changed diagram is drawn again.
-    editor.model.document.on('change:data', () => {
-      for (const change of editor.model.document.differ.getChanges()) {
-        if (change.type === 'attribute' && (change.attributeKey === 'diagramSource' || change.attributeKey === 'diagramType')) {
-          const element = change.range.start.nodeAfter;
-          if (element) editor.editing.reconvertItem(element as ModelElement);
-        }
-      }
-    });
+    // A changed diagram is drawn again: `elementToStructure` reconverts it when its attributes change.
 
     editor.commands.add('insertDiagram', new InsertDiagramCommand(editor));
     editor.ui.componentFactory.add('insertDiagram', locale => {
@@ -436,7 +437,9 @@ export class Diagrams extends Plugin {
    */
   public toStaticHtml(html: string): string {
     const config = (this.editor.config.get('diagrams') as DiagramsConfig | undefined) || {};
-    return html.replace(/<figure class="diagram" data-diagram="(\w+)"><pre><code class="language-\w+">([\s\S]*?)<\/code><\/pre><\/figure>/g, (whole, type: DiagramType, escaped: string) => {
+    // The figure may carry alignment classes, a width style and a caption after the code block.
+    return html.replace(/<figure class="diagram([^"]*)"((?:\s[^>]*?)?)\sdata-diagram="(\w+)"((?:\s[^>]*)?)><pre><code class="language-\w+">([\s\S]*?)<\/code><\/pre>([\s\S]*?)<\/figure>/g, (whole, classes: string, before: string, type: DiagramType, after: string, escaped: string, rest: string) => {
+      const attributes = `${before}${after}`;
       const source = unescapeHtml(escaped);
       let picture = '';
       try {
@@ -449,7 +452,7 @@ export class Diagrams extends Plugin {
       } catch {
         picture = '';
       }
-      return picture ? `<figure class="diagram" data-diagram="${type}">${picture}</figure>` : whole;
+      return picture ? `<figure class="diagram${classes}" data-diagram="${type}"${attributes}>${picture}${rest}</figure>` : whole;
     });
   }
 }

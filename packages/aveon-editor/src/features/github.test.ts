@@ -98,7 +98,7 @@ describe('diagrams', () => {
     await editor.execute('insertDiagram', { type: 'mermaid', source: 'graph LR; A-->B' });
     await settle();
     await settle();
-    const widget = editor.ui.getEditableElement()!.querySelector('.ck-diagram svg');
+    const widget = editor.ui.getEditableElement()!.querySelector('.ck-diagram__view svg');
     expect(widget?.getAttribute('data-source')).toBe('15');
     const exported = buildExportDocument(editor);
     expect(exported).toContain('<figure class="diagram" data-diagram="mermaid"><svg');

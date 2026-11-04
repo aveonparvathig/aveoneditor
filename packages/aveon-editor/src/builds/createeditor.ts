@@ -36,6 +36,7 @@ import { MergeFields } from '../features/mergefields/mergefields';
 import { Templates } from '../features/templates/templates';
 import { ExportDocument } from '../features/export/export';
 import { Diagrams } from '../features/diagrams/diagrams';
+import { Figure } from '../features/figure/figure';
 import { Markdown } from '../features/markdown/markdown';
 import { References } from '../features/references/references';
 import { Comments } from '../features/comments/comments';
@@ -50,7 +51,7 @@ export interface EditorPreset {
 }
 
 const imageConfig = {
-  toolbar: ['imageTextAlternative', 'toggleImageCaption', '|', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'resizeImage']
+  toolbar: ['imageTextAlternative', 'toggleFigureCaption', '|', 'figureAlign:left', 'figureAlign:center', 'figureAlign:right', 'imageStyle:inline', '|', 'resizeFigure', 'cropFigure']
 };
 
 /** Comments, short descriptions, chat-like fields: a plain toolbar with the essentials. */
@@ -110,6 +111,7 @@ export const erpPreset: EditorPreset = {
     Templates,
     ExportDocument,
     References,
+    Figure,
     Diagrams,
     Markdown,
     Comments,

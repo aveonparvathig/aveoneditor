@@ -289,6 +289,18 @@ templates: [
 
 A drawing pad with colours, pen widths, undo and clear; saved as SVG (`<figure class="sketch">`). Double-click a sketch to edit it. Only stroked paths are accepted when content is loaded, so stored HTML cannot carry scripts through a sketch.
 
+### Figure tools (images, sketches and diagrams)
+
+Every picture-like block has the same tools, in the balloon under it and on the contextual **Picture** tab:
+
+- **Resize**: drag a corner handle of the selected figure (the width snaps to 25, 33, 50, 67, 75 and 100 % of the text column) or pick a size from the Size menu. The width is stored as `style="width:50%"` on the `<figure>` (`resizedWidth` in the model).
+- **Move**: drag the grip in the figure's top-left corner to another place in the text (a line shows where it lands), or press `Alt+Shift+↑/↓` to move it past the neighbouring block (`moveFigure` command).
+- **Position**: Left, Center, Right and Side (text wraps around) share the image feature's `image-style-*` classes; In line is for images only.
+- **Caption**: a `<figcaption>` under the figure (`toggleFigureCaption`; hidden text comes back when the caption is shown again).
+- **Crop**: images and sketches. Images are cropped on a canvas and go through the configured upload adapter (a data URL with the Base64 adapter); images from another site that block canvas access cannot be cropped. A sketch's strokes are cut to the rectangle (`cropSketch()`).
+
+The generic commands (`resizeFigure`, `figureAlign`, `toggleFigureCaption`, `cropFigure`, `moveFigure`) hand over to the image commands for images, so existing `image.*` configuration keeps working. Other block objects can join by calling `FigureEditing#register(name, { viewClass, crop })` and wrapping their view with `toFigureWidget()`. `config.figure.toolbar` sets the balloon items.
+
 ### Diagrams (Insert tab)
 
 Diagrams written as text, the same four kinds GitHub draws:
@@ -473,7 +485,7 @@ Everything in `classicPreset`, with the same command and toolbar item names as C
 - **Blocks**: block quote, code block with language picker and newline-preserving round-trip, horizontal line, alignment, block indent, outdent and indent.
 - **Lists**: bulleted, numbered and to-do lists with nesting (Tab and Shift+Tab, Enter on an empty item leaves the list, Backspace at the start outdents).
 - **Links**: link balloon with preview, edit and unlink, autolink, keyboard shortcut.
-- **Images**: insert via URL or file upload (Base64 adapter included, custom adapters supported), caption, alt text, inline, block and side styles, resize, widget toolbar.
+- **Images**: insert via URL or file upload (Base64 adapter included, custom adapters supported), caption, alt text, inline, block and side styles, resize handles and crop, drag to move, widget toolbar (see "Figure tools").
 - **Tables**: insert grid, header row and column, insert and delete rows and columns, Tab navigation, widget toolbar.
 - **Media embed**, **special characters**, **find and replace**, **source editing**, **word count**, **autoformat** (Markdown-like shortcuts), **text transformation**.
 - **GitHub-style content**: Markdown import, export and paste; `$…$` and `$$…$$` math while typing; Mermaid diagrams, GeoJSON and TopoJSON maps, and STL 3D models (see "Diagrams" above).

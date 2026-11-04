@@ -49,8 +49,12 @@ export class SelectionObserver extends Observer {
     };
     const endDocumentIsSelecting = () => {
       if (!this.document.isSelecting) return;
-      this._handleSelectionChange(domDocument);
       this.document.isSelecting = false;
+      // A selection the editor set during the gesture (a widget selected on mousedown, a figure
+      // moved by a keystroke) is not in the DOM yet, because rendering waits for the gesture to
+      // end: render it before the DOM selection is read back, or the stale one would win.
+      this.view.forceRender();
+      this._handleSelectionChange(domDocument);
       this._documentIsSelectingInactivityTimeoutDebounced.cancel();
     };
 
@@ -122,10 +126,11 @@ export class SelectionObserver extends Observer {
       if (!(container && container.contains(anchorNode))) return;
     }
 
-    // A DOM selection inside the fake selection container that is no longer bound to a view selection
-    // (the widget selection was rendered, then focus moved to a UI element) must not be mapped.
+    // A DOM selection inside the fake selection container was put there by the renderer for a
+    // selection the model already has (a selected widget); reading it back could only replay a stale
+    // copy, e.g. after the widget moved while a gesture kept rendering on hold.
     const fakeContainer = this.domConverter.fakeSelectionContainer;
-    if (fakeContainer && fakeContainer.contains(anchorNode) && !this.domConverter.fakeSelectionToView(fakeContainer)) return;
+    if (fakeContainer && fakeContainer.contains(anchorNode)) return;
 
     this.mutationObserver.flush();
     const newViewSelection = this.domConverter.domSelectionToView(domSelection);

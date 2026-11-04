@@ -74,8 +74,10 @@ export class Renderer extends Observable {
       }
     }
     if (!this.isSelecting || env.isGecko) {
-      this._updateSelection();
+      // Focus first: focusing an editable the DOM selection is not in (e.g. coming from a nested
+      // caption) puts the browser caret at its start, which must not undo the selection set next.
       this._updateFocus();
+      this._updateSelection();
     }
     this.markedTexts.clear();
     this.markedAttributes.clear();

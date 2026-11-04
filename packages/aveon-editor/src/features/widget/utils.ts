@@ -128,17 +128,46 @@ export function viewToModelPositionOutsideModelElement(model: Model, viewElement
   };
 }
 
+/**
+ * The grip in the widget's corner: it selects the widget and can be dragged to move it (the
+ * `WidgetDrag` plugin starts a native drag from it).
+ */
 function addSelectionHandle(widgetElement: ViewElement, writer: DowncastWriter): void {
-  const selectionHandle = writer.createUIElement('div', { class: 'ck ck-widget__selection-handle' }, function (domDocument) {
+  const selectionHandle = writer.createUIElement('div', { class: 'ck ck-widget__selection-handle', draggable: 'true', title: 'Drag to move' }, function (domDocument) {
     const domElement = this.toDomElement(domDocument);
     const icon = new IconView();
-    icon.set('content', icons.threeVerticalDots);
+    icon.set('content', icons.dragHandle);
     icon.render();
     domElement.appendChild(icon.element!);
     return domElement;
   });
   writer.insert(writer.createPositionAt(widgetElement, 0), selectionHandle);
   writer.addClass(['ck-widget_with-selection-handle'], widgetElement);
+}
+
+export const RESIZE_HANDLE_POSITIONS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const;
+
+/**
+ * Adds four corner handles to a block widget; the `WidgetResize` plugin turns drags on them into a
+ * `resizedWidth` change through the `resizeFigure` command. The handles are shown while the widget
+ * is selected.
+ */
+export function addResizeHandles(widgetElement: ViewElement, writer: DowncastWriter): void {
+  const resizer = writer.createUIElement('div', { class: 'ck ck-widget__resizer' }, function (domDocument) {
+    const domElement = this.toDomElement(domDocument);
+    for (const position of RESIZE_HANDLE_POSITIONS) {
+      const handle = domDocument.createElement('div');
+      handle.className = `ck-widget__resizer__handle ck-widget__resizer__handle_${position}`;
+      handle.setAttribute('data-resize-handle', position);
+      domElement.appendChild(handle);
+    }
+    const label = domDocument.createElement('div');
+    label.className = 'ck-widget__resizer__size-label';
+    domElement.appendChild(label);
+    return domElement;
+  });
+  writer.insert(writer.createPositionAt(widgetElement, 'end'), resizer);
+  writer.addClass(['ck-widget_with-resizer'], widgetElement);
 }
 
 /** Returns the closest widget ancestor (or the element itself). */

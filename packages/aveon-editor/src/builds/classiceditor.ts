@@ -149,7 +149,10 @@ export class ClassicEditorUI extends EditorUI {
       const selected = selection.getSelectedElement();
       const position = selection.getFirstPosition();
       if (contexts.includes('table')) ribbon.setContextActive('table', !!(position && position.findAncestor('table')) || !!(selected && selected.is('element', 'table')));
-      if (contexts.includes('image')) ribbon.setContextActive('image', !!(selected && (selected.is('element', 'imageBlock') || selected.is('element', 'imageInline'))));
+      // The Picture tab serves every figure: images, and the block objects registered with the figure tools.
+      const figures = this.editor.plugins.has('FigureEditing') ? (this.editor.plugins.get('FigureEditing') as any).names as string[] : [];
+      const isFigure = (element: any) => !!element && (element.is('element', 'imageBlock') || element.is('element', 'imageInline') || figures.includes(element.name));
+      if (contexts.includes('image')) ribbon.setContextActive('image', isFigure(selected) || !!(position && figures.some(name => position.findAncestor(name))));
     };
     this.listenTo(model.document.selection, 'change:range', update);
     this.listenTo(model.document, 'change:data', update);

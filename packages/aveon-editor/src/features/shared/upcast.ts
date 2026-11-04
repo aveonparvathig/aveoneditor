@@ -46,6 +46,33 @@ export function upcastAtomic(match: (viewElement: ViewElement) => boolean, creat
   };
 }
 
+/**
+ * Like `upcastAtomic()`, but children accepted by `keepChild` (e.g. a `<figcaption>`) are converted
+ * into the model element; every other child is ignored.
+ */
+export function upcastFigure(match: (viewElement: ViewElement) => boolean, create: (viewElement: ViewElement, writer: any) => ModelElement | null, keepChild: (child: ViewElement) => boolean) {
+  return (evt: EventInfo, data: any, conversionApi: any): void => {
+    const viewItem = data.viewItem as ViewElement;
+    if (!match(viewItem) || !conversionApi.consumable.test(viewItem, { name: true })) return;
+    const element = create(viewItem, conversionApi.writer);
+    if (!element || !conversionApi.safeInsert(element, data.modelCursor)) return;
+    conversionApi.consumable.consume(viewItem, { name: true });
+    for (const child of viewItem.getChildren()) {
+      const node = child as any;
+      if (node.is('element') && keepChild(node)) {
+        conversionApi.convertItem(node, conversionApi.writer.createPositionAt(element, 'end'));
+      } else if (node.is('element')) {
+        conversionApi.consumable.consume(node, { name: true });
+        consumeDescendants(node, conversionApi);
+      } else if (node.is('$text')) {
+        conversionApi.consumable.consume(node);
+      }
+    }
+    conversionApi.updateConversionResult(element, data);
+    evt.stop();
+  };
+}
+
 /** Escapes text for use in HTML. */
 export function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!);

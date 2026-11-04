@@ -1,5 +1,5 @@
 import { Plugin } from '../../core/plugin';
-import { toWidget, isWidget, findOptimalInsertionRange } from '../widget/utils';
+import { toWidget, isWidget, findOptimalInsertionRange, addResizeHandles } from '../widget/utils';
 import { first } from '../../utils/misc';
 import type { Element as ModelElement } from '../../engine/model/element';
 import type { Element as ViewElement } from '../../engine/view/element';
@@ -80,7 +80,11 @@ export class ImageUtils extends Plugin {
       const altText = imgElement ? imgElement.getAttribute('alt') : null;
       return altText ? `${altText} ${label}` : label;
     };
-    return toWidget(viewElement, writer, { label: labelCreator });
+    // A block image gets the drag grip and the corner resize handles of the figure tools.
+    const isBlock = viewElement.name === 'figure';
+    const widget = toWidget(viewElement, writer, { label: labelCreator, hasSelectionHandle: isBlock });
+    if (isBlock) addResizeHandles(viewElement, writer);
+    return widget;
   }
 
   public isImageWidget(viewElement: ViewElement): boolean {

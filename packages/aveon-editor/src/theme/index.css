@@ -2223,7 +2223,7 @@ aveon-editor {
 }
 
 .ck-content figure.sketch svg,
-.ck.ck-editor__editable .ck-sketch svg {
+.ck.ck-editor__editable .ck-sketch .ck-sketch__image svg {
   max-width: 100%;
   height: auto;
   border: 1px solid var(--ck-color-base-border);
@@ -4997,4 +4997,272 @@ a.ck.ck-button .ck-icon {
     background: Canvas;
     border: 1px solid CanvasText;
   }
+}
+
+/* ---------- Figure tools: resize handles, drag grip, drop line, captions, crop ---------- */
+
+/* The grip in the corner: drag it to move the widget. */
+.ck .ck-widget_with-selection-handle .ck-widget__selection-handle {
+  top: 6px;
+  left: 6px;
+  transform: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 6px;
+  background: var(--ck-color-base-background);
+  box-shadow: 0 1px 2px var(--ck-color-shadow-drop), 0 0 0 1px var(--ck-color-base-border);
+  color: var(--ck-color-text-muted);
+  z-index: 2;
+  cursor: grab;
+}
+
+.ck .ck-widget_with-selection-handle .ck-widget__selection-handle:active {
+  cursor: grabbing;
+}
+
+.ck .ck-widget_with-selection-handle .ck-widget__selection-handle .ck-icon {
+  width: 16px;
+  height: 16px;
+  color: inherit;
+}
+
+.ck .ck-widget_with-selection-handle:hover .ck-widget__selection-handle,
+.ck .ck-widget_with-selection-handle.ck-widget_selected .ck-widget__selection-handle,
+.ck .ck-widget_with-selection-handle.ck-widget_selected:hover .ck-widget__selection-handle {
+  background: var(--ck-color-base-background);
+  color: var(--ck-color-accent);
+}
+
+/* Corner handles, shown while the widget is selected. */
+.ck .ck-widget__resizer {
+  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ck .ck-widget_selected > .ck-widget__resizer {
+  display: block;
+}
+
+.ck .ck-widget__resizer__handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+  border: 2px solid var(--ck-color-accent);
+  border-radius: 3px;
+  background: var(--ck-color-base-background);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.ck .ck-widget__resizer__handle_top-left { top: -6px; left: -6px; cursor: nwse-resize; }
+.ck .ck-widget__resizer__handle_top-right { top: -6px; right: -6px; cursor: nesw-resize; }
+.ck .ck-widget__resizer__handle_bottom-left { bottom: -6px; left: -6px; cursor: nesw-resize; }
+.ck .ck-widget__resizer__handle_bottom-right { bottom: -6px; right: -6px; cursor: nwse-resize; }
+
+.ck .ck-widget__resizer__size-label {
+  display: none;
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--ck-color-tooltip-background);
+  color: var(--ck-color-tooltip-text);
+  font-family: var(--ck-font-face);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.ck .ck-widget_resizing > .ck-widget__resizer .ck-widget__resizer__size-label {
+  display: block;
+}
+
+/* While a handle is dragged the content follows the widget width at once. */
+.ck .ck-widget_resizing img,
+.ck .ck-widget_resizing svg,
+.ck .ck-widget_resizing .ck-sketch__image,
+.ck .ck-widget_resizing .ck-diagram__view {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+@media (max-width: 600px) {
+  .ck .ck-widget__resizer__handle {
+    width: 20px;
+    height: 20px;
+  }
+
+  .ck .ck-widget__resizer__handle_top-left { top: -10px; left: -10px; }
+  .ck .ck-widget__resizer__handle_top-right { top: -10px; right: -10px; }
+  .ck .ck-widget__resizer__handle_bottom-left { bottom: -10px; left: -10px; }
+  .ck .ck-widget__resizer__handle_bottom-right { bottom: -10px; right: -10px; }
+}
+
+/* Where a dragged widget will land. */
+.ck.ck-widget-drop-line {
+  position: fixed;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ck-color-accent);
+  pointer-events: none;
+  z-index: var(--ck-z-panel);
+}
+
+/* A resized sketch or diagram: the figure sets the width, the drawing fills it. */
+.ck-content figure.figure_resized,
+.ck.ck-editor__editable .ck-widget.figure_resized {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.ck-content figure.sketch.figure_resized svg,
+.ck.ck-editor__editable .ck-sketch.figure_resized svg,
+.ck-content figure.diagram.figure_resized > svg,
+.ck-content figure.diagram.figure_resized > img,
+.ck.ck-editor__editable .ck-diagram.figure_resized .ck-diagram__view svg,
+.ck.ck-editor__editable .ck-diagram.figure_resized .ck-diagram__view canvas {
+  width: 100%;
+  height: auto;
+}
+
+.ck-content figure.sketch .sketch__drawing,
+.ck.ck-editor__editable .ck-sketch .ck-sketch__image {
+  display: block;
+}
+
+/* Sketch and diagram captions look like image captions. */
+.ck-content figure.sketch > figcaption,
+.ck-content figure.diagram > figcaption,
+.ck.ck-editor__editable .ck-sketch > figcaption,
+.ck.ck-editor__editable .ck-diagram > figcaption {
+  display: block;
+  margin-top: 4px;
+  padding: 0.6em;
+  border-radius: var(--ck-tile-radius);
+  background: var(--ck-color-ground);
+  color: var(--ck-color-base-text);
+  font-size: 0.75em;
+  text-align: center;
+  word-break: break-word;
+}
+
+.ck.ck-editor__editable .ck-sketch > figcaption.ck-placeholder::before,
+.ck.ck-editor__editable .ck-diagram > figcaption.ck-placeholder::before {
+  color: var(--ck-color-text-muted);
+}
+
+/* An aligned sketch or diagram keeps its drawing inside the floated box. */
+.ck-content figure.sketch.image-style-align-left,
+.ck-content figure.sketch.image-style-align-right,
+.ck-content figure.sketch.image-style-side,
+.ck-content figure.diagram.image-style-align-left,
+.ck-content figure.diagram.image-style-align-right,
+.ck-content figure.diagram.image-style-side,
+.ck.ck-editor__editable .ck-sketch.image-style-align-left,
+.ck.ck-editor__editable .ck-sketch.image-style-align-right,
+.ck.ck-editor__editable .ck-sketch.image-style-side,
+.ck.ck-editor__editable .ck-diagram.image-style-align-left,
+.ck.ck-editor__editable .ck-diagram.image-style-align-right,
+.ck.ck-editor__editable .ck-diagram.image-style-side {
+  max-width: 50%;
+}
+
+.ck-content figure.sketch.image-style-align-center,
+.ck-content figure.diagram.image-style-align-center,
+.ck.ck-editor__editable .ck-sketch.image-style-align-center,
+.ck.ck-editor__editable .ck-diagram.image-style-align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Crop dialog. */
+.ck.ck-dialog-overlay .ck-dialog.ck-dialog_crop {
+  width: auto;
+  max-width: calc(100vw - 32px);
+}
+
+.ck.ck-dialog-overlay .ck-crop__stage {
+  position: relative;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--ck-tile-radius);
+  background: var(--ck-color-ground) repeating-conic-gradient(var(--ck-color-surface-hover) 0 25%, transparent 0 50%) 0 0 / 16px 16px;
+  user-select: none;
+  touch-action: none;
+}
+
+.ck.ck-dialog-overlay .ck-crop__picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ck.ck-dialog-overlay .ck-crop__box {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--ck-color-base-background);
+  outline: 1px solid var(--ck-color-accent);
+  box-shadow: 0 0 0 9999px rgba(16, 24, 40, 0.5);
+  cursor: move;
+}
+
+.ck.ck-dialog-overlay .ck-crop__handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 2px solid var(--ck-color-accent);
+  border-radius: 3px;
+  background: var(--ck-color-base-background);
+}
+
+.ck.ck-dialog-overlay .ck-crop__handle_nw { top: -7px; left: -7px; cursor: nwse-resize; }
+.ck.ck-dialog-overlay .ck-crop__handle_n { top: -7px; left: calc(50% - 7px); cursor: ns-resize; }
+.ck.ck-dialog-overlay .ck-crop__handle_ne { top: -7px; right: -7px; cursor: nesw-resize; }
+.ck.ck-dialog-overlay .ck-crop__handle_e { top: calc(50% - 7px); right: -7px; cursor: ew-resize; }
+.ck.ck-dialog-overlay .ck-crop__handle_se { bottom: -7px; right: -7px; cursor: nwse-resize; }
+.ck.ck-dialog-overlay .ck-crop__handle_s { bottom: -7px; left: calc(50% - 7px); cursor: ns-resize; }
+.ck.ck-dialog-overlay .ck-crop__handle_sw { bottom: -7px; left: -7px; cursor: nesw-resize; }
+.ck.ck-dialog-overlay .ck-crop__handle_w { top: calc(50% - 7px); left: -7px; cursor: ew-resize; }
+
+.ck.ck-dialog-overlay .ck-crop__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.ck.ck-dialog-overlay .ck-crop__aspect {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ck.ck-dialog-overlay .ck-crop__aspect-select {
+  width: auto;
+}
+
+.ck.ck-dialog-overlay .ck-crop__readout {
+  margin-left: auto;
+  color: var(--ck-color-text-muted);
+  font-size: 12px;
+}
+
+.ck.ck-dialog-overlay .ck-crop__error {
+  margin: 16px 0 0;
+  color: var(--ck-color-base-error);
+  font-size: 12px;
 }

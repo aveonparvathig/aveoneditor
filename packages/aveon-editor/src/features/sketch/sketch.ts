@@ -12,8 +12,8 @@ import { ButtonView } from '../../ui/button/buttonview';
 import { icons } from '../../ui/icons';
 import { applyTheme } from '../../ui/theme';
 import { Widget } from '../widget/widget';
-import { toWidget } from '../widget/utils';
-import { upcastAtomic } from '../shared/upcast';
+import { Figure, FigureEditing, toFigureWidget, openCropDialog, type CropRect } from '../figure/figure';
+import { upcastFigure } from '../shared/upcast';
 import { editOnDoubleClick } from '../references/references';
 import type { Editor } from '../../core/editor';
 import type { Element as ModelElement } from '../../engine/model/element';
@@ -95,6 +95,38 @@ function readData(element: ModelElement): SketchData {
   } catch {
     return { width: 600, height: 300, strokes: [] };
   }
+}
+
+/**
+ * The drawing cut to `rect` (in drawing pixels): strokes move so the rectangle's corner becomes the
+ * origin, and strokes that lie wholly outside it are dropped. Pure; the input is not changed.
+ */
+export function cropSketch(data: SketchData, rect: CropRect): SketchData {
+  const x0 = num(rect.x, 0);
+  const y0 = num(rect.y, 0);
+  const width = Math.max(1, Math.round(num(rect.width, data.width)));
+  const height = Math.max(1, Math.round(num(rect.height, data.height)));
+  const inside = ([x, y]: [number, number]) => x >= x0 && x <= x0 + width && y >= y0 && y <= y0 + height;
+  const strokes = (data.strokes || [])
+    .filter(stroke => Array.isArray(stroke.points) && stroke.points.some(inside))
+    .map(stroke => ({ ...stroke, points: stroke.points.map(([x, y]) => [Math.round((x - x0) * 10) / 10, Math.round((y - y0) * 10) / 10] as [number, number]) }));
+  return { width, height, strokes };
+}
+
+/** A data URL of the drawing, for the crop dialog's preview. */
+function sketchToDataUrl(data: SketchData): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(sketchToSvg(data))}`;
+}
+
+async function cropSketchElement(editor: Editor, element: ModelElement): Promise<void> {
+  const data = readData(element);
+  const rect = await openCropDialog(editor, { src: sketchToDataUrl(data), width: data.width, height: data.height, title: editor.t('Crop sketch') });
+  if (!rect) return;
+  const json = JSON.stringify(cropSketch(data, rect));
+  editor.model.change(writer => {
+    writer.setAttribute('sketchData', json, element);
+    writer.setSelection(element, 'on');
+  });
 }
 
 /* ------------------------------------------------------------------------------------------ */
@@ -306,23 +338,27 @@ export class Sketch extends Plugin {
   }
 
   public static override get requires() {
-    return [Widget];
+    return [Widget, Figure];
   }
 
   public override init(): void {
     const editor = this.editor;
     const t = editor.t;
+    const figures = editor.plugins.get('FigureEditing') as FigureEditing;
     editor.model.schema.register(MODEL, { inheritAllFrom: '$blockObject', allowAttributes: ['sketchData'] });
+    // Width, alignment, caption, resize handles and crop come from the figure tools.
+    figures.register(MODEL, { viewClass: 'sketch', crop: cropSketchElement });
 
     editor.conversion.for('upcast').add(dispatcher => {
       dispatcher.on(
         'element:figure',
-        upcastAtomic(
+        upcastFigure(
           view => view.hasClass('sketch'),
           (view, writer) => {
             const data = viewToSketch(view);
-            return data ? writer.createElement(MODEL, { sketchData: JSON.stringify(data) }) : null;
-          }
+            return data ? writer.createElement(MODEL, { sketchData: JSON.stringify(data), ...figures.readAttributes(view) }) : null;
+          },
+          child => child.is('element', 'figcaption')
         ),
         { priority: 'high' }
       );
@@ -330,27 +366,37 @@ export class Sketch extends Plugin {
     const render = (element: ModelElement) => (dom: HTMLElement) => {
       dom.innerHTML = sketchToSvg(readData(element));
     };
-    editor.conversion.for('dataDowncast').elementToElement({
-      model: MODEL,
-      view: (element: ModelElement, { writer }: any) => writer.createRawElement('figure', { class: 'sketch' }, render(element))
+    // The figure holds the drawing (real view elements, so `<svg>` stays its first child) and, after
+    // it, the caption slot.
+    editor.conversion.for('dataDowncast').elementToStructure({
+      model: { name: MODEL, attributes: ['sketchData'] },
+      view: (element: ModelElement, { writer }: any) => {
+        const figure = writer.createContainerElement('figure', { class: 'sketch' });
+        const data = readData(element);
+        const width = num(data.width, 600);
+        const height = num(data.height, 300);
+        const svg = writer.createContainerElement('svg', { xmlns: 'http://www.w3.org/2000/svg', viewBox: `0 0 ${width} ${height}`, width: String(width), height: String(height) });
+        const paths = sketchToSvg(data).match(/<path [^>]*\/>/g) || [];
+        for (const path of paths) {
+          const attributes: Record<string, string> = {};
+          for (const [, name, value] of path.matchAll(/([a-z-]+)="([^"]*)"/g)) attributes[name] = value;
+          writer.insert(writer.createPositionAt(svg, 'end'), writer.createEmptyElement('path', attributes));
+        }
+        writer.insert(writer.createPositionAt(figure, 0), svg);
+        writer.insert(writer.createPositionAt(figure, 'end'), writer.createSlot());
+        return figure;
+      }
     });
-    editor.conversion.for('editingDowncast').elementToElement({
-      model: MODEL,
+    editor.conversion.for('editingDowncast').elementToStructure({
+      model: { name: MODEL, attributes: ['sketchData'] },
       view: (element: ModelElement, { writer }: any) => {
         const figure = writer.createContainerElement('figure', { class: 'ck-sketch', title: t('Double-click to edit') });
         writer.insert(writer.createPositionAt(figure, 0), writer.createRawElement('div', { class: 'ck-sketch__image' }, render(element)));
-        return toWidget(figure, writer, { label: t('Sketch') });
+        writer.insert(writer.createPositionAt(figure, 'end'), writer.createSlot());
+        return toFigureWidget(figure, writer, { label: t('Sketch') });
       }
     });
-    // A changed drawing redraws its widget.
-    editor.model.document.on('change:data', () => {
-      for (const change of editor.model.document.differ.getChanges()) {
-        if (change.type === 'attribute' && change.attributeKey === 'sketchData') {
-          const element = change.range.start.nodeAfter;
-          if (element) editor.editing.reconvertItem(element as ModelElement);
-        }
-      }
-    });
+    // A changed drawing is redrawn: `elementToStructure` reconverts it when `sketchData` changes.
 
     editor.commands.add('insertSketch', new InsertSketchCommand(editor));
     editor.ui.componentFactory.add('insertSketch', locale => {

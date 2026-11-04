@@ -5,7 +5,8 @@ const data = (page: Page) => page.evaluate(() => (window as any).editor.getData(
 
 async function openDemo(page: Page, html = '<p>Start</p>') {
   await page.goto('/');
-  await page.waitForFunction(() => !!(window as any).editor);
+  // The demo page's #editor element is also a window global until the editor replaces it.
+  await page.waitForFunction(() => typeof (window as any).editor?.setData === 'function');
   await page.evaluate(content => (window as any).editor.setData(content), html);
 }
 
@@ -230,4 +231,77 @@ test('ribbon: on a phone-width ribbon every tab fits and search opens from its i
   expect((await search.boundingBox())!.width).toBeLessThan(40);
   await search.click();
   await expect.poll(async () => (await search.boundingBox())!.width).toBeGreaterThan(120);
+});
+
+const SKETCH_HTML = '<p>Before</p><figure class="sketch"><svg viewBox="0 0 400 200" width="400" height="200"><path d="M20 20L200 150L380 40" fill="none" stroke="#cf222e" stroke-width="4"/></svg></figure><p>After</p>';
+
+test('figure tools: a sketch is resized by dragging a corner handle, and undo restores it', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Handles are dragged with a mouse here.');
+  await openDemo(page, SKETCH_HTML);
+  const sketch = page.locator('.ck-editor__editable .ck-sketch');
+  await sketch.click();
+  const handle = sketch.locator('.ck-widget__resizer__handle_bottom-right');
+  await expect(handle).toBeVisible();
+  const box = (await handle.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x - 200, box.y + box.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect.poll(() => data(page)).toMatch(/<figure class="sketch figure_resized" style="width:\d+(\.\d+)?%;">/);
+  const mod = await modifier(page);
+  await page.keyboard.press(`${mod}+z`);
+  await expect.poll(() => data(page)).not.toContain('figure_resized');
+});
+
+test('figure tools: the Picture tab captions and crops a sketch', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Ribbon checks run at desktop sizes.');
+  await openDemo(page, SKETCH_HTML);
+  await page.locator('.ck-editor__editable .ck-sketch').click();
+  await page.getByRole('tab', { name: 'Picture' }).click();
+  await page.locator('.ck-ribbon__panel:not(.ck-hidden) .ck-button[data-cke-tooltip-text="Caption"]').click();
+  await page.keyboard.type('A zigzag');
+  await expect.poll(() => data(page)).toContain('<figcaption>A zigzag</figcaption>');
+  await page.locator('.ck-editor__editable .ck-sketch .ck-sketch__image').click();
+  await page.getByRole('tab', { name: 'Picture' }).click();
+  await page.locator('.ck-ribbon__panel:not(.ck-hidden) .ck-button[data-cke-tooltip-text="Crop"]').click();
+  const dialog = page.locator('.ck-dialog_crop');
+  await expect(dialog).toBeVisible();
+  const handle = dialog.locator('[data-crop-handle="se"]');
+  const box = (await handle.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x - 120, box.y - 40, { steps: 6 });
+  await page.mouse.up();
+  await dialog.getByRole('button', { name: 'Apply' }).click();
+  await expect(dialog).toHaveCount(0);
+  const svg = await page.locator('.ck-editor__editable .ck-sketch__image svg').getAttribute('viewBox');
+  expect(svg).not.toBe('0 0 400 200');
+});
+
+test('figure tools: Alt+Shift+Arrow moves the selected figure past its neighbours', async ({ page }) => {
+  await openDemo(page, SKETCH_HTML);
+  await page.locator('.ck-editor__editable .ck-sketch').click();
+  await page.keyboard.press('Alt+Shift+ArrowDown');
+  await expect.poll(async () => (await data(page)).replace(/<figure[\s\S]*?<\/figure>/, '[sketch]')).toBe('<p>Before</p><p>After</p>[sketch]');
+  await page.keyboard.press('Alt+Shift+ArrowUp');
+  await page.keyboard.press('Alt+Shift+ArrowUp');
+  await expect.poll(async () => (await data(page)).replace(/<figure[\s\S]*?<\/figure>/, '[sketch]')).toBe('[sketch]<p>Before</p><p>After</p>');
+});
+
+test('figure tools: dragging the grip moves a figure below another paragraph', async ({ page, browserName, isMobile }) => {
+  test.skip(isMobile || browserName !== 'chromium', 'Native drag and drop is driven in desktop Chromium.');
+  await openDemo(page, SKETCH_HTML);
+  const sketch = page.locator('.ck-editor__editable .ck-sketch');
+  await sketch.hover();
+  const grip = sketch.locator('.ck-widget__selection-handle');
+  await expect(grip).toBeVisible();
+  const after = page.locator('.ck-editor__editable p', { hasText: 'After' });
+  const target = (await after.boundingBox())!;
+  const from = (await grip.boundingBox())!;
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(target.x + 40, target.y + target.height - 2, { steps: 10 });
+  await expect(page.locator('.ck-widget-drop-line')).toBeVisible();
+  await page.mouse.up();
+  await expect.poll(async () => (await data(page)).replace(/<figure[\s\S]*?<\/figure>/, '[sketch]')).toBe('<p>Before</p><p>After</p>[sketch]');
 });

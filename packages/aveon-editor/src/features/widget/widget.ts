@@ -115,6 +115,14 @@ export class Widget extends Plugin {
     const viewDocument = view.document;
     let element: ViewElement | null = domEventData.target;
 
+    // A press inside a raw element (a drawn sketch or diagram) has no view node of its own: use the
+    // widget around it, so the widget gets selected even while a caption has the focus.
+    if (!element) {
+      const domTarget = domEventData.domEvent?.target as HTMLElement | null;
+      const domWidget = domTarget && typeof domTarget.closest === 'function' ? domTarget.closest('.ck-widget') : null;
+      element = domWidget ? ((view.domConverter.mapDomToView(domWidget) as ViewElement | undefined) || null) : null;
+    }
+
     if (isInsideNestedEditable(element)) {
       if ((env.isSafari || env.isGecko) && domEventData.domEvent.detail >= 3) {
         const mapper = editor.editing.mapper;
@@ -141,10 +149,15 @@ export class Widget extends Plugin {
     }
     const modelElement = editor.editing.mapper.toModelElement(element!) as ModelElement;
     this._setSelectionOverElement(modelElement);
+    // A press on the drag grip must keep its default, or the browser never starts the drag.
+    const domTarget = domEventData.domEvent?.target as HTMLElement | null;
+    if (domTarget && typeof domTarget.closest === 'function' && domTarget.closest('.ck-widget__selection-handle')) return;
     domEventData.preventDefault();
   }
 
   private _handleSelectionChangeOnArrowKeyPress(eventInfo: any, domEventData: any): void {
+    // Alt+Arrow combinations belong to other features (Alt+Shift+↑/↓ moves a figure).
+    if (domEventData.altKey) return;
     const keyCode = domEventData.keyCode;
     const model = this.editor.model;
     const schema = model.schema;
@@ -190,6 +203,8 @@ export class Widget extends Plugin {
   }
 
   private _preventDefaultOnArrowKeyPress(eventInfo: any, domEventData: any): void {
+    // Alt+Arrow combinations belong to other features (Alt+Shift+↑/↓ moves a figure).
+    if (domEventData.altKey) return;
     const model = this.editor.model;
     const schema = model.schema;
     const objectElement = model.document.selection.getSelectedElement();
