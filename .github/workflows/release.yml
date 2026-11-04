@@ -1,0 +1,55 @@
+# Builds the release (tests, editor files, npm packages, offline zip) and publishes it as a GitHub
+# Release with the files attached. Start it by pushing a tag that matches the editor version:
+#   git tag v0.1.0 && git push origin v0.1.0
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/cms-angular/package-lock.json
+
+      - name: Install
+        run: |
+          npm ci
+          npm ci --prefix apps/cms-angular
+
+      - name: Build and test
+        run: node scripts/release.mjs
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./packages/aveon-editor/package.json').version")
+          tag="v$version"
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "$tag" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match the editor version $version." >&2
+            exit 1
+          fi
+          out="release/$version"
+          # The browser files on their own, for teams that only need the <script> tag.
+          (cd "$out/editor" && zip -qr "../aveon-editor-browser-v$version.zip" .)
+          files="$out/aveon-offline-v$version.zip $out/aveon-editor-browser-v$version.zip $out/packages/*.tgz $out/SHA256SUMS docs/INTEGRATION_KIT.md"
+          notes="Downloads for Aveon Editor $version. Start with the [integration kit](https://github.com/${GITHUB_REPOSITORY}/blob/$tag/docs/INTEGRATION_KIT.md)."
+          if gh release view "$tag" > /dev/null 2>&1; then
+            gh release upload "$tag" $files --clobber
+          else
+            gh release create "$tag" $files --title "Aveon Editor $version" --notes "$notes" --target "$GITHUB_SHA"
+          fi

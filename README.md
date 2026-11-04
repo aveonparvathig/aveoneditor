@@ -4,6 +4,8 @@ Aveon Editor is a rich text editor built on its own engine that mirrors the CKEd
 
 The code is an original, clean implementation. No CKEditor source is included.
 
+**Downloads:** [latest release](https://github.com/aveonparvathig/aveoneditor/releases/latest) (offline zip, browser files and npm packages) · **Docs:** [integration kit](docs/INTEGRATION_KIT.md) · [deployment](docs/DEPLOYMENT.md) · [math](docs/MATH_FEATURE_SPEC.md)
+
 ## Repository layout
 
 | Path | What it is |

@@ -4,6 +4,34 @@ Everything a client team needs to add Aveon Editor to a CMS, ERP or any web appl
 
 Source: <https://github.com/aveonparvathig/aveoneditor>
 
+## Downloads and documentation
+
+All releases: <https://github.com/aveonparvathig/aveoneditor/releases/latest>
+
+| Download (0.1.0) | Contains |
+|---|---|
+| [aveon-offline-v0.1.0.zip](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-offline-v0.1.0.zip) | Everything: browser files, all npm packages, Angular 14–21 directive, deploy files, docs |
+| [aveon-editor-browser-v0.1.0.zip](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-editor-browser-v0.1.0.zip) | Browser files only (`<script>` tag route) |
+| [aveon-editor-0.1.0.tgz](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-editor-0.1.0.tgz) | `@aveon/editor` |
+| [aveon-angular-0.0.1.tgz](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-angular-0.0.1.tgz) | `aveon-angular` (Angular 22) |
+| [aveon-api-connect-0.1.0.tgz](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-api-connect-0.1.0.tgz) | `@aveon/api-connect` |
+| [aveon-collab-server-0.1.0.tgz](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-collab-server-0.1.0.tgz) | `@aveon/collab-server` |
+| [SHA256SUMS](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/SHA256SUMS) | Checksums of the files above |
+
+npm can install straight from these links:
+
+```bash
+npm install https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-editor-0.1.0.tgz
+```
+
+| Document | Link |
+|---|---|
+| Integration kit (this guide) | <https://github.com/aveonparvathig/aveoneditor/blob/master/docs/INTEGRATION_KIT.md> |
+| Full reference (README) | <https://github.com/aveonparvathig/aveoneditor#readme> |
+| Hosting and deployment | <https://github.com/aveonparvathig/aveoneditor/blob/master/docs/DEPLOYMENT.md> |
+| Math and equations | <https://github.com/aveonparvathig/aveoneditor/blob/master/docs/MATH_FEATURE_SPEC.md> |
+| Angular 14–21 directive | <https://github.com/aveonparvathig/aveoneditor/blob/master/docs/angular-14-21/aveon-editor-value-accessor.directive.ts> |
+
 ## 1. What is in the kit
 
 `npm run release` builds all of it into `release/<version>/` (see [section 8](#8-package-builds)).
@@ -394,6 +422,14 @@ cd apps/cms-angular && npm install
 | `docker build -f deploy/docker/collab-server.Dockerfile -t aveon/collab-server:0.1.0 .` | Co-editing server image |
 
 `npm run release -- --skip-tests` skips the tests; `--skip-build` reuses the last build.
+
+**Publishing the downloads:** after raising the version in `packages/aveon-editor/package.json`, push a matching tag. The *Release* workflow (`.github/workflows/release.yml`) runs the tests, builds everything and publishes a GitHub Release with the files attached:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+It can also be run by hand from the repository's *Actions* tab; it then updates the release for the current version.
 
 **Installing the packages:** `npm install ./<file>.tgz`, or publish them to a private registry (GitHub Packages, Azure Artifacts, Verdaccio):
 
