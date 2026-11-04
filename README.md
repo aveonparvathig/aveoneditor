@@ -19,6 +19,7 @@ The code is an original, clean implementation. No CKEditor source is included.
 | `deploy` | Docker images, Helm chart and server setup scripts |
 | `e2e` | Browser tests (Playwright) in Chromium, Firefox, WebKit and phone profiles |
 | `docs/angular-14-21` | Forms support for `<aveon-editor>` in Angular 14–21 |
+| `docs/angular-11-13` | Forms support for `<aveon-editor>` in Angular 11–13 (NgModule) |
 
 ## Getting started
 
@@ -204,7 +205,7 @@ editor.model.document.on('change:data', () => save(editor.getData()));
 
 Use `<aveon-editor>` from `aveon-angular` (see above) with the same presets: `[editor]="ClassicEditor" [config]="erpConfig"` where `erpConfig = resolveEditorOptions({ preset: 'erp' })`.
 
-`aveon-angular` needs Angular 22. For Angular 14–21, use the `<aveon-editor>` element with `CUSTOM_ELEMENTS_SCHEMA` and copy `docs/angular-14-21/aveon-editor-value-accessor.directive.ts` into your app: it makes `[(ngModel)]`, `[formControl]` and `formControlName` work on the element, including the disabled state.
+`aveon-angular` needs Angular 22. For Angular 14–21, use the `<aveon-editor>` element with `CUSTOM_ELEMENTS_SCHEMA` and copy `docs/angular-14-21/aveon-editor-value-accessor.directive.ts` into your app: it makes `[(ngModel)]`, `[formControl]` and `formControlName` work on the element, including the disabled state. For Angular 11–13 (no standalone components), copy `docs/angular-11-13/aveon-editor-forms.module.ts` and import `AveonEditorFormsModule`; load the element with the standalone `<script>` in `index.html`, since those versions cannot compile the ES2022 library.
 
 ### Image uploads
 

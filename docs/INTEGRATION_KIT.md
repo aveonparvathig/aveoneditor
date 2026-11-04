@@ -10,7 +10,7 @@ All releases: <https://github.com/aveonparvathig/aveoneditor/releases/latest>
 
 | Download (0.1.0) | Contains |
 |---|---|
-| [aveon-offline-v0.1.0.zip](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-offline-v0.1.0.zip) | Everything: browser files, all npm packages, Angular 14–21 directive, deploy files, docs |
+| [aveon-offline-v0.1.0.zip](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-offline-v0.1.0.zip) | Everything: browser files, all npm packages, Angular 11–21 forms support, deploy files, docs |
 | [aveon-editor-browser-v0.1.0.zip](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-editor-browser-v0.1.0.zip) | Browser files only (`<script>` tag route) |
 | [aveon-editor-0.1.0.tgz](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-editor-0.1.0.tgz) | `@aveon/editor` |
 | [aveon-angular-0.0.1.tgz](https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1.0/aveon-angular-0.0.1.tgz) | `aveon-angular` (Angular 22) |
@@ -32,6 +32,7 @@ npm install https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1
 | Hosting and deployment | <https://github.com/aveonparvathig/aveoneditor/blob/master/docs/DEPLOYMENT.md> |
 | Math and equations | <https://github.com/aveonparvathig/aveoneditor/blob/master/docs/MATH_FEATURE_SPEC.md> |
 | Angular 14–21 directive | <https://github.com/aveonparvathig/aveoneditor/blob/master/docs/angular-14-21/aveon-editor-value-accessor.directive.ts> |
+| Angular 11–13 module | <https://github.com/aveonparvathig/aveoneditor/blob/master/docs/angular-11-13/aveon-editor-forms.module.ts> |
 
 ## 1. What is in the kit
 
@@ -44,7 +45,8 @@ npm install https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1
 | `editor/v<version>/snippet.html` | The two tags to paste, with integrity hashes | Loading the editor from the central host |
 | `packages/aveon-editor-<version>.tgz` | `@aveon/editor`: the library for bundlers (Vite, webpack, Angular CLI) | Apps built with npm |
 | `packages/aveon-angular-<version>.tgz` | `aveon-angular`: the `<aveon-editor>` Angular component | Angular 22 apps |
-| `angular-14-21/aveon-editor-value-accessor.directive.ts` | Forms support for the element in older Angular | Angular 14–21 apps |
+| `angular-14-21/aveon-editor-value-accessor.directive.ts` | Forms support for the element (standalone directive) | Angular 14–21 apps |
+| `angular-11-13/aveon-editor-forms.module.ts` | Forms support for the element (NgModule) | Angular 11–13 apps |
 | `packages/aveon-api-connect-<version>.tgz` | `@aveon/api-connect`: uploads, documents, templates, merge data, co-editing | The backend all clients talk to |
 | `packages/aveon-collab-server-<version>.tgz` | `@aveon/collab-server`: real-time co-editing server only | Co-editing without API Connect |
 | `aveon-offline-v<version>.zip` | All of the above, plus deploy files and these docs | Air-gapped or on-premises clients |
@@ -57,7 +59,8 @@ npm install https://github.com/aveonparvathig/aveoneditor/releases/download/v0.1
 | JavaScript / TypeScript app with a bundler | `createEditor()` from `@aveon/editor` | [3.2](#32-javascript-or-typescript) |
 | Angular 22 | `aveon-angular` component | [3.3](#33-angular-22-aveon-angular) |
 | Angular 14–21 | `<aveon-editor>` element + value accessor directive | [3.4](#34-angular-1421) |
-| React, Vue, Svelte | `<aveon-editor>` element | [3.5](#35-react-and-vue) |
+| Angular 11–13 | `<aveon-editor>` element + forms module | [3.5](#35-angular-1113) |
+| React, Vue, Svelte | `<aveon-editor>` element | [3.6](#36-react-and-vue) |
 
 Every route takes the same presets:
 
@@ -205,9 +208,36 @@ export class ArticleComponent {
 }
 ```
 
+### 3.5 Angular 11–13
+
+These versions have no standalone components, and their build cannot compile the library itself (it is ES2022), so:
+
+1. Load the element with the standalone files in `index.html`: the `<link>` and `<script type="module">` from 3.1 (from your host, or copied into `src/assets/aveon/`). Do not import `@aveon/editor` in TypeScript.
+2. Copy `angular-11-13/aveon-editor-forms.module.ts` into the app and import `AveonEditorFormsModule`.
+
+```ts
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AveonEditorFormsModule } from './aveon-editor-forms.module';
+import { AppComponent } from './app.component';
+
+@NgModule({
+  imports: [BrowserModule, FormsModule, ReactiveFormsModule, AveonEditorFormsModule],
+  declarations: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  bootstrap: [AppComponent]
+})
+export class AppModule {}
+```
+
+Templates are the same as in 3.4: `<aveon-editor preset="erp" [formControl]="terms"></aveon-editor>`, with `ngModel`, `formControlName` and the disabled state working. To reach the editor itself, use a template reference: `<aveon-editor #terms … (ready)="onReady(terms)">` and `onReady(element: any) { element.editor.execute('bold'); }`.
+
+The editor needs a current browser (Chrome, Edge, Firefox, Safari); Internet Explorer 11, which Angular 11 can still target, is not supported.
+
 For NgModule apps, add the directive to the module's `imports` and `CUSTOM_ELEMENTS_SCHEMA` to its `schemas`.
 
-### 3.5 React and Vue
+### 3.6 React and Vue
 
 ```tsx
 // React

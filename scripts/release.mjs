@@ -9,7 +9,7 @@
  *   editor/v<version>/integrity.json   SHA-384 of each file, for <script integrity="…">
  *   editor/v<version>/snippet.html     the two tags clients paste, with integrity attributes
  *   packages/*.tgz                     @aveon/editor, @aveon/collab-server, @aveon/api-connect, aveon-angular for npm registries
- *   angular-14-21/                     forms support for the <aveon-editor> element in Angular 14–21
+ *   angular-11-13/, angular-14-21/     forms support for the <aveon-editor> element in Angular 11–21
  *   aveon-offline-v<version>.zip       everything above plus deploy files, for air-gapped installs
  *   SHA256SUMS                         checksums of the archives
  */
@@ -67,7 +67,7 @@ for (const workspace of ['packages/aveon-editor', 'packages/collab-server', 'pac
   run(`npm pack --pack-destination "${packagesOut}"`, path.join(root, workspace));
 }
 
-// The Angular component (its workspace installs its own dependencies), and forms support for Angular 14–21.
+// The Angular component (its workspace installs its own dependencies), and forms support for Angular 11–21.
 const angularApp = path.join(root, 'apps/cms-angular');
 if (existsSync(path.join(angularApp, 'node_modules'))) {
   if (!args.includes('--skip-build')) run('npx ng build aveon-angular', angularApp);
@@ -75,14 +75,15 @@ if (existsSync(path.join(angularApp, 'node_modules'))) {
 } else {
   console.warn('\n! aveon-angular left out: run `npm install` in apps/cms-angular first.\n');
 }
-cpSync(path.join(root, 'docs/angular-14-21'), path.join(out, 'angular-14-21'), { recursive: true });
+const angularForms = ['angular-11-13', 'angular-14-21'];
+for (const folder of angularForms) cpSync(path.join(root, 'docs', folder), path.join(out, folder), { recursive: true });
 
 // 3. One archive for air-gapped clients: unzip, copy editor/ to a web server, install the servers.
 const zipName = `aveon-offline-v${version}.zip`;
 const entries = [
   ...walk(path.join(out, 'editor')).map(file => [`editor/${path.relative(path.join(out, 'editor'), file)}`, file]),
   ...walk(packagesOut).map(file => [`packages/${path.relative(packagesOut, file)}`, file]),
-  ...walk(path.join(out, 'angular-14-21')).map(file => [`angular-14-21/${path.relative(path.join(out, 'angular-14-21'), file)}`, file]),
+  ...angularForms.flatMap(folder => walk(path.join(out, folder)).map(file => [`${folder}/${path.relative(path.join(out, folder), file)}`, file])),
   ...['INTEGRATION_KIT.md', 'DEPLOYMENT.md'].map(file => [`docs/${file}`, path.join(root, 'docs', file)]),
   ...walk(path.join(root, 'deploy')).map(file => [`deploy/${path.relative(path.join(root, 'deploy'), file)}`, file]),
   ['README.md', path.join(root, 'README.md')]
