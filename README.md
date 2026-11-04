@@ -128,7 +128,7 @@ Inputs and outputs match the CKEditor 5 Angular component: `editor`, `config`, `
 
 ## Integrating into a CMS or ERP
 
-Pick the route that matches the host application. All of them use the same presets.
+Pick the route that matches the host application. All of them use the same presets. [docs/INTEGRATION_KIT.md](docs/INTEGRATION_KIT.md) is the guide to hand to a client team: packages, every route (including Angular 14–22), the API Connect endpoints and token format, API links and package builds.
 
 ### Presets
 

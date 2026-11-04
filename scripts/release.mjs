@@ -8,7 +8,8 @@
  *   editor/v<version>/                 files for the central host (or a client's own web server)
  *   editor/v<version>/integrity.json   SHA-384 of each file, for <script integrity="…">
  *   editor/v<version>/snippet.html     the two tags clients paste, with integrity attributes
- *   packages/*.tgz                     @aveon/editor, @aveon/collab-server, @aveon/api-connect for npm registries
+ *   packages/*.tgz                     @aveon/editor, @aveon/collab-server, @aveon/api-connect, aveon-angular for npm registries
+ *   angular-14-21/                     forms support for the <aveon-editor> element in Angular 14–21
  *   aveon-offline-v<version>.zip       everything above plus deploy files, for air-gapped installs
  *   SHA256SUMS                         checksums of the archives
  */
@@ -66,11 +67,23 @@ for (const workspace of ['packages/aveon-editor', 'packages/collab-server', 'pac
   run(`npm pack --pack-destination "${packagesOut}"`, path.join(root, workspace));
 }
 
+// The Angular component (its workspace installs its own dependencies), and forms support for Angular 14–21.
+const angularApp = path.join(root, 'apps/cms-angular');
+if (existsSync(path.join(angularApp, 'node_modules'))) {
+  if (!args.includes('--skip-build')) run('npx ng build aveon-angular', angularApp);
+  run(`npm pack --pack-destination "${packagesOut}"`, path.join(angularApp, 'dist/aveon-angular'));
+} else {
+  console.warn('\n! aveon-angular left out: run `npm install` in apps/cms-angular first.\n');
+}
+cpSync(path.join(root, 'docs/angular-14-21'), path.join(out, 'angular-14-21'), { recursive: true });
+
 // 3. One archive for air-gapped clients: unzip, copy editor/ to a web server, install the servers.
 const zipName = `aveon-offline-v${version}.zip`;
 const entries = [
   ...walk(path.join(out, 'editor')).map(file => [`editor/${path.relative(path.join(out, 'editor'), file)}`, file]),
   ...walk(packagesOut).map(file => [`packages/${path.relative(packagesOut, file)}`, file]),
+  ...walk(path.join(out, 'angular-14-21')).map(file => [`angular-14-21/${path.relative(path.join(out, 'angular-14-21'), file)}`, file]),
+  ...['INTEGRATION_KIT.md', 'DEPLOYMENT.md'].map(file => [`docs/${file}`, path.join(root, 'docs', file)]),
   ...walk(path.join(root, 'deploy')).map(file => [`deploy/${path.relative(path.join(root, 'deploy'), file)}`, file]),
   ['README.md', path.join(root, 'README.md')]
 ].map(([name, file]) => [name.split(path.sep).join('/'), file]);
