@@ -76,7 +76,8 @@ test('several processes: a stopped process is started again and keeps serving it
     });
     assert.equal(health.workersUp, 2);
 
-    process.kill(health.processes.at(0).pid);
+    // A crash: SIGKILL, because the processes ignore SIGTERM (stopping is coordinated by the primary).
+    process.kill(health.processes.at(0).pid, 'SIGKILL');
     health = await until(async () => {
       const response = await fetch(`${server.url}/health`);
       const body = await response.json();
