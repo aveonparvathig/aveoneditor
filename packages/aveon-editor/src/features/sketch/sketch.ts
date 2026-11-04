@@ -10,6 +10,7 @@ import { Plugin } from '../../core/plugin';
 import { Command } from '../../core/command';
 import { ButtonView } from '../../ui/button/buttonview';
 import { icons } from '../../ui/icons';
+import { applyTheme } from '../../ui/theme';
 import { Widget } from '../widget/widget';
 import { toWidget } from '../widget/utils';
 import { upcastAtomic } from '../shared/upcast';
@@ -115,6 +116,7 @@ export function openSketchDialog(editor: Editor, initial?: SketchData): Promise<
 
     const overlay = doc.createElement('div');
     overlay.className = 'ck ck-dialog-overlay ck-reset_all-excluded';
+    applyTheme(editor, overlay);
     const dialog = doc.createElement('div');
     dialog.className = 'ck-dialog ck-dialog_sketch';
     dialog.setAttribute('role', 'dialog');

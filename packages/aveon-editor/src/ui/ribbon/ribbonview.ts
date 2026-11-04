@@ -23,12 +23,21 @@ import type { ComponentFactory } from '../../core/componentfactory';
 export type RibbonItemSize = 'large' | 'medium' | 'small' | 'combo';
 
 /**
+ * How the ribbon draws its items. `tiles` (the default) gives every item the same icon-only tile and
+ * separates groups with a hairline, ignoring item sizes; `word` is the Word-style layout with large,
+ * medium and small items under labelled groups.
+ */
+export type RibbonLayout = 'tiles' | 'word';
+
+/**
  * A ribbon item: a component name (small, icon-only button) or an object giving its size and an
  * optional short label. Large items show a big icon above the label (the group's main action);
  * medium items show a small icon beside the label, stacked up to three high. Combo items (font name
- * and size) sit in a small-item row and look like a text box showing the current value.
+ * and size) sit in a small-item row and look like a text box showing the current value. An item
+ * with a `layout` shows in that layout only (e.g. cut, copy and paste, which the one-row tiles
+ * layout leaves to the keyboard and the context menu).
  */
-export type RibbonItem = string | { name: string; size?: RibbonItemSize; label?: string };
+export type RibbonItem = string | { name: string; size?: RibbonItemSize; label?: string; layout?: RibbonLayout };
 
 export interface RibbonGroupConfig {
   label: string;
@@ -66,6 +75,8 @@ export interface RibbonConfig {
   search?: boolean;
   /** Label of the tab that is open at first (default: the first tab), e.g. Home after a File tab. */
   startTab?: string;
+  /** See `RibbonLayout` (default `tiles`). */
+  layout?: RibbonLayout;
 }
 
 function itemName(item: RibbonItem): string {
@@ -129,8 +140,9 @@ export class RibbonGroupView extends View {
   private readonly _blocks = this.createCollection();
   private _removeListeners = () => {};
 
-  constructor(locale: Locale | undefined, config: RibbonGroupConfig, factory: ComponentFactory) {
+  constructor(locale: Locale | undefined, config: RibbonGroupConfig, factory: ComponentFactory, layout: RibbonLayout = 'tiles') {
     super(locale);
+    const tiles = layout === 'tiles';
     const label = config.label;
     this.label = label;
     const newToolbar = (className: string) => {
@@ -171,12 +183,17 @@ export class RibbonGroupView extends View {
     };
 
     for (const item of config.items) {
-      const size: RibbonItemSize = typeof item === 'string' ? 'small' : item.size || 'small';
+      if (typeof item !== 'string' && item.layout && item.layout !== layout) continue;
+      const configured: RibbonItemSize = typeof item === 'string' ? 'small' : item.size || 'small';
+      // Tiles: every item is a small (icon-only) button on one row; combos keep their text box.
+      const size: RibbonItemSize = tiles && configured !== 'combo' ? 'small' : configured;
       const name = itemName(item);
       if (size === 'small' || size === 'combo') {
         medium = null;
         if (!smallRows) smallRows = [[]];
-        if (name === '-') smallRows.push([]);
+        if (name === '-') {
+          if (!tiles) smallRows.push([]);
+        }
         else smallRows[smallRows.length - 1].push({ name, size });
         continue;
       }
@@ -224,7 +241,8 @@ export class RibbonGroupView extends View {
       return button.icon || (button.actionView && button.actionView.icon);
     };
     const firstIcon = this.toolbars.flatMap(toolbar => [...toolbar.items]).map(iconOf).find(Boolean);
-    this.toggleView.set({ label, withText: true, icon: (config.icon && icons[config.icon]) || firstIcon || icons.paragraph, class: 'ck-ribbon__group-toggle', tooltip: false });
+    // In the tiles layout the toggle is one tile, so its name moves to the tooltip.
+    this.toggleView.set({ label, withText: true, icon: (config.icon && icons[config.icon]) || firstIcon || icons.paragraph, class: 'ck-ribbon__group-toggle', tooltip: tiles });
     this.toggleView.bind('isOn').to(this, 'isOpen');
     this.toggleView.extendTemplate({ attributes: { 'aria-haspopup': 'true', 'aria-expanded': this.toggleView.bindTemplate.to('isOn', (on: boolean) => String(!!on)) } as any });
     this.toggleView.on('execute', () => (this.isOpen = !this.isOpen));
@@ -338,6 +356,8 @@ export class RibbonView extends View {
   public readonly keystrokes = new KeystrokeHandler();
   declare public activeTab: number;
   declare public isCollapsed: boolean;
+  /** The ribbon uses the `tiles` layout (see `RibbonLayout`). */
+  declare public isTiles: boolean;
   declare public ariaLabel: string;
   private readonly _barChildren = this.createCollection();
   /** Context name of each tab (undefined for normal tabs). */
@@ -352,6 +372,7 @@ export class RibbonView extends View {
     const bind = this.bindTemplate;
     this.set('activeTab', 0);
     this.set('isCollapsed', false);
+    this.set('isTiles', true);
     this.set('ariaLabel', t('Editor toolbar'));
 
     this.quickAccess = new ToolbarView(locale);
@@ -371,7 +392,12 @@ export class RibbonView extends View {
 
     this.setTemplate({
       tag: 'div',
-      attributes: { class: ['ck', 'ck-ribbon', bind.if('isCollapsed', 'ck-ribbon_collapsed')], role: 'toolbar', 'aria-label': bind.to('ariaLabel'), tabindex: -1 },
+      attributes: {
+        class: ['ck', 'ck-ribbon', bind.if('isCollapsed', 'ck-ribbon_collapsed'), bind.if('isTiles', 'ck-ribbon_tiles'), bind.if('isTiles', 'ck-ribbon_word', value => !value)],
+        role: 'toolbar',
+        'aria-label': bind.to('ariaLabel'),
+        tabindex: -1
+      },
       children: [
         { tag: 'div', attributes: { class: ['ck', 'ck-ribbon__bar'] }, children: this._barChildren },
         { tag: 'div', attributes: { class: ['ck', 'ck-ribbon__panels'] }, children: this.panels }
@@ -427,9 +453,10 @@ export class RibbonView extends View {
     groups.forEach(group => (group.isCompact = false));
     const full = widths();
     let excess = element.scrollWidth - element.clientWidth;
+    // A group whose button would be about as wide as its items (one tile) is not worth collapsing.
     const candidates = groups
       .map((group, index) => ({ group, index, saving: full[index] - compact[index] }))
-      .filter(candidate => candidate.saving > 0)
+      .filter(candidate => candidate.saving > 2)
       .sort((a, b) => a.group.priority - b.group.priority || b.saving - a.saving || b.index - a.index);
     for (const candidate of candidates) {
       if (excess <= 1) break;
@@ -442,13 +469,15 @@ export class RibbonView extends View {
 
   /** Builds tabs and groups; items that are not available (plugin not loaded) are skipped. */
   public fillFromConfig(config: RibbonConfig, factory: ComponentFactory): void {
+    const layout: RibbonLayout = config.layout || 'tiles';
+    this.isTiles = layout === 'tiles';
     if (config.quickAccess && config.quickAccess.length) {
       this.quickAccess.fillFromConfig(config.quickAccess.filter(name => name === '|' || factory.has(name)), factory);
       if (this.quickAccess.items.length) this._barChildren.add(this.quickAccess, 0);
     }
     if (config.search === false) this._barChildren.remove(this.searchView);
     for (const tab of config.tabs) {
-      const groups = tab.groups.map(group => new RibbonGroupView(this.locale, group, factory)).filter(group => !group.isEmpty);
+      const groups = tab.groups.map(group => new RibbonGroupView(this.locale, group, factory, layout)).filter(group => !group.isEmpty);
       if (!groups.length) continue;
       const index = this.tabs.length;
       const tabId = `ck-ribbon-tab-${uid()}`;

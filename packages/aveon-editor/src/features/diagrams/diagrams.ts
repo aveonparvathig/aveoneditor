@@ -23,6 +23,7 @@ import { Plugin } from '../../core/plugin';
 import { Command } from '../../core/command';
 import { ButtonView } from '../../ui/button/buttonview';
 import { icons } from '../../ui/icons';
+import { applyTheme } from '../../ui/theme';
 import { Widget } from '../widget/widget';
 import { toWidget } from '../widget/utils';
 import { upcastAtomic, collectViewText, escapeHtml } from '../shared/upcast';
@@ -174,6 +175,7 @@ export function openDiagramDialog(editor: Editor, initial?: DiagramValue): Promi
 
     const overlay = doc.createElement('div');
     overlay.className = 'ck ck-dialog-overlay ck-reset_all-excluded';
+    applyTheme(editor, overlay);
     const dialog = doc.createElement('div');
     dialog.className = 'ck-dialog ck-dialog_diagram';
     dialog.setAttribute('role', 'dialog');

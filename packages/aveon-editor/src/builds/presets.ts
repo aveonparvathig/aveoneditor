@@ -177,16 +177,20 @@ export const pictureContextTab: RibbonTabConfig = {
   ]
 };
 
-/** Home tab: the everyday tools. Font and Paragraph stay in sight longest in a narrow window. */
+/**
+ * Home tab: the everyday tools. Font and Paragraph stay in sight longest in a narrow window. The
+ * one-row tiles layout leaves cut, copy, paste, select all, subscript and superscript to their
+ * keyboard shortcuts (and the Font dialog), so the row fits a 1180px page.
+ */
 const homeTab: RibbonTabConfig = {
   label: 'Home',
   groups: [
     {
       label: 'Clipboard',
       items: [
-        { name: 'paste', size: 'large' },
-        { name: 'cut', size: 'medium' },
-        { name: 'copy', size: 'medium' },
+        { name: 'paste', size: 'large', layout: 'word' },
+        { name: 'cut', size: 'medium', layout: 'word' },
+        { name: 'copy', size: 'medium', layout: 'word' },
         { name: 'formatPainter', size: 'medium', label: 'Format' }
       ]
     },
@@ -194,7 +198,25 @@ const homeTab: RibbonTabConfig = {
       label: 'Font',
       priority: 3,
       icon: 'fontFamily',
-      items: [{ name: 'fontFamily', size: 'combo' }, { name: 'fontSize', size: 'combo' }, 'fontSizeIncrease', 'fontSizeDecrease', 'changeCase', 'removeFormat', '-', 'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', '|', 'fontColor', 'fontBackgroundColor', 'highlight'],
+      items: [
+        { name: 'fontFamily', size: 'combo' },
+        { name: 'fontSize', size: 'combo' },
+        'fontSizeIncrease',
+        'fontSizeDecrease',
+        'changeCase',
+        'removeFormat',
+        '-',
+        'bold',
+        'italic',
+        'underline',
+        'strikethrough',
+        { name: 'subscript', layout: 'word' },
+        { name: 'superscript', layout: 'word' },
+        '|',
+        'fontColor',
+        'fontBackgroundColor',
+        'highlight'
+      ],
       launcher: { command: 'fontDialog', label: 'Font options' }
     },
     { label: 'Paragraph', priority: 2, icon: 'paragraph', items: ['bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', '-', 'alignment', 'blockQuote', 'codeBlock'] },
@@ -203,7 +225,7 @@ const homeTab: RibbonTabConfig = {
       label: 'Editing',
       items: [
         { name: 'findAndReplace', size: 'medium', label: 'Find' },
-        { name: 'selectAll', size: 'medium', label: 'Select all' }
+        { name: 'selectAll', size: 'medium', label: 'Select all', layout: 'word' }
       ]
     }
   ]

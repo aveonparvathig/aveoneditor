@@ -201,16 +201,16 @@ test('an equation pasted from Word arrives as an editable equation', async ({ pa
 
 test('ribbon: in a narrow window groups collapse to buttons instead of wrapping', async ({ page, isMobile }) => {
   test.skip(isMobile, 'Ribbon checks run at desktop sizes.');
-  await page.setViewportSize({ width: 840, height: 700 });
+  await page.setViewportSize({ width: 1000, height: 700 });
   await openDemo(page);
   const ribbon = page.locator('.ck-ribbon');
-  // Tab row plus one row of groups.
-  await expect.poll(async () => (await ribbon.boundingBox())!.height).toBeLessThan(180);
-  // The everyday groups stay open; the less used ones collapse first.
-  await expect(page.locator('.ck-ribbon__group:not(.ck-ribbon__group_compact) .ck-ribbon__group-label', { hasText: 'Font' })).toBeVisible();
-  const clipboard = page.locator('.ck-ribbon__group_compact > .ck-ribbon__group-toggle', { hasText: 'Clipboard' });
-  await expect(clipboard).toBeVisible();
-  await clipboard.click();
+  // Tab row plus one row of tiles.
+  await expect.poll(async () => (await ribbon.boundingBox())!.height).toBeLessThan(140);
+  // The Font group stays open (highest priority); Paragraph collapses to one tile that opens it.
+  await expect(page.locator('.ck-ribbon__group:not(.ck-ribbon__group_compact)', { has: page.locator('.ck-ribbon__group-label', { hasText: 'Font' }) })).toBeVisible();
+  const paragraph = page.locator('.ck-ribbon__group_compact > .ck-ribbon__group-toggle', { hasText: 'Paragraph' });
+  await expect(paragraph).toBeVisible();
+  await paragraph.click();
   await expect(page.locator('.ck-ribbon__group_open .ck-ribbon__group-popup')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('.ck-ribbon__group_open')).toHaveCount(0);

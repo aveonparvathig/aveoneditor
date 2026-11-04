@@ -101,6 +101,7 @@ Use the tags from `snippet.html` in production: they carry `integrity` hashes. T
 | `readonly`, `disabled` | Read-only (also follows a disabled `<fieldset>`) |
 | `toolbar="classic"` | Single toolbar instead of the ribbon |
 | `min-height` | Minimum editing height (`240` or `20rem`) |
+| `theme="dark"` | Dark colour set (or put `data-theme="dark"` on `<html>` for the whole page) |
 
 In JavaScript: `element.value` (get or set the HTML), `element.editor`, `await element.whenReady()`, and the `ready`, `input` and `change` events. Set `element.config = { … }` before adding the element for any `createEditor()` option (for example a bearer token for uploads, or co-editing).
 

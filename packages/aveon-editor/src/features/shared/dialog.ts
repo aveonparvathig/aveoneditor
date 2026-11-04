@@ -4,6 +4,7 @@
  */
 
 import type { Editor } from '../../core/editor';
+import { applyTheme } from '../../ui/theme';
 
 export interface PromptOptions {
   title: string;
@@ -26,6 +27,7 @@ export function promptDialog(editor: Editor, options: PromptOptions): Promise<st
   return new Promise(resolve => {
     const overlay = doc.createElement('div');
     overlay.className = 'ck ck-dialog-overlay ck-reset_all-excluded';
+    applyTheme(editor, overlay);
     const titleId = `ck-prompt-${++uid}`;
     const dialog = doc.createElement('div');
     dialog.className = 'ck-dialog ck-dialog_prompt';

@@ -3,6 +3,7 @@ import { createEditor, resolveEditorOptions } from './createeditor';
 import { defineEditorElement, type AveonEditorElement } from '../integrations/editorelement';
 import { Base64UploadAdapter, SimpleUploadAdapter } from '../features/image/image';
 import { Math as MathPlugin } from '../features/math/math';
+import { erpRibbon } from './presets';
 
 function host(html = ''): HTMLElement {
   const element = document.createElement('div');
@@ -42,9 +43,29 @@ describe('presets and createEditor()', () => {
     await editor.destroy();
   });
 
-  it('creates an ERP editor with a ribbon using large, medium and small items', async () => {
+  it('creates an ERP editor whose ribbon draws every item as one tile', async () => {
     const editor = await createEditor(host('<p>Quote</p>'), { preset: 'erp' });
     const ribbon = editor.ui.view.ribbon!;
+    expect(ribbon.element!.classList.contains('ck-ribbon_tiles')).toBe(true);
+    expect([...ribbon.element!.querySelectorAll('[role="tab"]:not(.ck-hidden)')].map(tab => tab.textContent)).toEqual(['File', 'Home', 'Insert', 'Review', 'View']);
+    expect(ribbon.tabs.get(ribbon.activeTab)!.label).toBe('Home');
+    const home = ribbon.panels.get(ribbon.activeTab)!.element!;
+    // No large or medium items: the configured sizes are ignored, and the names live in tooltips.
+    expect(home.querySelectorAll('.ck-ribbon__item_large, .ck-ribbon__item_medium').length).toBe(0);
+    const buttons = [...home.querySelectorAll<HTMLElement>('.ck-ribbon__group-row .ck-button:not(.ck-splitbutton__arrow)')];
+    expect(buttons.length).toBeGreaterThan(10);
+    expect(buttons.every(button => button.classList.contains('ck-button_with-text') || button.getAttribute('data-cke-tooltip-text'))).toBe(true);
+    expect(buttons.map(button => button.getAttribute('data-cke-tooltip-text'))).toContain('Format Painter');
+    // Group names stay for assistive technology, and the launcher is still there.
+    expect([...home.querySelectorAll('.ck-ribbon__group-label')].map(label => label.textContent)).toContain('Font');
+    expect(ribbon.element!.querySelector('.ck-ribbon__launcher')).not.toBeNull();
+    await editor.destroy();
+  });
+
+  it('keeps the Word-style ribbon with large, medium and small items behind layout: "word"', async () => {
+    const editor = await createEditor(host('<p>Quote</p>'), { preset: 'erp', ribbon: { ...erpRibbon, layout: 'word' } });
+    const ribbon = editor.ui.view.ribbon!;
+    expect(ribbon.element!.classList.contains('ck-ribbon_word')).toBe(true);
     expect([...ribbon.element!.querySelectorAll('[role="tab"]:not(.ck-hidden)')].map(tab => tab.textContent)).toEqual(['File', 'Home', 'Insert', 'Review', 'View']);
     // It opens on Home, after the File tab.
     expect(ribbon.tabs.get(ribbon.activeTab)!.label).toBe('Home');

@@ -53,33 +53,67 @@ const templates = [
   }
 ];
 
-ClassicEditor.create(document.querySelector('#editor') as HTMLElement, {
-  ...classicDefaultConfig,
-  plugins: classicPreset,
-  placeholder: 'Type something...',
-  wordCount: { container: document.querySelector('#word-count') as HTMLElement },
-  user: { id: 'u-1', name: 'Ranjith' },
-  mergeFields,
-  templates,
-  export: { fileName: 'aveon-document' }
-})
-  .then(editor => {
-    (window as any).editor = editor;
-    const refresh = () => {
-      output.textContent = editor.getData();
-    };
-    editor.model.document.on('change:data', refresh);
-    refresh();
-    document.querySelector('#get-data')!.addEventListener('click', refresh);
-    document.querySelector('#set-data')!.addEventListener('click', () => {
-      editor.setData('<h2>Sample</h2><p>Hello <b>world</b>!</p><ul><li>One</li><li>Two<ul><li>Nested</li></ul></li></ul>');
+const pressed = (id: string, on: boolean) => document.querySelector(id)!.setAttribute('aria-pressed', String(on));
+
+/** The ribbon draws every item as one tile by default; the Word-style layout is kept for comparison. */
+let layout: 'tiles' | 'word' = 'tiles';
+let readOnly = false;
+let editor: ClassicEditor | null = null;
+
+async function create(initialData?: string): Promise<void> {
+  const host = document.querySelector('#editor') as HTMLElement;
+  editor = await ClassicEditor.create(host, {
+    ...classicDefaultConfig,
+    ribbon: { ...classicDefaultConfig.ribbon!, layout },
+    plugins: classicPreset,
+    placeholder: 'Type something...',
+    wordCount: { container: document.querySelector('#word-count') as HTMLElement },
+    user: { id: 'u-1', name: 'Ranjith' },
+    mergeFields,
+    templates,
+    export: { fileName: 'aveon-document' },
+    ...(initialData !== undefined ? { initialData } : {})
+  });
+  (window as any).editor = editor;
+  const current = editor;
+  const refresh = () => {
+    output.textContent = current.getData();
+  };
+  current.model.document.on('change:data', refresh);
+  refresh();
+  if (readOnly) current.enableReadOnlyMode('demo');
+}
+
+create()
+  .then(() => {
+    document.querySelector('#get-data')!.addEventListener('click', () => {
+      output.textContent = editor ? editor.getData() : '';
     });
-    let readOnly = false;
+    document.querySelector('#set-data')!.addEventListener('click', () => {
+      editor?.setData('<h2>Sample</h2><p>Hello <b>world</b>!</p><ul><li>One</li><li>Two<ul><li>Nested</li></ul></li></ul>');
+    });
     document.querySelector('#toggle-readonly')!.addEventListener('click', () => {
       readOnly = !readOnly;
-      document.querySelector('#toggle-readonly')!.setAttribute('aria-pressed', String(readOnly));
-      if (readOnly) editor.enableReadOnlyMode('demo');
-      else editor.disableReadOnlyMode('demo');
+      pressed('#toggle-readonly', readOnly);
+      if (readOnly) editor?.enableReadOnlyMode('demo');
+      else editor?.disableReadOnlyMode('demo');
+    });
+    // The theme is an attribute on <html>, so the page, the editor and its dialogs switch together.
+    document.querySelector('#toggle-theme')!.addEventListener('click', () => {
+      const dark = document.documentElement.getAttribute('data-theme') !== 'dark';
+      if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+      else document.documentElement.removeAttribute('data-theme');
+      pressed('#toggle-theme', dark);
+    });
+    // The ribbon layout is part of the configuration: the editor is created again with its content.
+    document.querySelector('#toggle-layout')!.addEventListener('click', async () => {
+      if (!editor) return;
+      layout = layout === 'tiles' ? 'word' : 'tiles';
+      pressed('#toggle-layout', layout === 'word');
+      const data = editor.getData();
+      await editor.destroy();
+      editor = null;
+      await create(data);
     });
   })
   .catch(err => {

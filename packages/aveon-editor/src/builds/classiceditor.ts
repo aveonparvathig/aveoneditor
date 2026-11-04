@@ -6,6 +6,7 @@ import { StickyPanelView } from '../ui/panel/stickypanelview';
 import { ToolbarView } from '../ui/toolbar/toolbarview';
 import { RibbonView, type RibbonConfig } from '../ui/ribbon/ribbonview';
 import { TooltipManager } from '../ui/tooltipmanager';
+import { applyTheme } from '../ui/theme';
 import { enablePlaceholder } from '../engine/view/placeholder';
 import type { Locale } from '../utils/locale';
 import type { EditingView } from '../engine/view';
@@ -71,6 +72,9 @@ export class ClassicEditorUI extends EditorUI {
     this._initPlaceholder();
     this._initToolbar();
     this._tooltipManager = new TooltipManager(editor);
+    // Balloons, tooltips and the Font dialog live in document.body: give them the editor's theme.
+    const body = view.body.bodyCollectionContainer;
+    if (body) applyTheme(editor, body);
     this.fire('ready');
   }
 

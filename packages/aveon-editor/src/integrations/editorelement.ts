@@ -9,7 +9,8 @@
  *
  * Attributes: `name`, `preset` (basic | cms | erp | full), `placeholder`, `upload-url`,
  * `upload-credentials`, `readonly`, `disabled`, `toolbar="classic"` (single toolbar instead of the
- * ribbon), `min-height`. Initial content comes from a child `<template>`, `<textarea>` or the
+ * ribbon), `min-height`, `theme="dark"` (the dark colour set; its dialogs and balloons follow).
+ * Initial content comes from a child `<template>`, `<textarea>` or the
  * element's own HTML. Properties: `value` (HTML), `editor`, `config` (extra options, set before the
  * element is connected). Events: `ready`, `change`, `input` (bubbling).
  */

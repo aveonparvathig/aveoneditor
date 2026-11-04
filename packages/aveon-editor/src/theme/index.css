@@ -1,35 +1,58 @@
 /* Aveon Editor theme. CSS custom properties use the --ck-* namespace so existing CKEditor 5 theming guides apply. */
 
 :root {
-  --ck-color-base-foreground: hsl(0, 0%, 98%);
-  --ck-color-base-background: hsl(0, 0%, 100%);
-  --ck-color-base-border: hsl(220, 13%, 84%);
+  /* The tile system: every control is one --ck-tile-size square with a --ck-icon-size icon. */
+  --ck-tile-size: 36px;
+  --ck-icon-size: 20px;
+  --ck-tile-radius: 8px;
+  --ck-tile-gap: 2px;
+  --ck-panel-radius: 12px;
+
+  /* Palette (light). The dark set below overrides the same names under [data-theme="dark"]. */
+  --ck-color-accent: #4f46e5;
+  --ck-color-accent-hover: #4338ca;
+  --ck-color-accent-tint: #edecfc;
+  --ck-color-accent-tint-hover: #e2e0fa;
+  --ck-color-accent-tint-active: #d7d4f7;
+  --ck-color-ground: #f4f5f7;
+  --ck-color-surface-hover: #eceef1;
+  --ck-color-surface-pressed: #dfe3e8;
+  --ck-color-text-muted: #5f6672;
+  --ck-color-icon: #2b3038;
+  --ck-color-on-accent: #ffffff;
+  --ck-color-success: #16a34a;
+  --ck-color-warning: #d97706;
+  --ck-user-color: #6b7280;
+
+  --ck-color-base-foreground: var(--ck-color-ground);
+  --ck-color-base-background: #ffffff;
+  --ck-color-base-border: #dfe3e8;
   --ck-color-base-action: hsl(104, 50.2%, 42.5%);
-  --ck-color-base-focus: hsl(209, 92%, 70%);
-  --ck-color-base-text: hsl(220, 15%, 18%);
-  --ck-color-base-active: hsl(218.1, 100%, 58%);
-  --ck-color-base-active-focus: hsl(218.2, 100%, 52.5%);
+  --ck-color-base-focus: var(--ck-color-accent);
+  --ck-color-base-text: #16181d;
+  --ck-color-base-active: var(--ck-color-accent);
+  --ck-color-base-active-focus: var(--ck-color-accent-hover);
   --ck-color-base-error: hsl(15, 100%, 43%);
 
-  --ck-color-focus-border-coordinates: 218, 81.8%, 56.9%;
-  --ck-color-focus-border: hsl(var(--ck-color-focus-border-coordinates));
-  --ck-color-focus-outer-shadow: hsl(212.4, 89.3%, 89%);
-  --ck-color-focus-disabled-shadow: hsla(209, 90%, 72%, .3);
+  --ck-color-focus-border-coordinates: 243, 75%, 59%;
+  --ck-color-focus-border: var(--ck-color-accent);
+  --ck-color-focus-outer-shadow: var(--ck-color-accent-tint);
+  --ck-color-focus-disabled-shadow: hsla(243, 75%, 59%, .25);
   --ck-color-focus-error-shadow: hsla(9, 100%, 56%, .3);
   --ck-color-text: var(--ck-color-base-text);
-  --ck-color-shadow-drop: hsla(220, 30%, 15%, 0.12);
-  --ck-color-shadow-drop-active: hsla(0, 0%, 0%, 0.2);
-  --ck-color-shadow-inner: hsla(220, 30%, 15%, 0.06);
+  --ck-color-shadow-drop: rgba(16, 24, 40, 0.12);
+  --ck-color-shadow-drop-active: rgba(16, 24, 40, 0.2);
+  --ck-color-shadow-inner: rgba(16, 24, 40, 0.06);
 
   --ck-color-button-default-background: transparent;
-  --ck-color-button-default-hover-background: hsl(220, 14%, 93%);
-  --ck-color-button-default-active-background: hsl(220, 14%, 89%);
+  --ck-color-button-default-hover-background: var(--ck-color-surface-hover);
+  --ck-color-button-default-active-background: var(--ck-color-surface-pressed);
   --ck-color-button-default-disabled-background: transparent;
-  --ck-color-button-on-background: hsl(212, 100%, 95.1%);
-  --ck-color-button-on-hover-background: hsl(211.7, 100%, 92.4%);
-  --ck-color-button-on-active-background: hsl(211.2, 100%, 90%);
-  --ck-color-button-on-disabled-background: hsl(211, 15%, 95%);
-  --ck-color-button-on-color: hsl(214, 100%, 44%);
+  --ck-color-button-on-background: var(--ck-color-accent-tint);
+  --ck-color-button-on-hover-background: var(--ck-color-accent-tint-hover);
+  --ck-color-button-on-active-background: var(--ck-color-accent-tint-active);
+  --ck-color-button-on-disabled-background: var(--ck-color-ground);
+  --ck-color-button-on-color: var(--ck-color-accent);
   --ck-color-button-action-background: var(--ck-color-base-action);
   --ck-color-button-action-hover-background: hsl(104, 53.2%, 40.2%);
   --ck-color-button-action-active-background: hsl(104, 53.2%, 40.2%);
@@ -55,20 +78,20 @@
   --ck-color-input-disabled-text: hsl(0, 0%, 46%);
   --ck-color-list-background: var(--ck-color-base-background);
   --ck-color-list-button-hover-background: var(--ck-color-button-default-hover-background);
-  --ck-color-list-button-on-background: var(--ck-color-button-on-color);
-  --ck-color-list-button-on-background-focus: var(--ck-color-button-on-color);
-  --ck-color-list-button-on-text: var(--ck-color-base-background);
+  --ck-color-list-button-on-background: var(--ck-color-accent-tint);
+  --ck-color-list-button-on-background-focus: var(--ck-color-accent-tint-hover);
+  --ck-color-list-button-on-text: var(--ck-color-accent);
   --ck-color-panel-background: var(--ck-color-base-background);
   --ck-color-panel-border: var(--ck-color-base-border);
-  --ck-color-toolbar-background: hsl(220, 20%, 98.5%);
+  --ck-color-toolbar-background: var(--ck-color-base-background);
   --ck-color-toolbar-border: var(--ck-color-base-border);
-  --ck-color-tooltip-background: hsl(220, 18%, 14%);
-  --ck-color-tooltip-text: var(--ck-color-base-background);
-  --ck-color-engine-placeholder-text: hsl(0, 0%, 44%);
-  --ck-color-upload-bar-background: hsl(209, 92%, 70%);
-  --ck-color-link-default: hsl(240, 100%, 47%);
-  --ck-color-link-selected-background: hsla(201, 100%, 56%, 0.1);
-  --ck-color-link-fake-selection: hsla(201, 100%, 56%, 0.3);
+  --ck-color-tooltip-background: #16181d;
+  --ck-color-tooltip-text: #ffffff;
+  --ck-color-engine-placeholder-text: var(--ck-color-text-muted);
+  --ck-color-upload-bar-background: var(--ck-color-accent);
+  --ck-color-link-default: var(--ck-color-accent);
+  --ck-color-link-selected-background: hsla(243, 75%, 59%, 0.1);
+  --ck-color-link-fake-selection: hsla(243, 75%, 59%, 0.3);
   --ck-color-highlight-background: hsl(60, 100%, 50%);
   --ck-color-light-red: hsl(0, 100%, 90%);
   --ck-color-widget-blurred-border: hsl(0, 0%, 87%);
@@ -78,16 +101,16 @@
   --ck-color-table-focus-border: hsl(209, 100%, 60%);
   --ck-color-table-selection: hsla(209, 100%, 70%, .25);
 
-  --ck-border-radius: 6px;
+  --ck-border-radius: var(--ck-tile-radius);
   --ck-font-size-base: 13px;
   --ck-line-height-base: 1.84615;
-  --ck-font-face: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --ck-font-face: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --ck-font-size-tiny: 0.7em;
   --ck-font-size-small: 0.75em;
   --ck-font-size-normal: 1em;
   --ck-font-size-big: 1.4em;
   --ck-font-size-large: 1.8em;
-  --ck-ui-component-min-height: 2.3em;
+  --ck-ui-component-min-height: var(--ck-tile-size);
   --ck-spacing-unit: 0.6em;
   --ck-spacing-large: calc(var(--ck-spacing-unit) * 1.5);
   --ck-spacing-standard: var(--ck-spacing-unit);
@@ -121,6 +144,40 @@
   --ck-table-column-resizer-width: 7px;
   --ck-color-code-block-label-background: hsl(0, 0%, 46%);
   --ck-tooltip-arrow-size: 5px;
+}
+
+/* Dark theme: put data-theme="dark" on <html>, on a wrapper, or use <aveon-editor theme="dark">. */
+[data-theme='dark'],
+aveon-editor[theme='dark'],
+.ck-theme_dark {
+  --ck-color-accent: #8b85f3;
+  --ck-color-accent-hover: #a39ef6;
+  --ck-color-accent-tint: #2a2950;
+  --ck-color-accent-tint-hover: #34336a;
+  --ck-color-accent-tint-active: #3e3d7a;
+  --ck-color-ground: #121316;
+  --ck-color-surface-hover: #272a31;
+  --ck-color-surface-pressed: #32363e;
+  --ck-color-text-muted: #9aa1ac;
+  --ck-color-icon: #c9cdd4;
+  --ck-color-on-accent: #0f0f1a;
+  --ck-color-success: #4ade80;
+  --ck-color-warning: #fbbf24;
+  --ck-color-base-background: #1b1d22;
+  --ck-color-base-border: #2e323a;
+  --ck-color-base-text: #e6e8ec;
+  --ck-color-focus-border-coordinates: 243, 82%, 74%;
+  --ck-color-shadow-drop: rgba(0, 0, 0, 0.4);
+  --ck-color-shadow-drop-active: rgba(0, 0, 0, 0.55);
+  --ck-color-shadow-inner: rgba(0, 0, 0, 0.3);
+  --ck-color-input-disabled-background: #23262c;
+  --ck-color-input-disabled-text: #7d8491;
+  --ck-color-tooltip-background: #e6e8ec;
+  --ck-color-tooltip-text: #16181d;
+  --ck-color-widget-blurred-border: #3a3f48;
+  --ck-color-widget-editable-focus-background: #1b1d22;
+  --ck-color-table-selection: hsla(243, 82%, 74%, .25);
+  color-scheme: dark;
 }
 
 /* ---------- Reset ---------- */
@@ -797,6 +854,7 @@
 
 /* ---------- Toolbar ---------- */
 
+/* Tiles sit --ck-tile-gap apart; groups are a hairline with 6px either side; rows have 8px padding. */
 .ck.ck-toolbar {
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -807,7 +865,7 @@
   align-items: center;
   border-radius: 0;
   background: var(--ck-color-toolbar-background);
-  padding: 0 var(--ck-spacing-small);
+  padding: 8px;
   border: 1px solid var(--ck-color-toolbar-border);
 }
 
@@ -820,12 +878,8 @@
   display: flex;
   flex-flow: row wrap;
   align-items: center;
+  gap: var(--ck-tile-gap);
   flex-grow: 1;
-}
-
-.ck.ck-toolbar > .ck-toolbar__items > *:not(.ck-toolbar__line-break),
-.ck.ck-toolbar > .ck-toolbar__grouped-dropdown {
-  margin-right: var(--ck-spacing-small);
 }
 
 .ck.ck-toolbar > .ck-toolbar__items > .ck-toolbar__line-break {
@@ -837,18 +891,16 @@
 }
 
 .ck.ck-toolbar .ck.ck-toolbar__separator {
-  align-self: stretch;
+  align-self: center;
   width: 1px;
   min-width: 1px;
+  height: 22px;
   background: var(--ck-color-toolbar-border);
-  margin-top: var(--ck-spacing-small);
-  margin-bottom: var(--ck-spacing-small);
+  margin: 0 6px;
 }
 
-.ck.ck-toolbar > .ck-toolbar__items > *,
 .ck.ck-toolbar > .ck.ck-toolbar__grouped-dropdown {
-  margin-top: var(--ck-spacing-small);
-  margin-bottom: var(--ck-spacing-small);
+  margin-left: var(--ck-tile-gap);
 }
 
 .ck.ck-toolbar.ck-toolbar_vertical {
@@ -904,8 +956,8 @@ aveon-editor {
 
 .ck.ck-ribbon {
   --ck-ribbon-accent: var(--ck-color-focus-border);
-  --ck-ribbon-muted: hsl(220, 9%, 42%);
-  --ck-ribbon-icon-accent: hsl(214, 72%, 42%);
+  --ck-ribbon-muted: var(--ck-color-text-muted);
+  --ck-ribbon-icon-accent: var(--ck-color-accent);
   display: flex;
   flex-direction: column;
   background: var(--ck-color-toolbar-background);
@@ -970,7 +1022,7 @@ aveon-editor {
   border: 0;
   border-radius: var(--ck-border-radius) var(--ck-border-radius) 0 0;
   background: transparent;
-  color: hsl(220, 12%, 30%);
+  color: var(--ck-color-base-text);
   font-size: 1.05em;
 }
 
@@ -1123,7 +1175,7 @@ aveon-editor {
   border: 1px solid var(--ck-color-toolbar-border);
   border-radius: 6px;
   background: var(--ck-color-toolbar-background);
-  box-shadow: 0 6px 18px hsla(220, 30%, 10%, 0.18);
+  box-shadow: 0 6px 18px var(--ck-color-shadow-drop);
 }
 
 /* Keep a drop-down near the right edge inside the window. */
@@ -1349,7 +1401,7 @@ aveon-editor {
 .ck.ck-ribbon .ck-button.ck-ribbon__tab_contextual {
   position: relative;
   color: var(--ck-ribbon-icon-accent);
-  background: hsla(214, 72%, 42%, 0.08);
+  background: var(--ck-color-accent-tint);
 }
 
 .ck.ck-ribbon .ck-button.ck-ribbon__tab_contextual::before {
@@ -1392,7 +1444,7 @@ aveon-editor {
 
 .ck.ck-ribbon .ck-ribbon__search-input:focus {
   border-color: var(--ck-color-focus-border);
-  box-shadow: 0 0 0 2px hsla(208, 79%, 51%, 0.2);
+  box-shadow: 0 0 0 2px var(--ck-color-focus-outer-shadow);
 }
 
 /* In a narrow tab row the tabs keep the room: the search box shrinks to its magnifier and opens
@@ -1479,6 +1531,258 @@ aveon-editor {
   padding: 6px 8px;
 }
 
+/* ---------- Ribbon: tiles layout (the default) ----------
+   Every item is one tile on one row, groups are hairlines, tabs sit in a segmented strip and the
+   launcher is a small tile at the end of its group. `ribbon.layout: 'word'` keeps the rules above. */
+
+.ck.ck-ribbon.ck-ribbon_tiles {
+  background: var(--ck-color-base-background);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__bar {
+  gap: 12px;
+  padding: 8px 12px;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__quick-access {
+  padding-right: 0;
+  margin-right: 0;
+  border-right: 0;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__quick-access > .ck-toolbar__items > * {
+  margin: 0;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__tabs {
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--ck-color-ground);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__tab {
+  min-height: 30px;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: var(--ck-tile-radius);
+  font-size: 1em;
+  font-weight: 500;
+  color: var(--ck-color-text-muted);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__tab:hover {
+  background: transparent;
+  color: var(--ck-color-base-text);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__tab.ck-on,
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__tab.ck-on:focus {
+  background: var(--ck-color-base-background);
+  color: var(--ck-color-base-text);
+  font-weight: 600;
+  box-shadow: 0 1px 2px var(--ck-color-shadow-drop), 0 0 0 1px var(--ck-color-shadow-inner);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__tab:focus {
+  box-shadow: none;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__tab_contextual,
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__tab_contextual.ck-on,
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__tab_contextual.ck-on:focus {
+  color: var(--ck-color-accent);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__tab_contextual {
+  background: var(--ck-color-accent-tint);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__tab_contextual::before {
+  display: none;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__search {
+  flex: 0 1 240px;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__search-input {
+  height: var(--ck-tile-size);
+  padding-left: 2.4em;
+  border-radius: var(--ck-tile-radius);
+  background-position: 0.8em center;
+  font-size: 1em;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__search-input:focus {
+  border-color: var(--ck-color-accent);
+  box-shadow: 0 0 0 1px var(--ck-color-accent);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__search-results {
+  padding: 6px;
+  border-radius: var(--ck-panel-radius);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__search-result {
+  align-items: center;
+  min-height: var(--ck-tile-size);
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-radius: var(--ck-tile-radius);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__search-empty {
+  padding: 8px 10px;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__panel {
+  align-items: center;
+  row-gap: 4px;
+  padding: 8px;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group {
+  flex-direction: row;
+  align-items: center;
+  padding: 0;
+  border-right: 0;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group + .ck-ribbon__group::before {
+  content: '';
+  flex: none;
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: var(--ck-color-base-border);
+}
+
+/* No gap before the footer: a group without a launcher must measure the same as its toggle tile. */
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group-popup {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group-body {
+  align-items: center;
+  gap: var(--ck-tile-gap);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__block_small {
+  flex-direction: row;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group-row > .ck-toolbar__items {
+  gap: var(--ck-tile-gap);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group-row > .ck-toolbar__items > * {
+  margin: 0;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group-footer {
+  position: static;
+  min-height: 0;
+  align-self: center;
+}
+
+/* The group's name stays for assistive technology and the command search; the hairline shows the group. */
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group-label,
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle .ck-button__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__launcher {
+  position: static;
+  min-width: var(--ck-tile-size);
+  min-height: var(--ck-tile-size);
+  margin-left: var(--ck-tile-gap);
+  padding: 0;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-button.ck-ribbon__launcher .ck-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--ck-color-text-muted);
+}
+
+/* A collapsed group is one tile with a corner caret; its items open in a rounded panel below. */
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle {
+  flex-direction: row;
+  gap: 0;
+  align-self: center;
+  justify-content: center;
+  width: var(--ck-tile-size);
+  min-width: var(--ck-tile-size);
+  height: var(--ck-tile-size);
+  padding: 0;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle .ck-button__icon {
+  width: var(--ck-icon-size);
+  height: var(--ck-icon-size);
+  margin: 0;
+  color: inherit;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group_compact > .ck-button.ck-ribbon__group-toggle::before {
+  content: '';
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-bottom: 5px solid currentColor;
+  opacity: 0.55;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__group_compact.ck-ribbon__group_open > .ck-ribbon__group-popup {
+  top: calc(100% + 6px);
+  min-height: 0;
+  padding: 6px;
+  border-radius: var(--ck-panel-radius);
+  background: var(--ck-color-base-background);
+  box-shadow: var(--ck-drop-shadow);
+}
+
+/* Font name and size: text boxes at tile height. */
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__item_combo.ck-dropdown > .ck-button.ck-dropdown__button {
+  min-height: var(--ck-tile-size);
+  height: var(--ck-tile-size);
+  padding: 0 8px 0 12px;
+  border-radius: var(--ck-tile-radius);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__item_combo.ck-dropdown > .ck-button.ck-dropdown__button:hover {
+  border-color: var(--ck-color-text-muted);
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__item_combo.ck-font-family-dropdown > .ck-button > .ck-button__label {
+  width: 7.5em;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__item_combo.ck-font-size-dropdown > .ck-button > .ck-button__label {
+  width: 2em;
+}
+
+.ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__item_combo + .ck-ribbon__item_combo {
+  margin-left: 4px;
+}
+
 /* Colour buttons: a bar under the icon showing the colour at the cursor. */
 .ck.ck-color-ui-dropdown > .ck-button.ck-dropdown__button {
   position: relative;
@@ -1486,16 +1790,118 @@ aveon-editor {
 
 .ck.ck-color-ui-dropdown .ck-color-indicator {
   position: absolute;
-  left: calc(var(--ck-spacing-tiny) + 1px);
-  bottom: 2px;
-  width: calc(var(--ck-icon-size, 20px) - 2px);
-  height: 4px;
-  border-radius: 1px;
+  left: 9px;
+  right: 9px;
+  bottom: 5px;
+  height: 3px;
+  border-radius: 2px;
   pointer-events: none;
 }
 
 .ck.ck-color-ui-dropdown .ck-color-indicator.ck-color-indicator_auto {
-  box-shadow: inset 0 0 0 1px hsl(220, 10%, 72%);
+  box-shadow: inset 0 0 0 1px var(--ck-color-base-border);
+}
+
+/* The colour bar takes the room of the on-state bar; the corner caret stays. */
+.ck.ck-color-ui-dropdown > .ck-button.ck-dropdown__button.ck-on::after {
+  display: none;
+}
+
+/* ---------- Collaboration presence ---------- */
+
+.ck.ck-collaborators {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--ck-tile-size);
+  padding: 0 4px 0 8px;
+  font-size: var(--ck-font-size-small);
+  color: var(--ck-color-text-muted);
+  white-space: nowrap;
+}
+
+.ck-collaborators__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ck-collaborators__state::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ck-color-text-muted);
+}
+
+.ck-collaborators__state_connected::before {
+  background: var(--ck-color-success);
+}
+
+.ck-collaborators__state_offline::before {
+  background: var(--ck-color-warning);
+}
+
+.ck-collaborators__state_denied::before {
+  background: var(--ck-color-base-error);
+}
+
+.ck-collaborators__avatars {
+  display: inline-flex;
+  padding-left: 8px;
+}
+
+.ck-collaborators__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: -8px;
+  border: 2px solid var(--ck-color-base-background);
+  border-radius: 50%;
+  background: var(--ck-user-color);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.ck-user-color-0 { --ck-user-color: #0e7490; }
+.ck-user-color-1 { --ck-user-color: #b45309; }
+.ck-user-color-2 { --ck-user-color: #6d28d9; }
+.ck-user-color-3 { --ck-user-color: #be185d; }
+.ck-user-color-4 { --ck-user-color: #15803d; }
+.ck-user-color-5 { --ck-user-color: #1d4ed8; }
+.ck-user-color-6 { --ck-user-color: #c2410c; }
+.ck-user-color-7 { --ck-user-color: #4f46e5; }
+
+.ck.ck-editor__editable .ck-user-selection {
+  background: color-mix(in srgb, var(--ck-user-color) 22%, transparent);
+}
+
+.ck.ck-editor__editable .ck-user-caret {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: 1.1em;
+  margin-left: -1px;
+  border-left: 2px solid var(--ck-user-color);
+  vertical-align: text-bottom;
+  pointer-events: none;
+}
+
+.ck.ck-editor__editable .ck-user-caret__name {
+  position: absolute;
+  top: -1.5em;
+  left: -2px;
+  padding: 1px 6px;
+  border-radius: 4px 4px 4px 0;
+  background: var(--ck-user-color);
+  color: #fff;
+  font: 500 11px/1.4 var(--ck-font-face);
+  white-space: nowrap;
+  user-select: none;
 }
 
 /* ---------- Dialogs (Font…) ---------- */
@@ -1508,9 +1914,9 @@ aveon-editor {
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: hsla(220, 25%, 10%, 0.35);
+  background: rgba(16, 24, 40, 0.4);
   font-family: var(--ck-font-face);
-  font-size: 14px;
+  font-size: var(--ck-font-size-base);
   color: var(--ck-color-base-text);
 }
 
@@ -1518,15 +1924,16 @@ aveon-editor {
   width: min(460px, 100%);
   max-height: 100%;
   overflow: auto;
-  padding: 20px 22px;
-  border-radius: 10px;
+  padding: 20px 24px 24px;
+  border: 1px solid var(--ck-color-base-border);
+  border-radius: var(--ck-panel-radius);
   background: var(--ck-color-base-background);
-  box-shadow: 0 12px 40px hsla(220, 30%, 10%, 0.3);
+  box-shadow: 0 12px 32px var(--ck-color-shadow-drop-active), 0 1px 2px var(--ck-color-shadow-inner);
 }
 
 .ck.ck-dialog-overlay .ck-dialog__title {
-  margin: 0 0 14px;
-  font-size: 17px;
+  margin: 0 0 16px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -1547,17 +1954,25 @@ aveon-editor {
 .ck.ck-dialog-overlay .ck-dialog__section-label,
 .ck.ck-dialog-overlay legend {
   font-size: 12px;
-  font-weight: 600;
-  color: hsl(220, 9%, 40%);
+  font-weight: 500;
+  color: var(--ck-color-base-text);
 }
 
 .ck.ck-dialog-overlay .ck-dialog__input {
   font: inherit;
-  padding: 6px 8px;
+  box-sizing: border-box;
+  height: var(--ck-tile-size);
+  padding: 0 12px;
   border: 1px solid var(--ck-color-base-border);
-  border-radius: 6px;
+  border-radius: var(--ck-tile-radius);
   background: var(--ck-color-base-background);
   color: inherit;
+}
+
+.ck.ck-dialog-overlay .ck-dialog__input:focus-visible {
+  outline: 2px solid var(--ck-color-accent);
+  outline-offset: -1px;
+  border-color: var(--ck-color-accent);
 }
 
 .ck.ck-dialog-overlay .ck-dialog__inline {
@@ -1567,11 +1982,11 @@ aveon-editor {
 }
 
 .ck.ck-dialog-overlay .ck-dialog__color {
-  width: 44px;
-  height: 30px;
-  padding: 2px;
+  width: 48px;
+  height: var(--ck-tile-size);
+  padding: 3px;
   border: 1px solid var(--ck-color-base-border);
-  border-radius: 6px;
+  border-radius: var(--ck-tile-radius);
   background: var(--ck-color-base-background);
 }
 
@@ -1604,23 +2019,26 @@ aveon-editor {
   padding: 8px;
   overflow: hidden;
   border: 1px solid var(--ck-color-base-border);
-  border-radius: 8px;
-  background: hsl(220, 14%, 98%);
+  border-radius: var(--ck-tile-radius);
+  background: var(--ck-color-ground);
 }
 
 .ck.ck-dialog-overlay .ck-dialog__actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 18px;
+  margin-top: 20px;
 }
 
+/* Dialog buttons are the same height as every tile; one primary action per dialog. */
 .ck.ck-dialog-overlay .ck-dialog__button {
   font: inherit;
-  min-width: 84px;
-  padding: 7px 14px;
+  font-weight: 500;
+  box-sizing: border-box;
+  height: var(--ck-tile-size);
+  padding: 0 16px;
   border: 1px solid var(--ck-color-base-border);
-  border-radius: 6px;
+  border-radius: var(--ck-tile-radius);
   background: var(--ck-color-base-background);
   color: inherit;
   cursor: pointer;
@@ -1631,18 +2049,20 @@ aveon-editor {
 }
 
 .ck.ck-dialog-overlay .ck-dialog__button_primary {
-  border-color: var(--ck-color-focus-border);
-  background: var(--ck-color-focus-border);
-  color: #fff;
+  font-weight: 600;
+  border-color: var(--ck-color-accent);
+  background: var(--ck-color-accent);
+  color: var(--ck-color-on-accent);
 }
 
 .ck.ck-dialog-overlay .ck-dialog__button_primary:hover {
-  background: hsl(218, 75%, 50%);
+  border-color: var(--ck-color-accent-hover);
+  background: var(--ck-color-accent-hover);
 }
 
 .ck.ck-dialog-overlay :focus-visible {
-  outline: 2px solid var(--ck-color-focus-border);
-  outline-offset: 1px;
+  outline: 2px solid var(--ck-color-accent);
+  outline-offset: 2px;
 }
 
 .ck-math-tex_loading {
@@ -2216,7 +2636,7 @@ aveon-editor {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: hsl(214, 72%, 42%);
+  background: var(--ck-color-accent);
   color: #fff;
   font-size: 9px;
   font-weight: 700;
@@ -2401,6 +2821,20 @@ html.ck-fullscreen-open body {
 }
 
 @media (max-width: 600px) {
+  /* Phone: thumb-sized tiles; the tab strip scrolls sideways. */
+  .ck.ck-ribbon.ck-ribbon_tiles {
+    --ck-tile-size: 44px;
+  }
+
+  .ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__bar {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .ck.ck-ribbon.ck-ribbon_tiles .ck-ribbon__panel {
+    padding: 8px;
+  }
+
   .ck.ck-ribbon .ck-ribbon__group {
     padding: 0 var(--ck-spacing-small);
   }
@@ -2449,28 +2883,30 @@ html.ck-fullscreen-open body {
 
 /* ---------- Buttons ---------- */
 
+/* One tile for every control: a --ck-tile-size square (or that height with text), no border. */
 .ck.ck-button,
 a.ck.ck-button {
   display: inline-flex;
   position: relative;
+  box-sizing: border-box;
   align-items: center;
-  justify-content: left;
+  justify-content: center;
   font-size: inherit;
   font-family: inherit;
   color: inherit;
   background: var(--ck-color-button-default-background);
-  border: 1px solid transparent;
-  border-radius: 0;
-  min-width: var(--ck-ui-component-min-height);
-  min-height: var(--ck-ui-component-min-height);
-  padding: var(--ck-spacing-tiny);
+  border: 0;
+  border-radius: var(--ck-tile-radius);
+  min-width: var(--ck-tile-size);
+  min-height: var(--ck-tile-size);
+  padding: 0;
   text-align: center;
-  cursor: default;
+  cursor: pointer;
   vertical-align: middle;
   -webkit-appearance: none;
   white-space: nowrap;
   line-height: 1;
-  transition: background-color 120ms ease, color 120ms ease, box-shadow 0.2s ease-in-out, border 0.2s ease-in-out;
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 0.2s ease-in-out;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -2479,14 +2915,19 @@ a.ck.ck-button {
 .ck.ck-button.ck-rounded-corners,
 .ck-rounded-corners a.ck.ck-button,
 a.ck.ck-button.ck-rounded-corners {
-  border-radius: var(--ck-border-radius);
+  border-radius: var(--ck-tile-radius);
 }
 
 .ck.ck-button:focus,
 a.ck.ck-button:focus {
   outline: none;
-  border: var(--ck-focus-ring);
-  box-shadow: var(--ck-focus-outer-shadow), 0 0;
+}
+
+.ck.ck-button:focus-visible,
+a.ck.ck-button:focus-visible {
+  outline: 2px solid var(--ck-color-accent);
+  outline-offset: 2px;
+  z-index: var(--ck-z-default);
 }
 
 .ck.ck-button .ck-button__icon use,
@@ -2552,21 +2993,27 @@ a.ck.ck-button.ck-disabled:active {
   box-shadow: var(--ck-focus-disabled-outer-shadow), 0 0;
 }
 
+.ck.ck-button.ck-disabled,
+a.ck.ck-button.ck-disabled {
+  cursor: default;
+}
+
 .ck.ck-button.ck-disabled .ck-button__icon,
 a.ck.ck-button.ck-disabled .ck-button__icon,
 .ck.ck-button.ck-disabled .ck-button__label,
 a.ck.ck-button.ck-disabled .ck-button__label {
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .ck.ck-button.ck-button_with-text,
 a.ck.ck-button.ck-button_with-text {
-  padding: var(--ck-spacing-tiny) var(--ck-spacing-standard);
+  justify-content: flex-start;
+  padding: 0 var(--ck-spacing-standard);
 }
 
 .ck.ck-button.ck-button_with-text .ck-button__icon,
 a.ck.ck-button.ck-button_with-text .ck-button__icon {
-  margin-left: calc(-1 * var(--ck-spacing-small));
+  margin-left: calc(-1 * var(--ck-spacing-tiny));
   margin-right: var(--ck-spacing-small);
 }
 
@@ -2574,6 +3021,20 @@ a.ck.ck-button.ck-button_with-text .ck-button__icon {
 a.ck.ck-button.ck-on {
   background: var(--ck-color-button-on-background);
   color: var(--ck-color-button-on-color);
+}
+
+/* A toggled icon tile carries a short accent bar under its icon. */
+.ck.ck-button.ck-on:not(.ck-button_with-text):not(.ck-color-grid__tile):not(.ck-insert-table-dropdown-grid-box):not(.ck-ribbon__tab):not(.ck-ribbon__collapse):not(.ck-splitbutton__arrow):not(.ck-switchbutton)::after,
+a.ck.ck-button.ck-on:not(.ck-button_with-text)::after {
+  content: '';
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  pointer-events: none;
 }
 
 .ck.ck-button.ck-on:not(.ck-disabled):hover,
@@ -2629,8 +3090,8 @@ a.ck.ck-button .ck-icon {
 }
 
 .ck.ck-icon {
-  width: 20px;
-  height: 20px;
+  width: var(--ck-icon-size, 20px);
+  height: var(--ck-icon-size, 20px);
   vertical-align: middle;
   cursor: inherit;
   will-change: transform;
@@ -2706,23 +3167,27 @@ a.ck.ck-button .ck-icon {
   border-bottom-left-radius: 0;
 }
 
+/* A split control: one tile plus a 16px handle, sharing the tile's corners. */
 .ck.ck-splitbutton > .ck-splitbutton__arrow {
-  min-width: calc(var(--ck-ui-component-min-height) * 0.7);
+  width: 16px;
+  min-width: 16px;
   padding-left: 0;
   padding-right: 0;
 }
 
 .ck.ck-splitbutton > .ck-splitbutton__arrow svg {
-  width: calc(var(--ck-icon-size, 20px) * 0.6);
+  width: 12px;
+  height: 12px;
 }
 
 .ck.ck-splitbutton > .ck-splitbutton__arrow::after {
   content: '';
   position: absolute;
   width: 1px;
-  height: 100%;
+  top: 7px;
+  bottom: 7px;
   background-color: var(--ck-color-base-border);
-  left: -1px;
+  left: 0;
 }
 
 .ck.ck-splitbutton:hover > .ck-splitbutton__arrow::after,
@@ -2745,8 +3210,10 @@ a.ck.ck-button .ck-icon {
 .ck.ck-dropdown .ck-dropdown__arrow {
   pointer-events: none;
   z-index: var(--ck-z-default);
-  width: calc(var(--ck-icon-size, 20px) * 0.5);
-  margin-left: var(--ck-spacing-standard);
+  width: 12px;
+  height: 12px;
+  margin-left: var(--ck-spacing-small);
+  color: var(--ck-color-text-muted);
 }
 
 .ck.ck-dropdown .ck-button.ck-dropdown__button .ck-button__label {
@@ -2755,13 +3222,22 @@ a.ck.ck-button .ck-icon {
   text-overflow: ellipsis;
 }
 
-.ck.ck-dropdown .ck-button.ck-dropdown__button:not(.ck-button_with-text) {
-  padding-left: var(--ck-spacing-small);
+/* An icon-only menu button stays one tile: the arrow becomes a small caret in its corner. */
+.ck.ck-dropdown .ck-button.ck-dropdown__button:not(.ck-button_with-text) .ck-dropdown__arrow {
+  display: none;
 }
 
-.ck.ck-dropdown .ck-button.ck-dropdown__button.ck-on {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+.ck.ck-dropdown .ck-button.ck-dropdown__button:not(.ck-button_with-text)::before {
+  content: '';
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-bottom: 5px solid currentColor;
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .ck.ck-dropdown .ck-dropdown__panel {
@@ -2770,16 +3246,18 @@ a.ck.ck-button .ck-icon {
   z-index: var(--ck-z-panel);
   position: absolute;
   min-width: 100%;
+  margin-top: 4px;
   background: var(--ck-color-dropdown-panel-background);
   border: 1px solid var(--ck-color-dropdown-panel-border);
+  border-radius: var(--ck-panel-radius);
   bottom: auto;
   box-shadow: var(--ck-drop-shadow), 0 0;
+  overflow: hidden;
 }
 
 .ck-rounded-corners .ck.ck-dropdown .ck-dropdown__panel,
 .ck.ck-dropdown .ck-dropdown__panel.ck-rounded-corners {
-  border-radius: var(--ck-border-radius);
-  border-top-left-radius: 0;
+  border-radius: var(--ck-panel-radius);
 }
 
 .ck.ck-dropdown .ck-dropdown__panel.ck-dropdown__panel-visible {
@@ -2792,6 +3270,8 @@ a.ck.ck-button .ck-icon {
 .ck.ck-dropdown .ck-dropdown__panel.ck-dropdown__panel_nme,
 .ck.ck-dropdown .ck-dropdown__panel.ck-dropdown__panel_nmw {
   bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
 }
 
 .ck.ck-dropdown .ck-dropdown__panel.ck-dropdown__panel_se,
@@ -2855,6 +3335,7 @@ a.ck.ck-button .ck-icon {
 
 /* ---------- List ---------- */
 
+/* Menu rows are tiles too: --ck-tile-size tall, rounded, 2px apart inside a 6px padded panel. */
 .ck.ck-list {
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -2862,9 +3343,10 @@ a.ck.ck-button .ck-icon {
   user-select: none;
   display: flex;
   flex-direction: column;
+  gap: var(--ck-tile-gap);
   list-style-type: none;
   background: var(--ck-color-list-background);
-  padding: 0;
+  padding: 6px;
   margin: 0;
 }
 
@@ -2875,15 +3357,16 @@ a.ck.ck-button .ck-icon {
 }
 
 .ck.ck-list .ck-list__item > .ck-button {
-  min-height: unset;
+  min-height: var(--ck-tile-size);
   width: 100%;
+  justify-content: flex-start;
   text-align: left;
-  border-radius: 0;
-  padding: calc(0.2 * var(--ck-line-height-base) * var(--ck-font-size-base)) calc(0.4 * var(--ck-line-height-base) * var(--ck-font-size-base));
+  border-radius: var(--ck-tile-radius);
+  padding: 0 10px;
 }
 
 .ck.ck-list .ck-list__item > .ck-button .ck-button__label {
-  line-height: calc(1.2 * var(--ck-line-height-base) * var(--ck-font-size-base));
+  line-height: 1.3;
 }
 
 .ck.ck-list .ck-list__item > .ck-button:active {
@@ -2903,8 +3386,8 @@ a.ck.ck-button .ck-icon {
   background: var(--ck-color-list-button-hover-background);
 }
 
-.ck.ck-list .ck-list__item > .ck-button:focus:not(.ck-switchbutton):not(.ck-disabled) {
-  border-color: var(--ck-color-base-background);
+.ck.ck-list .ck-list__item > .ck-button:focus-visible:not(.ck-disabled) {
+  outline-offset: -2px;
 }
 
 .ck.ck-list .ck-list__item > .ck-switchbutton.ck-on {
@@ -2919,7 +3402,8 @@ a.ck.ck-button .ck-icon {
 
 .ck.ck-list .ck-list__separator {
   height: 1px;
-  width: 100%;
+  width: auto;
+  margin: 4px 6px;
   background: var(--ck-color-base-border);
 }
 
@@ -2938,7 +3422,14 @@ a.ck.ck-button .ck-icon {
 
 .ck-rounded-corners .ck.ck-balloon-panel,
 .ck.ck-balloon-panel.ck-rounded-corners {
-  border-radius: var(--ck-border-radius);
+  border-radius: var(--ck-panel-radius);
+}
+
+/* A balloon toolbar is a row of tiles with the panel's 6px inset. */
+.ck.ck-balloon-panel > .ck-toolbar {
+  border: 0;
+  padding: 6px;
+  background: transparent;
 }
 
 .ck.ck-balloon-panel.ck-balloon-panel_visible {
@@ -3060,15 +3551,16 @@ a.ck.ck-button .ck-icon {
   --ck-balloon-arrow-half-width: var(--ck-tooltip-arrow-size);
   --ck-balloon-arrow-height: var(--ck-tooltip-arrow-size);
   --ck-color-panel-background: var(--ck-color-tooltip-background);
-  padding: 0 var(--ck-spacing-medium);
+  padding: 2px 8px;
+  border-radius: 6px;
   pointer-events: none;
   z-index: calc(var(--ck-z-dialog) + 100);
   box-shadow: none;
 }
 
 .ck.ck-balloon-panel.ck-tooltip .ck-tooltip__text {
-  font-size: 0.9em;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--ck-color-tooltip-text);
   white-space: nowrap;
 }
@@ -3344,8 +3836,8 @@ a.ck.ck-button .ck-icon {
 
 .ck.ck-color-grid {
   display: grid;
-  grid-gap: 5px;
-  padding: 8px;
+  grid-gap: 6px;
+  padding: 12px;
 }
 
 .ck.ck-color-grid__tile {
@@ -3354,6 +3846,7 @@ a.ck.ck-button .ck-icon {
   min-width: 24px;
   min-height: 24px;
   padding: 0;
+  border-radius: 6px;
   transition: box-shadow 0.2s ease;
   border: 0;
 }
@@ -3373,7 +3866,7 @@ a.ck.ck-button .ck-icon {
 }
 
 .ck.ck-color-grid__tile.ck-on {
-  box-shadow: inset 0 0 0 1px var(--ck-color-base-background), 0 0 0 2px var(--ck-color-base-text);
+  box-shadow: 0 0 0 2px var(--ck-color-base-background), 0 0 0 4px var(--ck-color-accent);
 }
 
 .ck.ck-color-grid__tile.ck-on .ck.ck-icon {
@@ -3386,20 +3879,17 @@ a.ck.ck-button .ck-icon {
   z-index: 1;
 }
 
-.ck.ck-color-grid__tile:focus:not(.ck-disabled),
+.ck.ck-color-grid__tile:focus-visible:not(.ck-disabled),
 .ck.ck-color-grid__tile:hover:not(.ck-disabled) {
-  box-shadow: inset 0 0 0 1px var(--ck-color-base-background), 0 0 0 2px var(--ck-color-focus-border);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ck-color-base-background), 0 0 0 4px var(--ck-color-focus-border);
 }
 
 .ck.ck-color-selector .ck-color-selector__remove-color {
-  width: 100%;
-  border-radius: 0;
-  padding: calc(var(--ck-spacing-standard) / 2) var(--ck-spacing-standard);
-  border-bottom: 1px solid var(--ck-color-base-border);
-}
-
-.ck.ck-color-selector .ck-color-selector__remove-color:not(:focus) {
-  border-bottom: 1px solid var(--ck-color-base-border);
+  width: calc(100% - 12px);
+  margin: 6px 6px 0;
+  justify-content: flex-start;
+  padding: 0 10px;
 }
 
 /* ---------- Table insert grid ---------- */
@@ -3408,21 +3898,23 @@ a.ck.ck-button .ck-icon {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  width: calc(var(--ck-insert-table-dropdown-box-width, 11px) * 10 + var(--ck-insert-table-dropdown-box-margin, 1px) * 20 + var(--ck-insert-table-dropdown-padding, 10px) * 2);
-  padding: var(--ck-insert-table-dropdown-padding, 10px) var(--ck-insert-table-dropdown-padding, 10px) 0;
+  width: calc(var(--ck-insert-table-dropdown-box-width, 14px) * 10 + var(--ck-insert-table-dropdown-box-margin, 2px) * 20 + var(--ck-insert-table-dropdown-padding, 12px) * 2);
+  padding: var(--ck-insert-table-dropdown-padding, 12px) var(--ck-insert-table-dropdown-padding, 12px) 0;
 }
 
 .ck .ck-insert-table-dropdown__label {
   text-align: center;
-  padding: var(--ck-spacing-small) 0;
+  padding: var(--ck-spacing-small) 0 var(--ck-spacing-medium);
+  font-size: var(--ck-font-size-small);
+  color: var(--ck-color-text-muted);
 }
 
 .ck .ck-insert-table-dropdown-grid-box {
-  width: var(--ck-insert-table-dropdown-box-width, 11px);
-  height: var(--ck-insert-table-dropdown-box-height, 11px);
-  margin: var(--ck-insert-table-dropdown-box-margin, 1px);
+  width: var(--ck-insert-table-dropdown-box-width, 14px);
+  height: var(--ck-insert-table-dropdown-box-height, 14px);
+  margin: var(--ck-insert-table-dropdown-box-margin, 2px);
   border: 1px solid var(--ck-color-base-border);
-  border-radius: 1px;
+  border-radius: 3px;
   min-width: auto;
   min-height: auto;
   padding: 0;
@@ -3430,8 +3922,8 @@ a.ck.ck-button .ck-icon {
 }
 
 .ck .ck-insert-table-dropdown-grid-box.ck-on {
-  border-color: var(--ck-color-focus-border);
-  background: var(--ck-color-focus-outer-shadow);
+  border-color: var(--ck-color-accent);
+  background: var(--ck-color-accent-tint);
 }
 
 /* ---------- Source editing ---------- */

@@ -4,6 +4,7 @@ import {
   ElementRef,
   EventEmitter,
   forwardRef,
+  HostBinding,
   Input,
   NgZone,
   OnDestroy,
@@ -74,6 +75,9 @@ export class AveonEditorComponent implements AfterViewInit, OnDestroy, ControlVa
 
   /** Tag name of the element the editor is created on. */
   @Input() public tagName = 'div';
+
+  /** Colour theme of the editor (`'light'` or `'dark'`), applied as `data-theme` on the host. */
+  @Input() @HostBinding('attr.data-theme') public theme?: 'light' | 'dark';
 
   /** Disables the editor (read-only mode). Also controlled through forms' disabled state. */
   @Input() public set disabled(value: boolean) {
