@@ -1,6 +1,6 @@
 {
   "name": "@aveon/api-connect",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Aveon API Connect: tenant-aware uploads, documents, editor hosting and co-editing for every client of Aveon Editor.",
   "type": "module",
   "main": "./src/index.js",

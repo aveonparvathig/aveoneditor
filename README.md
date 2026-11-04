@@ -402,7 +402,7 @@ ACME_JWT_SECRET=… npm run api:connect
   "port": 8080,
   "dataDir": "./api-data",
   "publicUrl": "https://api.example.com",
-  "editorDir": "./release/0.1.0/editor",
+  "editorDir": "./release/0.1.1/editor",
   "collaboration": { "dataDir": "./collab-data" },
   "tenants": {
     "acme": { "secretEnv": "ACME_JWT_SECRET", "origins": ["https://cms.acme.com"] },
@@ -455,11 +455,11 @@ npm run release
 builds `release/<version>/`: the editor files for the central host with `integrity.json` and a ready-to-paste `snippet.html` (SHA-384 integrity attributes), npm packages for a private registry, `SHA256SUMS`, and `aveon-offline-v<version>.zip` for air-gapped clients.
 
 ```bash
-docker build -f deploy/docker/api-connect.Dockerfile -t aveon/api-connect:0.1.0 .
+docker build -f deploy/docker/api-connect.Dockerfile -t aveon/api-connect:0.1.1 .
 ```
 
 ```bash
-docker build -f deploy/docker/collab-server.Dockerfile -t aveon/collab-server:0.1.0 .
+docker build -f deploy/docker/collab-server.Dockerfile -t aveon/collab-server:0.1.1 .
 ```
 
 Both images run as a non-root user and have health checks. `deploy/helm/aveon` installs both on Kubernetes or OpenShift behind one host: API Connect at `/` (editor files, uploads, documents) and co-editing at `/collab`, with the ingress hashing on `?doc=` and long WebSocket timeouts. Tenants and their secrets go in the chart's values (or an existing Secret); more than one co-editing pod requires `collab.database`.

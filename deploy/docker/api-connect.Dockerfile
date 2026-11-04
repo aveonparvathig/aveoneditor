@@ -1,7 +1,7 @@
 # Aveon API Connect, serving the editor files of this version as well.
-#   docker build -f deploy/docker/api-connect.Dockerfile -t aveon/api-connect:0.1.0 .
+#   docker build -f deploy/docker/api-connect.Dockerfile -t aveon/api-connect:0.1.1 .
 #   docker run -p 8080:8080 -v ./api-connect.config.json:/config/api-connect.config.json:ro \
-#     -v aveon-api-data:/data -e ACME_JWT_SECRET=… aveon/api-connect:0.1.0
+#     -v aveon-api-data:/data -e ACME_JWT_SECRET=… aveon/api-connect:0.1.1
 # In the config, use "dataDir": "/data" and "editorDir": "/app/editor".
 
 # 1. The editor's standalone build, from source.

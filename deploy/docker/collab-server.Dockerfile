@@ -1,6 +1,6 @@
 # Aveon collaboration server.
-#   docker build -f deploy/docker/collab-server.Dockerfile -t aveon/collab-server:0.1.0 .
-#   docker run -p 1234:1234 -e AVEON_COLLAB_WORKERS=4 -e AVEON_COLLAB_POSTGRES=postgres://… aveon/collab-server:0.1.0
+#   docker build -f deploy/docker/collab-server.Dockerfile -t aveon/collab-server:0.1.1 .
+#   docker run -p 1234:1234 -e AVEON_COLLAB_WORKERS=4 -e AVEON_COLLAB_POSTGRES=postgres://… aveon/collab-server:0.1.1
 # Storage comes from the environment: AVEON_COLLAB_POSTGRES, AVEON_COLLAB_MSSQL, AVEON_COLLAB_MYSQL,
 # or AVEON_COLLAB_DATA (a mounted folder; one container only). Nothing set = memory only.
 FROM node:22-alpine AS build

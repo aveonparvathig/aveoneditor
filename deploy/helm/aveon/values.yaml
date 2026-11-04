@@ -10,7 +10,7 @@ ingress:
 apiConnect:
   image:
     repository: aveon/api-connect
-    tag: "0.1.0"
+    tag: "0.1.1"
     pullPolicy: IfNotPresent
   replicas: 1
   # Base of uploaded file links; default https://<host> (http:// without TLS).
@@ -42,7 +42,7 @@ collab:
   enabled: true
   image:
     repository: aveon/collab-server
-    tag: "0.1.0"
+    tag: "0.1.1"
     pullPolicy: IfNotPresent
   # Pods; each runs `workers` processes. More than one pod needs the database below.
   replicas: 1

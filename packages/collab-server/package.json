@@ -1,6 +1,6 @@
 {
   "name": "@aveon/collab-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Real-time collaboration server for Aveon Editor (WebSocket, central operation ordering, presence, comment sync).",
   "type": "module",
   "main": "./src/server.js",

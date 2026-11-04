@@ -1,6 +1,6 @@
 {
   "name": "@aveon/editor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Aveon Editor core: engine, UI and features. Framework agnostic.",
   "type": "module",
   "main": "./dist/aveon-editor.js",
